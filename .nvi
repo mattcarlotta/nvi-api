@@ -1,0 +1,5 @@
+[dev]
+debug = true
+files = ["development.env"]
+exec = "fresh"
+required = ["PORT"]

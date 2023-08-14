@@ -3,3 +3,10 @@ debug = true
 files = ["development.env"]
 exec = "fresh"
 required = ["PORT"]
+
+
+[migrate]
+debug = true
+files = ["development.env"]
+exec = "go run migrations/migrate.go"
+required = ["PORT"]

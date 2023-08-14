@@ -2,27 +2,30 @@ package main
 
 import (
 	"fmt"
-	"github.com/gorilla/mux"
 	"log"
 	"net/http"
 	"os"
+
+	"github.com/gorilla/handlers"
+	"github.com/gorilla/mux"
+	"github.com/mattcarlotta/nvi-api/controllers"
+	"github.com/mattcarlotta/nvi-api/database"
+	"github.com/mattcarlotta/nvi-api/utils"
 )
 
-func homePage(res http.ResponseWriter, req *http.Request) {
-	fmt.Fprint(res, "Home page endpoint\n")
+func LoggingMiddleware(next http.Handler) http.Handler {
+	return handlers.LoggingHandler(os.Stdout, next)
 }
 
 func main() {
+	database.ConnectDB()
 	router := mux.NewRouter().StrictSlash(true)
-	router.HandleFunc("/", homePage)
-	router.HandleFunc("/users", allUsers).Methods(http.MethodGet)
+	router.HandleFunc("/users", controllers.AllUsers).Methods(http.MethodGet)
+	router.HandleFunc("/create/user", controllers.CreateUser).Methods(http.MethodPost)
 	router.HandleFunc("/secrets", allSecrets).Methods(http.MethodGet)
+	router.Use(LoggingMiddleware)
 
-	PORT, ok := os.LookupEnv("PORT")
-	if !ok {
-		log.Fatal("The ENV 'PORT' must be defined!")
-	}
-
-	log.Printf("Listening for requests on port %s", PORT)
+	var PORT = utils.GetEnv("PORT")
+	fmt.Printf("🎧 Listening for requests on port %s", PORT)
 	log.Fatal(http.ListenAndServe(PORT, router))
 }

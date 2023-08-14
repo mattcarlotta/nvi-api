@@ -1,9 +1,11 @@
 package models
 
 import (
+	"time"
+
 	"github.com/google/uuid"
 	"golang.org/x/crypto/bcrypt"
-	"time"
+	"gorm.io/gorm"
 )
 
 type User struct {
@@ -15,10 +17,28 @@ type User struct {
 	UpdatedAt time.Time
 }
 
-func (user *User) setPassword(password string) {
-	pwd, err := bcrypt.GenerateFromPassword([]byte(password), bcrypt.DefaultCost)
-	if err != nil {
-		// TODO(carlotta): handle potential error
+type NewUser struct {
+	Name     string `json:"name"`
+	Email    string `json:"email"`
+	Password string `json:"password"`
+}
+
+// func (user *User) SetPassword(password string) {
+// 	pwd, err := bcrypt.GenerateFromPassword([]byte(password), bcrypt.DefaultCost)
+// 	if err != nil {
+// 		// TODO(carlotta): handle potential error
+// 	}
+// 	user.Password = pwd
+// }
+
+func (user *User) ComparePassword(password string) bool {
+	err := bcrypt.CompareHashAndPassword(user.Password, []byte(password))
+	return err == nil
+}
+
+func (user *User) BeforeSave(tx *gorm.DB) (err error) {
+	if pw, err := bcrypt.GenerateFromPassword(user.Password, 0); err == nil {
+		tx.Statement.SetColumn("Password", pw)
 	}
-	user.Password = pwd
+	return
 }

@@ -11,6 +11,7 @@ func init() {
 }
 
 func main() {
-	database.DB.AutoMigrate(&models.User{})
+	var DB = database.GetDB()
+	DB.AutoMigrate(&models.User{})
 	fmt.Println("? Migration complete")
 }

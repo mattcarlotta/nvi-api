@@ -11,12 +11,12 @@ import (
 )
 
 type User struct {
-	ID        uuid.UUID `gorm:"type:uuid;default:uuid_generate_v4();primary_key"`
-	Name      string    `gorm:"type:varchar(255);not null"`
-	Email     string    `gorm:"type:varchar(100);uniqueIndex;not null"`
-	Password  []byte
-	CreatedAt time.Time
-	UpdatedAt time.Time
+	ID        uuid.UUID `gorm:"type:uuid;default:uuid_generate_v4();primary_key" json:"id"`
+	Name      string    `gorm:"type:varchar(255);not null" json:"name"`
+	Email     string    `gorm:"type:varchar(100);uniqueIndex;not null" json:"email"`
+	Password  []byte    `gorm:"not null" json:"password"`
+	CreatedAt time.Time `json:"createdAt"`
+	UpdatedAt time.Time `json:"updatedAt"`
 }
 
 func (user *User) MatchPassword(password string) bool {

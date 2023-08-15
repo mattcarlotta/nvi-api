@@ -6,12 +6,9 @@ import (
 	"github.com/mattcarlotta/nvi-api/models"
 )
 
-func init() {
-	database.ConnectDB()
-}
-
 func main() {
-	var DB = database.GetDB()
-	DB.AutoMigrate(&models.User{})
-	fmt.Println("? Migration complete")
+	var db = database.GetDB()
+	db.AutoMigrate(&models.User{})
+	db.AutoMigrate(&models.Environment{})
+	fmt.Println("🎉 Migration complete")
 }

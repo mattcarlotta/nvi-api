@@ -21,20 +21,20 @@ func CreateUser(res http.ResponseWriter, req *http.Request) {
 	var db = database.GetDB()
 
 	var newUser ReqUser
-	body, error := io.ReadAll(req.Body)
-	if error != nil || len(body) == 0 {
+	body, err := io.ReadAll(req.Body)
+	if err != nil || len(body) == 0 {
 		utils.SendErrorResponse(res, http.StatusBadRequest, "You must provide a valid name, email and password!")
 		return
 	}
 
-	err := json.Unmarshal(body, &newUser)
+	err = json.Unmarshal(body, &newUser)
 	if err != nil {
-		utils.SendErrorResponse(res, http.StatusBadRequest, fmt.Sprint(err))
+		utils.SendErrorResponse(res, http.StatusBadRequest, err.Error())
 		return
 	}
 
 	var user models.User
-	if err := db.Where("email= ?", &newUser.Email).First(&user).Error; err == nil {
+	if err := db.Where("email=?", &newUser.Email).First(&user).Error; err == nil {
 		utils.SendErrorResponse(
 			res,
 			http.StatusOK,
@@ -49,7 +49,7 @@ func CreateUser(res http.ResponseWriter, req *http.Request) {
 
 	err = db.Create(&user).Error
 	if err != nil {
-		utils.SendErrorResponse(res, http.StatusInternalServerError, fmt.Sprint(err))
+		utils.SendErrorResponse(res, http.StatusInternalServerError, err.Error())
 		return
 	}
 
@@ -60,21 +60,21 @@ func CreateUser(res http.ResponseWriter, req *http.Request) {
 
 func Login(res http.ResponseWriter, req *http.Request) {
 	var db = database.GetDB()
-	body, error := io.ReadAll(req.Body)
-	if error != nil || len(body) == 0 {
+	body, err := io.ReadAll(req.Body)
+	if err != nil || len(body) == 0 {
 		utils.SendErrorResponse(res, http.StatusBadRequest, "You must provide a valid email and password!")
 		return
 	}
 
 	var unauthedUser ReqUser
-	err := json.Unmarshal(body, &unauthedUser)
+	err = json.Unmarshal(body, &unauthedUser)
 	if err != nil {
-		utils.SendErrorResponse(res, http.StatusBadRequest, fmt.Sprint(err))
+		utils.SendErrorResponse(res, http.StatusBadRequest, err.Error())
 		return
 	}
 
 	var existingUser models.User
-	if err = db.Where("email= ?", &unauthedUser.Email).First(&existingUser).Error; err != nil {
+	if err = db.Where("email=?", &unauthedUser.Email).First(&existingUser).Error; err != nil {
 		utils.SendErrorResponse(
 			res,
 			http.StatusOK,
@@ -94,7 +94,7 @@ func Login(res http.ResponseWriter, req *http.Request) {
 
 	exp, token, err := existingUser.GenerateSessionToken()
 	if err != nil {
-		utils.SendErrorResponse(res, http.StatusInternalServerError, fmt.Sprint(err))
+		utils.SendErrorResponse(res, http.StatusInternalServerError, err.Error())
 		return
 	}
 

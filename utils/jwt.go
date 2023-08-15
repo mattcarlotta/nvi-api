@@ -2,8 +2,6 @@ package utils
 
 import (
 	"errors"
-	"fmt"
-	"strings"
 	"time"
 
 	"github.com/golang-jwt/jwt"
@@ -14,15 +12,13 @@ var JWT_SECRET_KEY = []byte(GetEnv("JWT_SECRET_KEY"))
 type JWTSessionClaim struct {
 	Email  string `json:"email"`
 	Name   string `json:"name"`
-	UserId string `json:"user_id"`
+	UserId string `json:"userId"`
 	jwt.StandardClaims
 }
 
-func ValidateSessionToken(bearerToken string) (*jwt.Token, error) {
-	tokenString := strings.Split(bearerToken, " ")[1]
-
+func ValidateSessionToken(jwtCookie string) (*JWTSessionClaim, error) {
 	token, err := jwt.ParseWithClaims(
-		tokenString,
+		jwtCookie,
 		&JWTSessionClaim{},
 		func(_ *jwt.Token) (interface{}, error) {
 			return JWT_SECRET_KEY, nil
@@ -40,5 +36,5 @@ func ValidateSessionToken(bearerToken string) (*jwt.Token, error) {
 		return nil, errors.New("Session expired.")
 	}
 
-	return token, nil
+	return claims, nil
 }

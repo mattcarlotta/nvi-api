@@ -20,7 +20,7 @@ func LoggingMiddleware(next http.Handler) http.Handler {
 func main() {
 	database.ConnectDB()
 	router := mux.NewRouter().StrictSlash(true)
-	router.HandleFunc("/users", controllers.AllUsers).Methods(http.MethodGet)
+	router.HandleFunc("/login", controllers.Login).Methods(http.MethodPost)
 	router.HandleFunc("/create/user", controllers.CreateUser).Methods(http.MethodPost)
 	router.HandleFunc("/secrets", allSecrets).Methods(http.MethodGet)
 	router.Use(LoggingMiddleware)

@@ -3,6 +3,7 @@ package controllers
 import (
 	"encoding/json"
 	"fmt"
+	"io"
 	"net/http"
 
 	"github.com/mattcarlotta/nvi-api/database"
@@ -10,25 +11,30 @@ import (
 	"github.com/mattcarlotta/nvi-api/utils"
 )
 
-func AllUsers(res http.ResponseWriter, req *http.Request) {
-	fmt.Fprint(res, "All users endpoint\n")
+type ReqUser struct {
+	Name     string `json:"name"`
+	Email    string `json:"email"`
+	Password string `json:"password"`
 }
 
 func CreateUser(res http.ResponseWriter, req *http.Request) {
-	if req.Body == nil {
-		utils.SendErrorResponse(res, http.StatusBadRequest, "You must send a valid name, email and password!")
+	var db = database.GetDB()
+
+	var newUser ReqUser
+	body, error := io.ReadAll(req.Body)
+	if error != nil || len(body) == 0 {
+		utils.SendErrorResponse(res, http.StatusBadRequest, "You must provide a valid name, email and password!")
 		return
 	}
 
-	var newUser models.NewUser
-	err := json.NewDecoder(req.Body).Decode(&newUser)
+	err := json.Unmarshal(body, &newUser)
 	if err != nil {
 		utils.SendErrorResponse(res, http.StatusBadRequest, fmt.Sprint(err))
 		return
 	}
 
 	var user models.User
-	if err := database.DB.Where("email= ?", &newUser.Email).First(&user).Error; err == nil {
+	if err := db.Where("email= ?", &newUser.Email).First(&user).Error; err == nil {
 		utils.SendErrorResponse(
 			res,
 			http.StatusOK,
@@ -41,7 +47,7 @@ func CreateUser(res http.ResponseWriter, req *http.Request) {
 	user.Name = newUser.Name
 	user.Password = []byte(newUser.Password)
 
-	err = database.DB.Create(&user).Error
+	err = db.Create(&user).Error
 	if err != nil {
 		utils.SendErrorResponse(res, http.StatusInternalServerError, fmt.Sprint(err))
 		return
@@ -50,4 +56,42 @@ func CreateUser(res http.ResponseWriter, req *http.Request) {
 	res.Header().Set("Content-Type", "text/plain")
 	res.WriteHeader(http.StatusCreated)
 	fmt.Fprintf(res, "Successfully registered %s. Welcome, %s!", user.Email, user.Name)
+}
+
+func Login(res http.ResponseWriter, req *http.Request) {
+	var db = database.GetDB()
+	body, error := io.ReadAll(req.Body)
+	if error != nil || len(body) == 0 {
+		utils.SendErrorResponse(res, http.StatusBadRequest, "You must provide a valid email and password!")
+		return
+	}
+
+	var unauthedUser ReqUser
+	err := json.Unmarshal(body, &unauthedUser)
+	if err != nil {
+		utils.SendErrorResponse(res, http.StatusBadRequest, fmt.Sprint(err))
+		return
+	}
+
+	var existingUser models.User
+	if err = db.Where("email= ?", &unauthedUser.Email).First(&existingUser).Error; err != nil {
+		utils.SendErrorResponse(
+			res,
+			http.StatusOK,
+			fmt.Sprintf("The provided email '%s' may not exist or the provided password is incorrect!", unauthedUser.Email),
+		)
+		return
+	}
+
+	if !existingUser.MatchPassword(unauthedUser.Password) {
+		utils.SendErrorResponse(
+			res,
+			http.StatusOK,
+			fmt.Sprintf("The provided email '%s' may not exist or the provided password is incorrect!", unauthedUser.Email),
+		)
+		return
+	}
+
+	res.WriteHeader(http.StatusAccepted)
+	res.Write(nil)
 }

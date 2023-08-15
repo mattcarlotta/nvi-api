@@ -17,11 +17,11 @@ type User struct {
 	UpdatedAt time.Time
 }
 
-type NewUser struct {
-	Name     string `json:"name"`
-	Email    string `json:"email"`
-	Password string `json:"password"`
-}
+// type NewUser struct {
+// 	Name     string `json:"name"`
+// 	Email    string `json:"email"`
+// 	Password string `json:"password"`
+// }
 
 // func (user *User) SetPassword(password string) {
 // 	pwd, err := bcrypt.GenerateFromPassword([]byte(password), bcrypt.DefaultCost)
@@ -31,7 +31,7 @@ type NewUser struct {
 // 	user.Password = pwd
 // }
 
-func (user *User) ComparePassword(password string) bool {
+func (user *User) MatchPassword(password string) bool {
 	err := bcrypt.CompareHashAndPassword(user.Password, []byte(password))
 	return err == nil
 }

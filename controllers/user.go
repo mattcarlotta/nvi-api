@@ -55,7 +55,7 @@ func CreateUser(res http.ResponseWriter, req *http.Request) {
 
 	res.Header().Set("Content-Type", "text/plain")
 	res.WriteHeader(http.StatusCreated)
-	fmt.Fprintf(res, "Successfully registered %s. Welcome, %s!", user.Email, user.Name)
+	res.Write([]byte(fmt.Sprintf("Successfully registered %s. Welcome, %s!", user.Email, user.Name)))
 }
 
 func Login(res http.ResponseWriter, req *http.Request) {
@@ -91,6 +91,21 @@ func Login(res http.ResponseWriter, req *http.Request) {
 		)
 		return
 	}
+
+	exp, token, err := existingUser.GenerateSessionToken()
+	if err != nil {
+		utils.SendErrorResponse(res, http.StatusInternalServerError, fmt.Sprint(err))
+		return
+	}
+
+	cookie := http.Cookie{
+		Name:    "SESSION_TOKEN",
+		Value:   token,
+		Expires: exp,
+		Path:    "/",
+	}
+
+	http.SetCookie(res, &cookie)
 
 	res.WriteHeader(http.StatusAccepted)
 	res.Write(nil)

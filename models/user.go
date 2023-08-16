@@ -24,7 +24,7 @@ func (user *User) MatchPassword(password string) bool {
 	return err == nil
 }
 
-func (user *User) GenerateSessionToken() (time.Time, string, error) {
+func (user *User) GenerateSessionToken() (string, time.Time, error) {
 	exp := time.Now().Add(time.Hour * 24 * 30)
 	claims := &utils.JWTSessionClaim{
 		Email:  user.Email,
@@ -36,7 +36,7 @@ func (user *User) GenerateSessionToken() (time.Time, string, error) {
 	}
 	token := jwt.NewWithClaims(jwt.SigningMethodHS256, claims)
 	tokenString, err := token.SignedString(utils.JWT_SECRET_KEY)
-	return exp, tokenString, err
+	return tokenString, exp, err
 }
 
 func (user *User) BeforeSave(tx *gorm.DB) (err error) {

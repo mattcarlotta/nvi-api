@@ -87,12 +87,12 @@ func Login(res http.ResponseWriter, req *http.Request) {
 		utils.SendErrorResponse(
 			res,
 			http.StatusOK,
-			fmt.Sprintf("The provided email '%s' may not exist or the provided password is incorrect!", unauthedUser.Email),
+			fmt.Sprintf("The provided email '%s' may not exist or the provided lassword is incorrect!", unauthedUser.Email),
 		)
 		return
 	}
 
-	exp, token, err := existingUser.GenerateSessionToken()
+	token, exp, err := existingUser.GenerateSessionToken()
 	if err != nil {
 		utils.SendErrorResponse(res, http.StatusInternalServerError, err.Error())
 		return

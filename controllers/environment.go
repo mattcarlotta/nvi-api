@@ -40,10 +40,8 @@ func CreateEnvironment(res http.ResponseWriter, req *http.Request) {
 		return
 	}
 
-	environment.Name = envName
-	environment.UserId = uuid.MustParse(userSessionId)
-
-	var err = db.Create(&environment).Error
+	newEnvironment := models.Environment{Name: envName, UserId: uuid.MustParse(userSessionId)}
+	var err = db.Model(&environment).Create(&newEnvironment).Error
 	if err != nil {
 		utils.SendErrorResponse(res, http.StatusInternalServerError, err.Error())
 		return

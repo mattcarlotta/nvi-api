@@ -20,7 +20,7 @@ type ReqUser struct {
 func Register(res http.ResponseWriter, req *http.Request) {
 	var db = database.GetDB()
 
-	var newUser ReqUser
+	var data ReqUser
 	body, err := io.ReadAll(req.Body)
 	if err != nil || len(body) == 0 {
 		utils.SendErrorResponse(res, http.StatusBadRequest, "You must provide a valid name, email and password!")
@@ -28,27 +28,24 @@ func Register(res http.ResponseWriter, req *http.Request) {
 	}
 
 	// TODO(carlotta): Add field validations for "name," "email," and "password"
-	err = json.Unmarshal(body, &newUser)
+	err = json.Unmarshal(body, &data)
 	if err != nil {
 		utils.SendErrorResponse(res, http.StatusBadRequest, err.Error())
 		return
 	}
 
 	var user models.User
-	if err := db.Where("email=?", &newUser.Email).First(&user).Error; err == nil {
+	if err := db.Where("email=?", &data.Email).First(&user).Error; err == nil {
 		utils.SendErrorResponse(
 			res,
 			http.StatusOK,
-			fmt.Sprintf("The provided email '%s' may already exist or is not using a valid email domain!", newUser.Email),
+			fmt.Sprintf("The provided email '%s' may already exist or is not using a valid email domain!", data.Email),
 		)
 		return
 	}
 
-	user.Email = newUser.Email
-	user.Name = newUser.Name
-	user.Password = []byte(newUser.Password)
-
-	err = db.Create(&user).Error
+	newUser := models.User{Email: data.Email, Name: data.Name, Password: []byte(data.Password)}
+	err = db.Model(&user).Create(&newUser).Error
 	if err != nil {
 		utils.SendErrorResponse(res, http.StatusInternalServerError, err.Error())
 		return
@@ -56,7 +53,7 @@ func Register(res http.ResponseWriter, req *http.Request) {
 
 	res.Header().Set("Content-Type", "text/plain")
 	res.WriteHeader(http.StatusCreated)
-	res.Write([]byte(fmt.Sprintf("Successfully registered %s. Welcome, %s!", user.Email, user.Name)))
+	res.Write([]byte(fmt.Sprintf("Successfully registered %s. Welcome, %s!", data.Email, data.Name)))
 }
 
 func Login(res http.ResponseWriter, req *http.Request) {

@@ -44,7 +44,7 @@ func main() {
 	database.ConnectDB()
 	router := mux.NewRouter().StrictSlash(true)
 	router.HandleFunc("/login", controllers.Login).Methods(http.MethodPost)
-	router.HandleFunc("/register", controllers.CreateUser).Methods(http.MethodPost)
+	router.HandleFunc("/register", controllers.Register).Methods(http.MethodPost)
 	router.Use(LoggingMiddleware)
 
 	authRouter := router.PathPrefix("/").Subrouter()

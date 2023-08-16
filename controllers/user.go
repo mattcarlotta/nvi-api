@@ -17,7 +17,7 @@ type ReqUser struct {
 	Password string `json:"password"`
 }
 
-func CreateUser(res http.ResponseWriter, req *http.Request) {
+func Register(res http.ResponseWriter, req *http.Request) {
 	var db = database.GetDB()
 
 	var newUser ReqUser

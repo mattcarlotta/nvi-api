@@ -15,6 +15,8 @@ type User struct {
 	Name      string    `gorm:"type:varchar(255);not null" json:"name"`
 	Email     string    `gorm:"type:varchar(100);uniqueIndex;not null" json:"email"`
 	Password  []byte    `gorm:"not null" json:"password"`
+	Verified  bool      `gorm:"default:false" json:"verified"`
+	Token     *[]byte   `gorm:"default:null" json:"token"`
 	CreatedAt time.Time `json:"createdAt"`
 	UpdatedAt time.Time `json:"updatedAt"`
 }
@@ -39,7 +41,7 @@ func (user *User) GenerateSessionToken() (string, time.Time, error) {
 	return tokenString, exp, err
 }
 
-func (user *User) BeforeSave(tx *gorm.DB) (err error) {
+func (user *User) BeforeCreate(tx *gorm.DB) (err error) {
 	if pw, err := bcrypt.GenerateFromPassword(user.Password, 0); err == nil {
 		tx.Statement.SetColumn("Password", pw)
 	}

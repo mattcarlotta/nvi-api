@@ -45,16 +45,31 @@ func Register(res http.ResponseWriter, req *http.Request) {
 		return
 	}
 
-	newUser := models.User{Email: data.Email, Name: data.Name, Password: []byte(data.Password)}
+	token, _, err := utils.GenerateUserToken(data.Email)
+	if err != nil {
+		utils.SendErrorResponse(res, http.StatusInternalServerError, err.Error())
+		return
+	}
+
+	var newToken = []byte(token)
+	newUser := models.User{
+		Email:    data.Email,
+		Name:     data.Name,
+		Password: []byte(data.Password),
+		Token:    &newToken,
+	}
+
 	err = db.Model(&user).Create(&newUser).Error
 	if err != nil {
 		utils.SendErrorResponse(res, http.StatusInternalServerError, err.Error())
 		return
 	}
 
+	// TODO(carlotta): Send account verification email
+
 	res.Header().Set("Content-Type", "text/plain")
 	res.WriteHeader(http.StatusCreated)
-	res.Write([]byte(fmt.Sprintf("Successfully registered %s. Welcome, %s!", data.Email, data.Name)))
+	res.Write([]byte(fmt.Sprintf("Welcome, %s! Please check your %s inbox for steps to verify your account.", data.Name, data.Email)))
 }
 
 func Login(res http.ResponseWriter, req *http.Request) {
@@ -84,12 +99,23 @@ func Login(res http.ResponseWriter, req *http.Request) {
 	}
 
 	if !existingUser.MatchPassword(unauthedUser.Password) {
+		fmt.Print("Wrong password")
 		utils.SendErrorResponse(
 			res,
 			http.StatusOK,
-			fmt.Sprintf("The provided email '%s' may not exist or the provided lassword is incorrect!", unauthedUser.Email),
+			fmt.Sprintf("The provided email '%s' may not exist or the provided password is incorrect!", unauthedUser.Email),
 		)
 		return
+	}
+
+	if !existingUser.Verified {
+		utils.SendErrorResponse(
+			res,
+			http.StatusUnauthorized,
+			"You must verify your email before signing in! Check your inbox for account verification instructions or generate another account verification email.",
+		)
+		return
+
 	}
 
 	token, exp, err := existingUser.GenerateSessionToken()
@@ -107,8 +133,7 @@ func Login(res http.ResponseWriter, req *http.Request) {
 	}
 
 	http.SetCookie(res, &cookie)
-
-	res.WriteHeader(http.StatusAccepted)
+	res.WriteHeader(http.StatusCreated)
 }
 
 func Logout(res http.ResponseWriter, req *http.Request) {
@@ -122,4 +147,82 @@ func Logout(res http.ResponseWriter, req *http.Request) {
 
 	http.SetCookie(res, &cookie)
 	res.WriteHeader(http.StatusOK)
+}
+
+func DeleteAccount(res http.ResponseWriter, req *http.Request) {
+	var db = database.GetConnection()
+	var userSessionId = utils.GetUserSessionId(res, req)
+
+	var user models.User
+	if err := db.Where("id=?", &userSessionId).First(&user).Error; err != nil {
+		utils.SendErrorResponse(
+			res,
+			http.StatusInternalServerError,
+			"Encountered an unexpected error. Unable to locate the associated account.",
+		)
+		return
+	}
+
+	var err = db.Delete(&user).Error
+	if err != nil {
+		utils.SendErrorResponse(
+			res,
+			http.StatusInternalServerError,
+			"Encountered an unexpected error. Unable to delete account.",
+		)
+		return
+	}
+
+	Logout(res, req)
+}
+
+func VerifyAccount(res http.ResponseWriter, req *http.Request) {
+	var db = database.GetConnection()
+	query := req.URL.Query()
+	token := query.Get("token")
+	if len(token) == 0 {
+		utils.SendErrorResponse(
+			res,
+			http.StatusUnauthorized,
+			"You must provide a valid verification token!",
+		)
+		return
+
+	}
+	parsedToken, err := utils.ValidateUserToken(token)
+	if err != nil {
+		utils.SendErrorResponse(
+			res,
+			http.StatusUnauthorized,
+			"The provided token is not valid. If the token was sent over 30 days ago, you will need to generate another account verification email",
+		)
+		return
+	}
+
+	var user models.User
+	if err := db.Where("email=?", &parsedToken.Email).First(&user).Error; err != nil {
+		utils.SendErrorResponse(
+			res,
+			http.StatusInternalServerError,
+			"Encountered an unexpected error. Unable to locate the associated account.",
+		)
+		return
+	}
+
+	if user.Verified {
+		res.WriteHeader(http.StatusNotModified)
+		return
+	}
+
+	var newToken []byte
+	err = db.Model(&user).Updates(models.User{Verified: true, Token: &newToken}).Error
+	if err != nil {
+		utils.SendErrorResponse(res, http.StatusInternalServerError, err.Error())
+		return
+	}
+
+	res.Header().Set("Content-Type", "text/plain")
+	res.WriteHeader(http.StatusOK)
+	res.Write([]byte(fmt.Sprintf("Successfully verified %s!", user.Email)))
+
 }

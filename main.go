@@ -18,9 +18,11 @@ func main() {
 	router.HandleFunc("/login", controllers.Login).Methods(http.MethodPost, http.MethodOptions)
 	router.HandleFunc("/register", controllers.Register).Methods(http.MethodPost, http.MethodOptions)
 	router.HandleFunc("/logout", controllers.Logout).Methods(http.MethodGet, http.MethodOptions)
+	router.HandleFunc("/verify/account", controllers.VerifyAccount).Methods(http.MethodPut, http.MethodOptions)
 	router.Use(middleware.CORS, middleware.Logging)
 
 	authRouter := router.PathPrefix("/").Subrouter()
+	authRouter.HandleFunc("/delete/account", controllers.DeleteAccount).Methods(http.MethodDelete, http.MethodOptions)
 	authRouter.HandleFunc("/create/environment/{name}", controllers.CreateEnvironment).Methods(http.MethodPost, http.MethodOptions)
 	authRouter.HandleFunc("/delete/environment/{name}", controllers.DeleteEnvironment).Methods(http.MethodDelete, http.MethodOptions)
 	authRouter.HandleFunc("/update/environment", controllers.UpdateEnvironment).Methods(http.MethodPatch, http.MethodOptions)

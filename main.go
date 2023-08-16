@@ -17,7 +17,7 @@ func main() {
 	router := mux.NewRouter().StrictSlash(true)
 	router.HandleFunc("/login", controllers.Login).Methods(http.MethodPost, http.MethodOptions)
 	router.HandleFunc("/register", controllers.Register).Methods(http.MethodPost, http.MethodOptions)
-	router.HandleFunc("/logout", controllers.Logout).Methods(http.MethodGet, http.MethodOptions)
+	router.HandleFunc("/logout", controllers.Logout).Methods(http.MethodPost, http.MethodOptions)
 	router.HandleFunc("/verify/account", controllers.VerifyAccount).Methods(http.MethodPut, http.MethodOptions)
 	router.Use(middleware.CORS, middleware.Logging)
 

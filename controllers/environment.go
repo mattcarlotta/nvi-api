@@ -120,8 +120,11 @@ func UpdateEnvironment(res http.ResponseWriter, req *http.Request) {
 		return
 	}
 
-	environment.Name = newEnvironment.UpdatedName
-	db.Save(&environment)
+	err = db.Model(&environment).Update("name", &newEnvironment.UpdatedName).Error
+	if err != nil {
+		utils.SendErrorResponse(res, http.StatusInternalServerError, err.Error())
+		return
+	}
 
 	res.Header().Set("Content-Type", "text/plain")
 	res.WriteHeader(http.StatusCreated)

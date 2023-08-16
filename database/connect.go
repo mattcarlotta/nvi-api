@@ -11,7 +11,7 @@ import (
 
 var DB *gorm.DB
 
-func ConnectDB() *gorm.DB {
+func CreateConnection() *gorm.DB {
 	dsn := fmt.Sprintf(
 		"host=%s user=%s password=%s dbname=%s port=%s sslmode=disable",
 		utils.GetEnv("DB_HOST"),
@@ -33,9 +33,9 @@ func ConnectDB() *gorm.DB {
 	return DB
 }
 
-func GetDB() *gorm.DB {
+func GetConnection() *gorm.DB {
 	if DB == nil {
-		return ConnectDB()
+		return CreateConnection()
 	} else {
 		return DB
 	}

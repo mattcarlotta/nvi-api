@@ -9,7 +9,7 @@ import (
 )
 
 func main() {
-	var db = database.GetDB()
+	var db = database.GetConnection()
 	var err = db.AutoMigrate(&models.User{})
 	if err != nil {
 		log.Fatalf("Unable to migrate User model: %s", err.Error())

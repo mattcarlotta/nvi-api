@@ -13,10 +13,11 @@ import (
 )
 
 func main() {
-	database.ConnectDB()
+	database.CreateConnection()
 	router := mux.NewRouter().StrictSlash(true)
 	router.HandleFunc("/login", controllers.Login).Methods(http.MethodPost, http.MethodOptions)
 	router.HandleFunc("/register", controllers.Register).Methods(http.MethodPost, http.MethodOptions)
+	router.HandleFunc("/logout", controllers.Logout).Methods(http.MethodGet, http.MethodOptions)
 	router.Use(middleware.CORS, middleware.Logging)
 
 	authRouter := router.PathPrefix("/").Subrouter()

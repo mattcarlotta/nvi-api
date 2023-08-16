@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"io"
 	"net/http"
+	"time"
 
 	"github.com/mattcarlotta/nvi-api/database"
 	"github.com/mattcarlotta/nvi-api/models"
@@ -18,7 +19,7 @@ type ReqUser struct {
 }
 
 func Register(res http.ResponseWriter, req *http.Request) {
-	var db = database.GetDB()
+	var db = database.GetConnection()
 
 	var data ReqUser
 	body, err := io.ReadAll(req.Body)
@@ -57,7 +58,7 @@ func Register(res http.ResponseWriter, req *http.Request) {
 }
 
 func Login(res http.ResponseWriter, req *http.Request) {
-	var db = database.GetDB()
+	var db = database.GetConnection()
 	body, err := io.ReadAll(req.Body)
 	if err != nil || len(body) == 0 {
 		utils.SendErrorResponse(res, http.StatusBadRequest, "You must provide a valid email and password!")
@@ -98,14 +99,27 @@ func Login(res http.ResponseWriter, req *http.Request) {
 	}
 
 	cookie := http.Cookie{
-		Name:    "SESSION_TOKEN",
-		Value:   token,
-		Expires: exp,
-		Path:    "/",
+		Name:     "SESSION_TOKEN",
+		Value:    token,
+		Expires:  exp,
+		Path:     "/",
+		HttpOnly: true,
 	}
 
 	http.SetCookie(res, &cookie)
 
 	res.WriteHeader(http.StatusAccepted)
-	res.Write(nil)
+}
+
+func Logout(res http.ResponseWriter, req *http.Request) {
+	cookie := http.Cookie{
+		Name:     "SESSION_TOKEN",
+		Value:    "",
+		Expires:  time.Unix(0, 0),
+		Path:     "/",
+		HttpOnly: true,
+	}
+
+	http.SetCookie(res, &cookie)
+	res.WriteHeader(http.StatusOK)
 }

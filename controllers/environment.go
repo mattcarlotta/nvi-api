@@ -19,7 +19,7 @@ type ReqEnv struct {
 }
 
 func CreateEnvironment(res http.ResponseWriter, req *http.Request) {
-	var db = database.GetDB()
+	var db = database.GetConnection()
 	params := mux.Vars(req)
 	envName := params["name"]
 
@@ -53,7 +53,7 @@ func CreateEnvironment(res http.ResponseWriter, req *http.Request) {
 }
 
 func DeleteEnvironment(res http.ResponseWriter, req *http.Request) {
-	var db = database.GetDB()
+	var db = database.GetConnection()
 	params := mux.Vars(req)
 	envName := params["name"]
 
@@ -86,7 +86,7 @@ func DeleteEnvironment(res http.ResponseWriter, req *http.Request) {
 }
 
 func UpdateEnvironment(res http.ResponseWriter, req *http.Request) {
-	var db = database.GetDB()
+	var db = database.GetConnection()
 
 	body, err := io.ReadAll(req.Body)
 	if err != nil || len(body) == 0 {

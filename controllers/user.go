@@ -27,6 +27,7 @@ func Register(res http.ResponseWriter, req *http.Request) {
 		return
 	}
 
+	// TODO(carlotta): Add field validations for "name," "email," and "password"
 	err = json.Unmarshal(body, &newUser)
 	if err != nil {
 		utils.SendErrorResponse(res, http.StatusBadRequest, err.Error())
@@ -66,6 +67,7 @@ func Login(res http.ResponseWriter, req *http.Request) {
 		return
 	}
 
+	// TODO(carlotta): Add field validations for "email" and "password"
 	var unauthedUser ReqUser
 	err = json.Unmarshal(body, &unauthedUser)
 	if err != nil {

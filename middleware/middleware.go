@@ -9,25 +9,7 @@ import (
 	"github.com/mattcarlotta/nvi-api/utils"
 )
 
-func CorsMiddleware(next http.Handler) http.Handler {
-	return http.HandlerFunc(func(res http.ResponseWriter, req *http.Request) {
-		origin := req.Header.Get("Origin")
-		var CLIENT_ORIGIN = utils.GetEnv("CLIENT_HOST")
-		if origin == CLIENT_ORIGIN {
-			res.Header().Set("Access-Control-Allow-Origin", CLIENT_ORIGIN)
-			res.Header().Set("Access-Control-Allow-Headers", "Content-Type, Authorization")
-			res.Header().Set("Access-Control-Allow-Methods", "GET, POST, PUT, DELETE, OPTIONS")
-			res.Header().Set("Access-Control-Allow-Credentials", "true")
-		}
-		next.ServeHTTP(res, req)
-	})
-}
-
-func LoggingMiddleware(next http.Handler) http.Handler {
-	return handlers.LoggingHandler(os.Stdout, next)
-}
-
-func SessionMiddleware(next http.Handler) http.Handler {
+func CookieSession(next http.Handler) http.Handler {
 	return http.HandlerFunc(func(res http.ResponseWriter, req *http.Request) {
 		cookie, err := req.Cookie("SESSION_TOKEN")
 		if err != nil {
@@ -47,4 +29,22 @@ func SessionMiddleware(next http.Handler) http.Handler {
 
 		next.ServeHTTP(res, req.WithContext(ctx))
 	})
+}
+
+func CORS(next http.Handler) http.Handler {
+	return http.HandlerFunc(func(res http.ResponseWriter, req *http.Request) {
+		origin := req.Header.Get("Origin")
+		var CLIENT_ORIGIN = utils.GetEnv("CLIENT_HOST")
+		if origin == CLIENT_ORIGIN {
+			res.Header().Set("Access-Control-Allow-Origin", CLIENT_ORIGIN)
+			res.Header().Set("Access-Control-Allow-Headers", "Content-Type, Authorization")
+			res.Header().Set("Access-Control-Allow-Methods", "GET, POST, PUT, DELETE, OPTIONS")
+			res.Header().Set("Access-Control-Allow-Credentials", "true")
+		}
+		next.ServeHTTP(res, req)
+	})
+}
+
+func Logging(next http.Handler) http.Handler {
+	return handlers.LoggingHandler(os.Stdout, next)
 }

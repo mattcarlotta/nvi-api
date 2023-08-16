@@ -17,13 +17,13 @@ func main() {
 	router := mux.NewRouter().StrictSlash(true)
 	router.HandleFunc("/login", controllers.Login).Methods(http.MethodPost, http.MethodOptions)
 	router.HandleFunc("/register", controllers.Register).Methods(http.MethodPost, http.MethodOptions)
-	router.Use(middleware.CorsMiddleware, middleware.LoggingMiddleware)
+	router.Use(middleware.CORS, middleware.Logging)
 
 	authRouter := router.PathPrefix("/").Subrouter()
 	authRouter.HandleFunc("/create/environment/{name}", controllers.CreateEnvironment).Methods(http.MethodPost, http.MethodOptions)
 	authRouter.HandleFunc("/delete/environment/{name}", controllers.DeleteEnvironment).Methods(http.MethodDelete, http.MethodOptions)
 	authRouter.HandleFunc("/update/environment", controllers.UpdateEnvironment).Methods(http.MethodPatch, http.MethodOptions)
-	authRouter.Use(middleware.SessionMiddleware)
+	authRouter.Use(middleware.CookieSession)
 
 	var PORT = utils.GetEnv("PORT")
 	var API_HOST = utils.GetEnv("API_HOST")

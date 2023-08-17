@@ -19,7 +19,7 @@ type ReqUser struct {
 }
 
 func Register(c *fiber.Ctx) error {
-	var db = database.GetConnection()
+	db := database.GetConnection()
 
 	data := new(ReqUser)
 	if err := c.BodyParser(data); err != nil {
@@ -45,7 +45,7 @@ func Register(c *fiber.Ctx) error {
 		return utils.SendErrorResponse(c, http.StatusInternalServerError, err.Error())
 	}
 
-	var newToken = []byte(token)
+	newToken := []byte(token)
 	newUser := models.User{
 		Email:    data.Email,
 		Name:     data.Name,
@@ -53,8 +53,7 @@ func Register(c *fiber.Ctx) error {
 		Token:    &newToken,
 	}
 
-	err = db.Model(&user).Create(&newUser).Error
-	if err != nil {
+	if err = db.Model(&user).Create(&newUser).Error; err != nil {
 		return utils.SendErrorResponse(c, http.StatusInternalServerError, err.Error())
 	}
 
@@ -66,7 +65,7 @@ func Register(c *fiber.Ctx) error {
 }
 
 func Login(c *fiber.Ctx) error {
-	var db = database.GetConnection()
+	db := database.GetConnection()
 
 	data := new(ReqUser)
 	if err := c.BodyParser(data); err != nil {
@@ -137,7 +136,8 @@ func Logout(c *fiber.Ctx) error {
 }
 
 func VerifyAccount(c *fiber.Ctx) error {
-	var db = database.GetConnection()
+	db := database.GetConnection()
+
 	token := c.Query("token")
 	if len(token) == 0 {
 		return utils.SendErrorResponse(
@@ -167,8 +167,7 @@ func VerifyAccount(c *fiber.Ctx) error {
 	}
 
 	var newToken []byte
-	err = db.Model(&user).Updates(models.User{Verified: true, Token: &newToken}).Error
-	if err != nil {
+	if err = db.Model(&user).Updates(models.User{Verified: true, Token: &newToken}).Error; err != nil {
 		return utils.SendErrorResponse(c, http.StatusInternalServerError, err.Error())
 	}
 
@@ -176,7 +175,8 @@ func VerifyAccount(c *fiber.Ctx) error {
 }
 
 func ResendAccountVerification(c *fiber.Ctx) error {
-	var db = database.GetConnection()
+	db := database.GetConnection()
+
 	data := new(ReqUser)
 	if err := c.BodyParser(data); err != nil {
 		return utils.SendErrorResponse(c, http.StatusBadRequest, "You must provide a valid email!")
@@ -205,8 +205,7 @@ func ResendAccountVerification(c *fiber.Ctx) error {
 		return utils.SendErrorResponse(c, http.StatusInternalServerError, err.Error())
 	}
 
-	err = db.Model(&user).Update("token", &token).Error
-	if err != nil {
+	if err = db.Model(&user).Update("token", &token).Error; err != nil {
 		return utils.SendErrorResponse(c, http.StatusInternalServerError, err.Error())
 	}
 
@@ -216,7 +215,8 @@ func ResendAccountVerification(c *fiber.Ctx) error {
 }
 
 func SendResetPasswordEmail(c *fiber.Ctx) error {
-	var db = database.GetConnection()
+	db := database.GetConnection()
+
 	data := new(ReqUser)
 	if err := c.BodyParser(data); err != nil {
 		return utils.SendErrorResponse(c, http.StatusBadRequest, "You must provide a valid email!")
@@ -245,8 +245,7 @@ func SendResetPasswordEmail(c *fiber.Ctx) error {
 		return utils.SendErrorResponse(c, http.StatusInternalServerError, err.Error())
 	}
 
-	err = db.Model(&user).Update("token", &token).Error
-	if err != nil {
+	if err = db.Model(&user).Update("token", &token).Error; err != nil {
 		return utils.SendErrorResponse(c, http.StatusInternalServerError, err.Error())
 	}
 
@@ -256,7 +255,8 @@ func SendResetPasswordEmail(c *fiber.Ctx) error {
 }
 
 func UpdatePassword(c *fiber.Ctx) error {
-	var db = database.GetConnection()
+	db := database.GetConnection()
+
 	data := new(ReqUser)
 	if err := c.BodyParser(data); err != nil {
 		return utils.SendErrorResponse(
@@ -294,14 +294,13 @@ func UpdatePassword(c *fiber.Ctx) error {
 		)
 	}
 
-	var newToken []byte
 	newPassword, err := utils.CreateEncryptedPassword([]byte(data.Password))
 	if err != nil {
 		return utils.SendErrorResponse(c, http.StatusInternalServerError, err.Error())
 	}
 
-	err = db.Model(&user).Updates(models.User{Password: newPassword, Token: &newToken}).Error
-	if err != nil {
+	var newToken []byte
+	if err = db.Model(&user).Updates(models.User{Password: newPassword, Token: &newToken}).Error; err != nil {
 		return utils.SendErrorResponse(c, http.StatusInternalServerError, err.Error())
 	}
 
@@ -309,8 +308,8 @@ func UpdatePassword(c *fiber.Ctx) error {
 }
 
 func GetAccountInfo(c *fiber.Ctx) error {
-	var db = database.GetConnection()
-	var userSessionId = c.Locals("userSessionId").(string)
+	db := database.GetConnection()
+	userSessionId := c.Locals("userSessionId").(string)
 
 	var user models.User
 	if err := db.Where("id=?", &userSessionId).First(&user).Error; err != nil {
@@ -325,8 +324,8 @@ func GetAccountInfo(c *fiber.Ctx) error {
 }
 
 func DeleteAccount(c *fiber.Ctx) error {
-	var db = database.GetConnection()
-	var userSessionId = c.Locals("userSessionId").(string)
+	db := database.GetConnection()
+	userSessionId := c.Locals("userSessionId").(string)
 
 	var user models.User
 	if err := db.Where("id=?", &userSessionId).First(&user).Error; err != nil {
@@ -337,8 +336,7 @@ func DeleteAccount(c *fiber.Ctx) error {
 		)
 	}
 
-	var err = db.Delete(&user).Error
-	if err != nil {
+	if err := db.Delete(&user).Error; err != nil {
 		return utils.SendErrorResponse(
 			c,
 			http.StatusInternalServerError,

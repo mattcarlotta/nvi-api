@@ -17,8 +17,8 @@ type ReqEnv struct {
 }
 
 func GetAllEnvironments(c *fiber.Ctx) error {
-	var db = database.GetConnection()
-	var userSessionId = c.Locals("userSessionId").(string)
+	db := database.GetConnection()
+	userSessionId := c.Locals("userSessionId").(string)
 
 	var environments []models.Environment
 	db.Where("user_id=?", &userSessionId).Find(&environments)
@@ -27,8 +27,8 @@ func GetAllEnvironments(c *fiber.Ctx) error {
 }
 
 func GetEnvironmentById(c *fiber.Ctx) error {
-	var db = database.GetConnection()
-	var userSessionId = c.Locals("userSessionId").(string)
+	db := database.GetConnection()
+	userSessionId := c.Locals("userSessionId").(string)
 
 	id := c.Params("id")
 	if len(id) == 0 {
@@ -48,8 +48,8 @@ func GetEnvironmentById(c *fiber.Ctx) error {
 }
 
 func CreateEnvironment(c *fiber.Ctx) error {
-	var db = database.GetConnection()
-	var userSessionId = c.Locals("userSessionId").(string)
+	db := database.GetConnection()
+	userSessionId := c.Locals("userSessionId").(string)
 
 	envName := c.Params("name")
 	if len(envName) == 0 {
@@ -69,8 +69,7 @@ func CreateEnvironment(c *fiber.Ctx) error {
 	}
 
 	newEnvironment := models.Environment{Name: envName, UserId: uuid.MustParse(userSessionId)}
-	var err = db.Model(&environment).Create(&newEnvironment).Error
-	if err != nil {
+	if err := db.Model(&environment).Create(&newEnvironment).Error; err != nil {
 		return utils.SendErrorResponse(c, http.StatusInternalServerError, err.Error())
 	}
 
@@ -78,8 +77,8 @@ func CreateEnvironment(c *fiber.Ctx) error {
 }
 
 func DeleteEnvironment(c *fiber.Ctx) error {
-	var db = database.GetConnection()
-	var userSessionId = c.Locals("userSessionId").(string)
+	db := database.GetConnection()
+	userSessionId := c.Locals("userSessionId").(string)
 
 	id := c.Params("id")
 	if len(id) == 0 {
@@ -95,8 +94,7 @@ func DeleteEnvironment(c *fiber.Ctx) error {
 		)
 	}
 
-	var err = db.Delete(&environment).Error
-	if err != nil {
+	if err := db.Delete(&environment).Error; err != nil {
 		return utils.SendErrorResponse(c, http.StatusInternalServerError, err.Error())
 	}
 
@@ -106,8 +104,8 @@ func DeleteEnvironment(c *fiber.Ctx) error {
 }
 
 func UpdateEnvironment(c *fiber.Ctx) error {
-	var db = database.GetConnection()
-	var userSessionId = c.Locals("userSessionId").(string)
+	db := database.GetConnection()
+	userSessionId := c.Locals("userSessionId").(string)
 
 	data := new(ReqEnv)
 	if err := c.BodyParser(data); err != nil {
@@ -136,8 +134,7 @@ func UpdateEnvironment(c *fiber.Ctx) error {
 		)
 	}
 
-	var err = db.Model(&environment).Update("name", &data.UpdatedName).Error
-	if err != nil {
+	if err := db.Model(&environment).Update("name", &data.UpdatedName).Error; err != nil {
 		return utils.SendErrorResponse(c, http.StatusInternalServerError, err.Error())
 	}
 

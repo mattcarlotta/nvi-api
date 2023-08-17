@@ -56,7 +56,6 @@ func DeleteEnvironment(res http.ResponseWriter, req *http.Request) {
 	var db = database.GetConnection()
 	params := mux.Vars(req)
 	envName := params["name"]
-
 	if len(envName) == 0 {
 		utils.SendErrorResponse(res, http.StatusBadRequest, "You must provide a valid environment!")
 		return

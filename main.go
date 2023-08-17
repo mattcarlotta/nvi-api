@@ -19,7 +19,9 @@ func main() {
 	router.HandleFunc("/register", controllers.Register).Methods(http.MethodPost, http.MethodOptions)
 	router.HandleFunc("/logout", controllers.Logout).Methods(http.MethodPost, http.MethodOptions)
 	router.HandleFunc("/verify/account", controllers.VerifyAccount).Methods(http.MethodPut, http.MethodOptions)
-	router.HandleFunc("/reverify/account", controllers.ResendAccountVerificatin).Methods(http.MethodPut, http.MethodOptions)
+	router.HandleFunc("/reverify/account", controllers.ResendAccountVerification).Methods(http.MethodPost, http.MethodOptions)
+	router.HandleFunc("/reset/password", controllers.SendResetPasswordEmail).Methods(http.MethodPost, http.MethodOptions)
+	router.HandleFunc("/update/password", controllers.UpdatePassword).Methods(http.MethodPut, http.MethodOptions)
 	router.Use(middleware.CORS, middleware.Logging)
 
 	authRouter := router.PathPrefix("/").Subrouter()

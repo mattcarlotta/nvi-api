@@ -16,6 +16,7 @@ type ReqUser struct {
 	Name     string `json:"name"`
 	Email    string `json:"email"`
 	Password string `json:"password"`
+	Token    string `json:"token"`
 }
 
 func Register(res http.ResponseWriter, req *http.Request) {
@@ -81,28 +82,28 @@ func Login(res http.ResponseWriter, req *http.Request) {
 	}
 
 	// TODO(carlotta): Add field validations for "email" and "password"
-	var unauthedUser ReqUser
-	err = json.Unmarshal(body, &unauthedUser)
+	var data ReqUser
+	err = json.Unmarshal(body, &data)
 	if err != nil {
 		utils.SendErrorResponse(res, http.StatusBadRequest, err.Error())
 		return
 	}
 
 	var existingUser models.User
-	if err = db.Where("email=?", &unauthedUser.Email).First(&existingUser).Error; err != nil {
+	if err = db.Where("email=?", &data.Email).First(&existingUser).Error; err != nil {
 		utils.SendErrorResponse(
 			res,
 			http.StatusOK,
-			fmt.Sprintf("The provided email '%s' may not exist or the provided password is incorrect.", unauthedUser.Email),
+			fmt.Sprintf("The provided email '%s' may not exist or the provided password is incorrect.", data.Email),
 		)
 		return
 	}
 
-	if !existingUser.MatchPassword(unauthedUser.Password) {
+	if !existingUser.MatchPassword(data.Password) {
 		utils.SendErrorResponse(
 			res,
 			http.StatusOK,
-			fmt.Sprintf("The provided email '%s' may not exist or the provided password is incorrect.", unauthedUser.Email),
+			fmt.Sprintf("The provided email '%s' may not exist or the provided password is incorrect.", data.Email),
 		)
 		return
 	}
@@ -166,13 +167,13 @@ func VerifyAccount(res http.ResponseWriter, req *http.Request) {
 		utils.SendErrorResponse(
 			res,
 			http.StatusUnauthorized,
-			"The provided token is not valid. If the token was sent over 30 days ago, you will need to generate another account verification email",
+			"The provided token is not valid. If the token was sent over 30 days ago, you will need to generate another account verification email.",
 		)
 		return
 	}
 
 	var user models.User
-	if err := db.Where("email=?", &parsedToken.Email).First(&user).Error; err != nil {
+	if err := db.Where("email=? AND token IS NOT NULL", &parsedToken.Email).First(&user).Error; err != nil {
 		utils.SendErrorResponse(
 			res,
 			http.StatusUnprocessableEntity,
@@ -198,11 +199,11 @@ func VerifyAccount(res http.ResponseWriter, req *http.Request) {
 	res.Write([]byte(fmt.Sprintf("Successfully verified %s!", user.Email)))
 }
 
-func ResendAccountVerificatin(res http.ResponseWriter, req *http.Request) {
+func ResendAccountVerification(res http.ResponseWriter, req *http.Request) {
 	var db = database.GetConnection()
 	body, err := io.ReadAll(req.Body)
 	if err != nil || len(body) == 0 {
-		utils.SendErrorResponse(res, http.StatusBadRequest, "You must provide a valid email and password!")
+		utils.SendErrorResponse(res, http.StatusBadRequest, "You must provide a valid email!")
 		return
 	}
 	// TODO(carlotta): Add field validations for "email" and "password"
@@ -251,7 +252,121 @@ func ResendAccountVerificatin(res http.ResponseWriter, req *http.Request) {
 
 	// TODO(carlotta): Send account verification email
 
+	res.WriteHeader(http.StatusAccepted)
+	res.Write([]byte(fmt.Sprintf("Resent a verification email to %s.", user.Email)))
+}
+
+func SendResetPasswordEmail(res http.ResponseWriter, req *http.Request) {
+	var db = database.GetConnection()
+	body, err := io.ReadAll(req.Body)
+	if err != nil || len(body) == 0 {
+		utils.SendErrorResponse(res, http.StatusBadRequest, "You must provide a valid email!")
+		return
+	}
+	// TODO(carlotta): Add field validations for "email"
+	var unauthedUser ReqUser
+	err = json.Unmarshal(body, &unauthedUser)
+	if err != nil {
+		utils.SendErrorResponse(res, http.StatusBadRequest, err.Error())
+		return
+	}
+
+	if len(unauthedUser.Email) == 0 {
+		utils.SendErrorResponse(
+			res,
+			http.StatusBadRequest,
+			"You must provide a valid email address to send an password email to.",
+		)
+		return
+	}
+
+	var user models.User
+	if err := db.Where("email=?", &unauthedUser.Email).First(&user).Error; err != nil {
+		utils.SendErrorResponse(
+			res,
+			http.StatusUnprocessableEntity,
+			"",
+		)
+		return
+	}
+
+	token, _, err := utils.GenerateUserToken(unauthedUser.Email)
+	if err != nil {
+		utils.SendErrorResponse(res, http.StatusInternalServerError, err.Error())
+		return
+	}
+
+	err = db.Model(&user).Update("token", &token).Error
+	if err != nil {
+		utils.SendErrorResponse(res, http.StatusInternalServerError, err.Error())
+		return
+	}
+
+	// TODO(carlotta): Send account verification email
+
+	res.WriteHeader(http.StatusAccepted)
+	res.Write([]byte(fmt.Sprintf("Sent a password reset email to %s.", user.Email)))
+}
+
+func UpdatePassword(res http.ResponseWriter, req *http.Request) {
+	var db = database.GetConnection()
+	body, err := io.ReadAll(req.Body)
+	if err != nil || len(body) == 0 {
+		utils.SendErrorResponse(res, http.StatusBadRequest, "You must provide a valid email!")
+		return
+	}
+	// TODO(carlotta): Add field validations for "password" and "token"
+	var data ReqUser
+	err = json.Unmarshal(body, &data)
+	if err != nil {
+		utils.SendErrorResponse(res, http.StatusBadRequest, err.Error())
+		return
+	}
+
+	if len(data.Password) == 0 || len(data.Token) == 0 {
+		utils.SendErrorResponse(
+			res,
+			http.StatusBadRequest,
+			"You must provide a valid password and password reset token.",
+		)
+		return
+	}
+
+	parsedToken, err := utils.ValidateUserToken(data.Token)
+	if err != nil {
+		utils.SendErrorResponse(
+			res,
+			http.StatusUnauthorized,
+			"The provided token is not valid. If the token was sent over 30 days ago, you will need to generate another reset password email.",
+		)
+		return
+	}
+
+	var user models.User
+	if err := db.Where("email=? AND token IS NOT NULL", &parsedToken.Email).First(&user).Error; err != nil {
+		utils.SendErrorResponse(
+			res,
+			http.StatusUnprocessableEntity,
+			"",
+		)
+		return
+	}
+
+	var newToken []byte
+	newPassword, err := utils.CreateEncryptedPassword([]byte(data.Password))
+	if err != nil {
+		utils.SendErrorResponse(res, http.StatusInternalServerError, err.Error())
+		return
+	}
+
+	err = db.Model(&user).Updates(models.User{Password: newPassword, Token: &newToken}).Error
+	if err != nil {
+		utils.SendErrorResponse(res, http.StatusInternalServerError, err.Error())
+		return
+	}
+
 	res.WriteHeader(http.StatusCreated)
+	res.Write([]byte("Your account has been updated with a new password!"))
 }
 
 func DeleteAccount(res http.ResponseWriter, req *http.Request) {

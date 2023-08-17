@@ -6,7 +6,6 @@ import (
 	"github.com/golang-jwt/jwt"
 	"github.com/google/uuid"
 	"github.com/mattcarlotta/nvi-api/utils"
-	"golang.org/x/crypto/bcrypt"
 	"gorm.io/gorm"
 )
 
@@ -22,8 +21,7 @@ type User struct {
 }
 
 func (user *User) MatchPassword(password string) bool {
-	err := bcrypt.CompareHashAndPassword(user.Password, []byte(password))
-	return err == nil
+	return utils.ComparePassword(user.Password, []byte(password))
 }
 
 func (user *User) GenerateSessionToken() (string, time.Time, error) {
@@ -42,7 +40,7 @@ func (user *User) GenerateSessionToken() (string, time.Time, error) {
 }
 
 func (user *User) BeforeCreate(tx *gorm.DB) (err error) {
-	if pw, err := bcrypt.GenerateFromPassword(user.Password, 0); err == nil {
+	if pw, err := utils.CreateEncryptedPassword(user.Password); err == nil {
 		tx.Statement.SetColumn("Password", pw)
 	}
 	return nil

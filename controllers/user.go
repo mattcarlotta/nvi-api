@@ -148,33 +148,6 @@ func Logout(res http.ResponseWriter, req *http.Request) {
 	res.WriteHeader(http.StatusOK)
 }
 
-func DeleteAccount(res http.ResponseWriter, req *http.Request) {
-	var db = database.GetConnection()
-	var userSessionId = utils.GetUserSessionId(res, req)
-
-	var user models.User
-	if err := db.Where("id=?", &userSessionId).First(&user).Error; err != nil {
-		utils.SendErrorResponse(
-			res,
-			http.StatusInternalServerError,
-			"Encountered an unexpected error. Unable to locate the associated account.",
-		)
-		return
-	}
-
-	var err = db.Delete(&user).Error
-	if err != nil {
-		utils.SendErrorResponse(
-			res,
-			http.StatusInternalServerError,
-			"Encountered an unexpected error. Unable to delete account.",
-		)
-		return
-	}
-
-	Logout(res, req)
-}
-
 func VerifyAccount(res http.ResponseWriter, req *http.Request) {
 	var db = database.GetConnection()
 	query := req.URL.Query()
@@ -279,4 +252,31 @@ func ResendAccountVerificatin(res http.ResponseWriter, req *http.Request) {
 	// TODO(carlotta): Send account verification email
 
 	res.WriteHeader(http.StatusCreated)
+}
+
+func DeleteAccount(res http.ResponseWriter, req *http.Request) {
+	var db = database.GetConnection()
+	var userSessionId = utils.GetUserSessionId(res, req)
+
+	var user models.User
+	if err := db.Where("id=?", &userSessionId).First(&user).Error; err != nil {
+		utils.SendErrorResponse(
+			res,
+			http.StatusInternalServerError,
+			"Encountered an unexpected error. Unable to locate the associated account.",
+		)
+		return
+	}
+
+	var err = db.Delete(&user).Error
+	if err != nil {
+		utils.SendErrorResponse(
+			res,
+			http.StatusInternalServerError,
+			"Encountered an unexpected error. Unable to delete account.",
+		)
+		return
+	}
+
+	Logout(res, req)
 }

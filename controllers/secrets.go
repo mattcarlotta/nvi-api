@@ -1,9 +1,9 @@
 package controllers
 
 import (
-	"encoding/json"
 	"fmt"
-	"net/http"
+
+	"github.com/gofiber/fiber/v2"
 )
 
 type Secret struct {
@@ -15,7 +15,7 @@ type Secret struct {
 
 type Secrets []Secret
 
-func allSecrets(res http.ResponseWriter, req *http.Request) {
+func allSecrets(c *fiber.Ctx) error {
 	secrets := Secrets{
 		Secret{
 			Environment: "staging",
@@ -25,5 +25,5 @@ func allSecrets(res http.ResponseWriter, req *http.Request) {
 		},
 	}
 	fmt.Println("All secrets endpoint")
-	json.NewEncoder(res).Encode(secrets)
+	return c.Status(fiber.StatusOK).JSON(secrets)
 }

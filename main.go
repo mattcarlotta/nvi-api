@@ -3,9 +3,10 @@ package main
 import (
 	"fmt"
 	"log"
-	"net/http"
 
-	"github.com/gorilla/mux"
+	"github.com/gofiber/fiber/v2"
+	"github.com/gofiber/fiber/v2/middleware/cors"
+	"github.com/gofiber/fiber/v2/middleware/logger"
 	"github.com/mattcarlotta/nvi-api/controllers"
 	"github.com/mattcarlotta/nvi-api/database"
 	"github.com/mattcarlotta/nvi-api/middleware"
@@ -14,25 +15,30 @@ import (
 
 func main() {
 	database.CreateConnection()
-	router := mux.NewRouter().StrictSlash(true)
-	router.HandleFunc("/login", controllers.Login).Methods(http.MethodPost, http.MethodOptions)
-	router.HandleFunc("/register", controllers.Register).Methods(http.MethodPost, http.MethodOptions)
-	router.HandleFunc("/logout", controllers.Logout).Methods(http.MethodPost, http.MethodOptions)
-	router.HandleFunc("/verify/account", controllers.VerifyAccount).Methods(http.MethodPut, http.MethodOptions)
-	router.HandleFunc("/reverify/account", controllers.ResendAccountVerification).Methods(http.MethodPost, http.MethodOptions)
-	router.HandleFunc("/reset/password", controllers.SendResetPasswordEmail).Methods(http.MethodPost, http.MethodOptions)
-	router.HandleFunc("/update/password", controllers.UpdatePassword).Methods(http.MethodPut, http.MethodOptions)
-	router.Use(middleware.CORS, middleware.Logging)
+	app := fiber.New()
+	app.Use(cors.New(cors.Config{
+		AllowOrigins: utils.GetEnv("CLIENT_HOST"),
+		AllowHeaders: "Origin, Content-Type, Accept",
+	}))
+	app.Use(logger.New())
 
-	authRouter := router.PathPrefix("/").Subrouter()
-	authRouter.HandleFunc("/delete/account", controllers.DeleteAccount).Methods(http.MethodDelete, http.MethodOptions)
-	authRouter.HandleFunc("/create/environment/{name}", controllers.CreateEnvironment).Methods(http.MethodPost, http.MethodOptions)
-	authRouter.HandleFunc("/delete/environment/{name}", controllers.DeleteEnvironment).Methods(http.MethodDelete, http.MethodOptions)
-	authRouter.HandleFunc("/update/environment", controllers.UpdateEnvironment).Methods(http.MethodPatch, http.MethodOptions)
-	authRouter.Use(middleware.CookieSession)
+	user := app.Group("/")
+	user.Post("/register", controllers.Register)
+	user.Post("/login", controllers.Login)
+	user.Post("/logout", controllers.Logout)
+	user.Patch("/verify/account", controllers.VerifyAccount)
+	user.Post("/reverify/account", controllers.ResendAccountVerification)
+	user.Post("/reset/password", controllers.SendResetPasswordEmail)
+	user.Patch("/update/password", controllers.UpdatePassword)
+	user.Delete("/delete/account", middleware.RequiresCookieSession(), controllers.DeleteAccount)
+
+	environment := app.Group("/")
+	environment.Post("/create/environment/:name", middleware.RequiresCookieSession(), controllers.CreateEnvironment)
+	environment.Delete("/delete/environment/:id", middleware.RequiresCookieSession(), controllers.DeleteEnvironment)
+	environment.Patch("/update/environment", middleware.RequiresCookieSession(), controllers.UpdateEnvironment)
 
 	var PORT = utils.GetEnv("PORT")
 	var API_HOST = utils.GetEnv("API_HOST")
 	fmt.Printf("🎧 Listening for incoming requests to %s%s", API_HOST, PORT)
-	log.Fatal(http.ListenAndServe(PORT, router))
+	log.Fatal(app.Listen(PORT))
 }

@@ -1,13 +1,11 @@
 package controllers
 
 import (
-	"encoding/json"
 	"fmt"
-	"io"
 	"net/http"
 
+	"github.com/gofiber/fiber/v2"
 	"github.com/google/uuid"
-	"github.com/gorilla/mux"
 	"github.com/mattcarlotta/nvi-api/database"
 	"github.com/mattcarlotta/nvi-api/models"
 	"github.com/mattcarlotta/nvi-api/utils"
@@ -18,112 +16,96 @@ type ReqEnv struct {
 	UpdatedName  string `json:"updatedName"`
 }
 
-func CreateEnvironment(res http.ResponseWriter, req *http.Request) {
+func CreateEnvironment(c *fiber.Ctx) error {
 	var db = database.GetConnection()
-	params := mux.Vars(req)
-	envName := params["name"]
-
+	envName := c.Params("name")
 	if len(envName) == 0 {
-		utils.SendErrorResponse(res, http.StatusBadRequest, "You must provide a valid environment!")
-		return
+		return utils.SendErrorResponse(c, http.StatusBadRequest, "You must provide a valid environment!")
 	}
 
-	var userSessionId = utils.GetUserSessionId(res, req)
+	var userSessionId = c.Locals("userSessionId").(string)
 
 	var environment models.Environment
 	if err := db.Where("name=? AND user_id=?", &envName, &userSessionId).First(&environment).Error; err == nil {
-		utils.SendErrorResponse(
-			res,
+		return utils.SendErrorResponse(
+			c,
 			http.StatusOK,
 			fmt.Sprintf("The provided environment '%s' already exists. Please choose a different environment name!", envName),
 		)
-		return
 	}
 
 	newEnvironment := models.Environment{Name: envName, UserId: uuid.MustParse(userSessionId)}
 	var err = db.Model(&environment).Create(&newEnvironment).Error
 	if err != nil {
-		utils.SendErrorResponse(res, http.StatusInternalServerError, err.Error())
-		return
+		return utils.SendErrorResponse(c, http.StatusInternalServerError, err.Error())
 	}
 
-	res.Header().Set("Content-Type", "text/plain")
-	res.WriteHeader(http.StatusCreated)
-	res.Write([]byte(fmt.Sprintf("Successfully created the %s environment!", envName)))
+	return c.Status(http.StatusCreated).SendString(fmt.Sprintf("Successfully created the %s environment!", envName))
 }
 
-func DeleteEnvironment(res http.ResponseWriter, req *http.Request) {
+func DeleteEnvironment(c *fiber.Ctx) error {
 	var db = database.GetConnection()
-	params := mux.Vars(req)
-	envName := params["name"]
-	if len(envName) == 0 {
-		utils.SendErrorResponse(res, http.StatusBadRequest, "You must provide a valid environment!")
-		return
+	id := c.Params("id")
+	if len(id) == 0 {
+		return utils.SendErrorResponse(c, http.StatusBadRequest, "You must provide a valid environment!")
 	}
 
-	var userSessionId = utils.GetUserSessionId(res, req)
+	var userSessionId = c.Locals("userSessionId").(string)
 
 	var environment models.Environment
-	if err := db.Where("name=? AND user_id=?", &envName, &userSessionId).First(&environment).Error; err != nil {
-		utils.SendErrorResponse(
-			res,
+	if err := db.Where("id=? AND user_id=?", &id, &userSessionId).First(&environment).Error; err != nil {
+		return utils.SendErrorResponse(
+			c,
 			http.StatusOK,
-			fmt.Sprintf("The provided environment '%s' doesn't appear to exist!", envName),
+			"The provided environment doesn't appear to exist!",
 		)
-		return
 	}
 
 	var err = db.Delete(&environment).Error
 	if err != nil {
-		utils.SendErrorResponse(res, http.StatusInternalServerError, err.Error())
-		return
+		return utils.SendErrorResponse(c, http.StatusInternalServerError, err.Error())
 	}
 
-	res.Header().Set("Content-Type", "text/plain")
-	res.WriteHeader(http.StatusCreated)
-	res.Write([]byte(fmt.Sprintf("Successfully deleted the %s environment!", envName)))
+	return c.Status(http.StatusCreated).SendString(fmt.Sprintf("Successfully deleted the %s environment!", environment.Name))
 }
 
-func UpdateEnvironment(res http.ResponseWriter, req *http.Request) {
+func UpdateEnvironment(c *fiber.Ctx) error {
 	var db = database.GetConnection()
-
-	body, err := io.ReadAll(req.Body)
-	if err != nil || len(body) == 0 {
-		utils.SendErrorResponse(
-			res,
+	data := new(ReqEnv)
+	if err := c.BodyParser(data); err != nil {
+		return utils.SendErrorResponse(
+			c,
 			http.StatusBadRequest,
 			"You must provide a valid original environment name and an updated environment name!",
 		)
-		return
 	}
 
-	var newEnvironment ReqEnv
 	// TODO(carlotta): Add field validations for "originalName" and "updatedName"
-	err = json.Unmarshal(body, &newEnvironment)
-	if err != nil {
-		utils.SendErrorResponse(res, http.StatusBadRequest, err.Error())
-		return
+	if len(data.OriginalName) == 0 || len(data.UpdatedName) == 0 {
+		return utils.SendErrorResponse(
+			c,
+			http.StatusBadRequest,
+			"You must provide a valid original and updated name!",
+		)
 	}
 
-	var userSessionId = utils.GetUserSessionId(res, req)
+	var userSessionId = c.Locals("userSessionId").(string)
 
 	var environment models.Environment
-	if err := db.Where("name=? AND user_id=?", &newEnvironment.OriginalName, &userSessionId).First(&environment).Error; err != nil {
-		utils.SendErrorResponse(
-			res,
+	if err := db.Where("name=? AND user_id=?", &data.OriginalName, &userSessionId).First(&environment).Error; err != nil {
+		return utils.SendErrorResponse(
+			c,
 			http.StatusOK,
-			fmt.Sprintf("The provided environment '%s' doesn't appear to exist!", newEnvironment.OriginalName),
+			fmt.Sprintf("The provided environment '%s' doesn't appear to exist!", data.OriginalName),
 		)
-		return
 	}
 
-	err = db.Model(&environment).Update("name", &newEnvironment.UpdatedName).Error
+	var err = db.Model(&environment).Update("name", &data.UpdatedName).Error
 	if err != nil {
-		utils.SendErrorResponse(res, http.StatusInternalServerError, err.Error())
-		return
+		return utils.SendErrorResponse(c, http.StatusInternalServerError, err.Error())
 	}
 
-	res.Header().Set("Content-Type", "text/plain")
-	res.WriteHeader(http.StatusCreated)
-	res.Write([]byte(fmt.Sprintf("Successfully updated the environment from '%s' to '%s'!", newEnvironment.OriginalName, newEnvironment.UpdatedName)))
+	return c.Status(http.StatusCreated).SendString(
+		fmt.Sprintf("Successfully updated the environment from '%s' to '%s'!", data.OriginalName, data.UpdatedName),
+	)
 }

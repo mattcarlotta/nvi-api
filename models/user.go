@@ -13,9 +13,9 @@ type User struct {
 	ID        uuid.UUID `gorm:"type:uuid;default:uuid_generate_v4();primary_key" json:"id"`
 	Name      string    `gorm:"type:varchar(255);not null" json:"name"`
 	Email     string    `gorm:"type:varchar(100);uniqueIndex;not null" json:"email"`
-	Password  []byte    `gorm:"not null" json:"password"`
-	Verified  bool      `gorm:"default:false" json:"verified"`
-	Token     *[]byte   `gorm:"default:null" json:"token"`
+	Password  []byte    `gorm:"not null" json:"-"`
+	Verified  bool      `gorm:"default:false" json:"-"`
+	Token     *[]byte   `gorm:"default:null" json:"-"`
 	CreatedAt time.Time `json:"createdAt"`
 	UpdatedAt time.Time `json:"updatedAt"`
 }

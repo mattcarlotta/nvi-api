@@ -60,7 +60,9 @@ func Register(c *fiber.Ctx) error {
 
 	// TODO(carlotta): Send account verification email
 
-	return c.Status(http.StatusCreated).SendString(fmt.Sprintf("Welcome, %s! Please check your %s inbox for steps to verify your account.", data.Name, data.Email))
+	return c.Status(http.StatusCreated).SendString(
+		fmt.Sprintf("Welcome, %s! Please check your %s inbox for steps to verify your account.", data.Name, data.Email),
+	)
 }
 
 func Login(c *fiber.Ctx) error {
@@ -97,7 +99,8 @@ func Login(c *fiber.Ctx) error {
 		return utils.SendErrorResponse(
 			c,
 			http.StatusUnauthorized,
-			"You must verify your email before signing in! Check your inbox for account verification instructions or generate another account verification email.",
+			"You must verify your email before signing in! Check your inbox for account verification instructions "+
+				"or generate another account verification email.",
 		)
 	}
 
@@ -149,17 +152,14 @@ func VerifyAccount(c *fiber.Ctx) error {
 		return utils.SendErrorResponse(
 			c,
 			http.StatusUnauthorized,
-			"The provided token is not valid. If the account verification token was sent over 30 days ago, you will need to generate another account verification email.",
+			"The provided token is not valid. If the account verification token was sent over 30 days ago, you will "+
+				"need to generate another account verification email.",
 		)
 	}
 
 	var user models.User
 	if err := db.Where("email=?", &parsedToken.Email).First(&user).Error; err != nil {
-		return utils.SendErrorResponse(
-			c,
-			http.StatusUnprocessableEntity,
-			"",
-		)
+		return utils.SendErrorResponse(c, http.StatusUnprocessableEntity, "")
 	}
 
 	if user.Verified {
@@ -193,11 +193,7 @@ func ResendAccountVerification(c *fiber.Ctx) error {
 
 	var user models.User
 	if err := db.Where("email=?", &data.Email).First(&user).Error; err != nil {
-		return utils.SendErrorResponse(
-			c,
-			http.StatusUnprocessableEntity,
-			"",
-		)
+		return utils.SendErrorResponse(c, http.StatusUnprocessableEntity, "")
 	}
 
 	if user.Verified {
@@ -284,7 +280,8 @@ func UpdatePassword(c *fiber.Ctx) error {
 		return utils.SendErrorResponse(
 			c,
 			http.StatusUnauthorized,
-			"The provided token is not valid. If the token was sent over 30 days ago, you will need to generate another reset password email.",
+			"The provided token is not valid. If the token was sent over 30 days ago, you will need to generate "+
+				"another reset password email.",
 		)
 	}
 
@@ -309,6 +306,22 @@ func UpdatePassword(c *fiber.Ctx) error {
 	}
 
 	return c.Status(http.StatusCreated).SendString("Your account has been updated with a new password!")
+}
+
+func GetAccountInfo(c *fiber.Ctx) error {
+	var db = database.GetConnection()
+	var userSessionId = c.Locals("userSessionId").(string)
+
+	var user models.User
+	if err := db.Where("id=?", &userSessionId).First(&user).Error; err != nil {
+		return utils.SendErrorResponse(
+			c,
+			http.StatusInternalServerError,
+			"Encountered an unexpected error. Unable to locate the associated account.",
+		)
+	}
+
+	return c.Status(http.StatusOK).JSON(user)
 }
 
 func DeleteAccount(c *fiber.Ctx) error {

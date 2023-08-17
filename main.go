@@ -30,9 +30,12 @@ func main() {
 	user.Post("/reverify/account", controllers.ResendAccountVerification)
 	user.Post("/reset/password", controllers.SendResetPasswordEmail)
 	user.Patch("/update/password", controllers.UpdatePassword)
+	user.Get("/account", middleware.RequiresCookieSession(), controllers.GetAccountInfo)
 	user.Delete("/delete/account", middleware.RequiresCookieSession(), controllers.DeleteAccount)
 
 	environment := app.Group("/")
+	environment.Get("/environments", middleware.RequiresCookieSession(), controllers.GetAllEnvironments)
+	environment.Get("/environment/:id", middleware.RequiresCookieSession(), controllers.GetEnvironmentById)
 	environment.Post("/create/environment/:name", middleware.RequiresCookieSession(), controllers.CreateEnvironment)
 	environment.Delete("/delete/environment/:id", middleware.RequiresCookieSession(), controllers.DeleteEnvironment)
 	environment.Patch("/update/environment", middleware.RequiresCookieSession(), controllers.UpdateEnvironment)

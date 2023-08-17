@@ -40,7 +40,7 @@ func Register(res http.ResponseWriter, req *http.Request) {
 		utils.SendErrorResponse(
 			res,
 			http.StatusOK,
-			fmt.Sprintf("The provided email '%s' may already exist or is not using a valid email domain!", data.Email),
+			fmt.Sprintf("The provided email '%s' may already exist or is not a valid email address.", data.Email),
 		)
 		return
 	}
@@ -93,17 +93,16 @@ func Login(res http.ResponseWriter, req *http.Request) {
 		utils.SendErrorResponse(
 			res,
 			http.StatusOK,
-			fmt.Sprintf("The provided email '%s' may not exist or the provided password is incorrect!", unauthedUser.Email),
+			fmt.Sprintf("The provided email '%s' may not exist or the provided password is incorrect.", unauthedUser.Email),
 		)
 		return
 	}
 
 	if !existingUser.MatchPassword(unauthedUser.Password) {
-		fmt.Print("Wrong password")
 		utils.SendErrorResponse(
 			res,
 			http.StatusOK,
-			fmt.Sprintf("The provided email '%s' may not exist or the provided password is incorrect!", unauthedUser.Email),
+			fmt.Sprintf("The provided email '%s' may not exist or the provided password is incorrect.", unauthedUser.Email),
 		)
 		return
 	}
@@ -184,7 +183,7 @@ func VerifyAccount(res http.ResponseWriter, req *http.Request) {
 		utils.SendErrorResponse(
 			res,
 			http.StatusUnauthorized,
-			"You must provide a valid verification token!",
+			"You must provide a valid account verification token!",
 		)
 		return
 
@@ -203,8 +202,8 @@ func VerifyAccount(res http.ResponseWriter, req *http.Request) {
 	if err := db.Where("email=?", &parsedToken.Email).First(&user).Error; err != nil {
 		utils.SendErrorResponse(
 			res,
-			http.StatusInternalServerError,
-			"Encountered an unexpected error. Unable to locate the associated account.",
+			http.StatusUnprocessableEntity,
+			"",
 		)
 		return
 	}
@@ -224,5 +223,60 @@ func VerifyAccount(res http.ResponseWriter, req *http.Request) {
 	res.Header().Set("Content-Type", "text/plain")
 	res.WriteHeader(http.StatusOK)
 	res.Write([]byte(fmt.Sprintf("Successfully verified %s!", user.Email)))
+}
 
+func ResendAccountVerificatin(res http.ResponseWriter, req *http.Request) {
+	var db = database.GetConnection()
+	body, err := io.ReadAll(req.Body)
+	if err != nil || len(body) == 0 {
+		utils.SendErrorResponse(res, http.StatusBadRequest, "You must provide a valid email and password!")
+		return
+	}
+	// TODO(carlotta): Add field validations for "email" and "password"
+	var unauthedUser ReqUser
+	err = json.Unmarshal(body, &unauthedUser)
+	if err != nil {
+		utils.SendErrorResponse(res, http.StatusBadRequest, err.Error())
+		return
+	}
+
+	if len(unauthedUser.Email) == 0 {
+		utils.SendErrorResponse(
+			res,
+			http.StatusBadRequest,
+			"You must provide a valid email address to resend an account verification email to.",
+		)
+		return
+	}
+
+	var user models.User
+	if err := db.Where("email=?", &unauthedUser.Email).First(&user).Error; err != nil {
+		utils.SendErrorResponse(
+			res,
+			http.StatusUnprocessableEntity,
+			"",
+		)
+		return
+	}
+
+	if user.Verified {
+		res.WriteHeader(http.StatusNotModified)
+		return
+	}
+
+	token, _, err := utils.GenerateUserToken(unauthedUser.Email)
+	if err != nil {
+		utils.SendErrorResponse(res, http.StatusInternalServerError, err.Error())
+		return
+	}
+
+	err = db.Model(&user).Update("token", &token).Error
+	if err != nil {
+		utils.SendErrorResponse(res, http.StatusInternalServerError, err.Error())
+		return
+	}
+
+	// TODO(carlotta): Send account verification email
+
+	res.WriteHeader(http.StatusCreated)
 }

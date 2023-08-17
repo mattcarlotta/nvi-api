@@ -17,8 +17,9 @@ func main() {
 	database.CreateConnection()
 	app := fiber.New()
 	app.Use(cors.New(cors.Config{
-		AllowOrigins: utils.GetEnv("CLIENT_HOST"),
-		AllowHeaders: "Origin, Content-Type, Accept",
+		AllowOrigins:     utils.GetEnv("CLIENT_HOST"),
+		AllowHeaders:     "Origin, Content-Type, Accept",
+		AllowCredentials: true,
 	}))
 	app.Use(logger.New())
 

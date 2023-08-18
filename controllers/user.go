@@ -115,30 +115,12 @@ func Login(c *fiber.Ctx) error {
 		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{"error": err.Error()})
 	}
 
-	cookie := fiber.Cookie{
-		Name:     "SESSION_TOKEN",
-		Value:    token,
-		Expires:  exp,
-		Path:     "/",
-		HTTPOnly: true,
-		//Secure: true,
-	}
-
-	c.Cookie(&cookie)
+	utils.SetSessionCookie(c, token, exp)
 	return c.Status(fiber.StatusOK).Send(nil)
 }
 
 func Logout(c *fiber.Ctx) error {
-	cookie := fiber.Cookie{
-		Name:     "SESSION_TOKEN",
-		Value:    "",
-		Expires:  time.Unix(0, 0),
-		Path:     "/",
-		HTTPOnly: true,
-		//Secure: true,
-	}
-
-	c.Cookie(&cookie)
+	utils.SetSessionCookie(c, "", time.Unix(0, 0))
 	return c.Status(fiber.StatusOK).Send(nil)
 }
 

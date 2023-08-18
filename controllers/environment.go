@@ -75,6 +75,8 @@ func CreateEnvironment(c *fiber.Ctx) error {
 		)
 	}
 
+	// TODO(carlotta): add a limit to how many environments can be created per account
+
 	if err := db.Create(&newEnv).Error; err != nil {
 		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{"error": err.Error()})
 	}

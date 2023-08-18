@@ -2,11 +2,11 @@
 debug = true
 files = ["development.env"]
 exec = "fresh"
-required = ["API_HOST", "CLIENT_HOST", "DB_HOST", "DB_NAME", "DB_PASSWORD", "DB_PORT", "DB_USER", "JWT_SECRET_KEY", "PORT"]
+required = ["API_HOST", "CLIENT_HOST", "COOKIE_KEY", "DB_HOST", "DB_NAME", "DB_PASSWORD", "DB_PORT", "DB_USER", "JWT_SECRET_KEY", "PORT"]
 
 
 [migrate]
 debug = true
 files = ["development.env"]
 exec = "go run migrations/migrate.go"
-required = ["API_HOST", "CLIENT_HOST", "DB_HOST", "DB_NAME", "DB_PASSWORD", "DB_PORT", "DB_USER", "JWT_SECRET_KEY", "PORT"]
+required = ["API_HOST", "CLIENT_HOST", "COOKIE_KEY", "DB_HOST", "DB_NAME", "DB_PASSWORD", "DB_PORT", "DB_USER", "JWT_SECRET_KEY", "PORT"]

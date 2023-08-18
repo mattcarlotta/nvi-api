@@ -4,7 +4,10 @@ import (
 	"log"
 
 	"github.com/gofiber/fiber/v2"
+	"github.com/gofiber/fiber/v2/middleware/compress"
 	"github.com/gofiber/fiber/v2/middleware/cors"
+	"github.com/gofiber/fiber/v2/middleware/encryptcookie"
+	"github.com/gofiber/fiber/v2/middleware/helmet"
 	"github.com/gofiber/fiber/v2/middleware/logger"
 	"github.com/mattcarlotta/nvi-api/controllers"
 	"github.com/mattcarlotta/nvi-api/database"
@@ -20,6 +23,13 @@ func main() {
 		AllowOrigins:     utils.GetEnv("CLIENT_HOST"),
 		AllowHeaders:     "Origin, Content-Type, Accept",
 		AllowCredentials: true,
+	}))
+	app.Use(helmet.New())
+	app.Use(encryptcookie.New(encryptcookie.Config{
+		Key: utils.GetEnv("COOKIE_KEY"),
+	}))
+	app.Use(compress.New(compress.Config{
+		Level: compress.LevelBestSpeed,
 	}))
 	app.Use(logger.New())
 

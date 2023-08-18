@@ -38,7 +38,7 @@ func GetEnvironmentById(c *fiber.Ctx) error {
 	parsedId, err := uuid.Parse(id)
 	if err != nil {
 		return c.Status(fiber.StatusBadRequest).JSON(
-			fiber.Map{"error": "You must provide a valid environment!"},
+			fiber.Map{"error": "You must provide a valid environment id!"},
 		)
 	}
 
@@ -91,14 +91,14 @@ func DeleteEnvironment(c *fiber.Ctx) error {
 	id := c.Params("id")
 	if len(id) == 0 {
 		return c.Status(fiber.StatusBadRequest).JSON(
-			fiber.Map{"error": "You must provide a valid environment!"},
+			fiber.Map{"error": "You must provide a valid environment id!"},
 		)
 	}
 
 	parsedId, err := uuid.Parse(id)
 	if err != nil {
 		return c.Status(fiber.StatusBadRequest).JSON(
-			fiber.Map{"error": "You must provide a valid environment!"},
+			fiber.Map{"error": "You must provide a valid environment id!"},
 		)
 	}
 
@@ -127,21 +127,21 @@ func UpdateEnvironment(c *fiber.Ctx) error {
 	data := new(ReqEnv)
 	if err := c.BodyParser(data); err != nil {
 		return c.Status(fiber.StatusBadRequest).JSON(
-			fiber.Map{"error": "You must provide a valid environment id an updated environment name!"},
+			fiber.Map{"error": "You must provide a valid environment id and updated environment name!"},
 		)
 	}
 
 	// TODO(carlotta): Add field validations for "id" and "updatedName"
 	if len(data.ID) == 0 || len(data.UpdatedName) == 0 {
 		return c.Status(fiber.StatusBadRequest).JSON(
-			fiber.Map{"error": "You must provide a valid environment id an updated environment name!"},
+			fiber.Map{"error": "You must provide a valid environment id and updated environment name!"},
 		)
 	}
 
 	parsedId, err := uuid.Parse(data.ID)
 	if err != nil {
 		return c.Status(fiber.StatusBadRequest).JSON(
-			fiber.Map{"error": "You must provide a valid environment!"},
+			fiber.Map{"error": "You must provide a valid environment id!"},
 		)
 	}
 

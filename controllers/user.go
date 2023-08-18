@@ -116,12 +116,14 @@ func Login(c *fiber.Ctx) error {
 	}
 
 	utils.SetSessionCookie(c, token, exp)
-	return c.Status(fiber.StatusOK).Send(nil)
+	c.Status(fiber.StatusOK)
+	return nil
 }
 
 func Logout(c *fiber.Ctx) error {
 	utils.SetSessionCookie(c, "", time.Unix(0, 0))
-	return c.Status(fiber.StatusOK).Send(nil)
+	c.Status(fiber.StatusOK)
+	return nil
 }
 
 func VerifyAccount(c *fiber.Ctx) error {
@@ -138,11 +140,13 @@ func VerifyAccount(c *fiber.Ctx) error {
 
 	var user models.User
 	if err := db.Where(&models.User{Email: parsedToken.Email}).First(&user).Error; err != nil {
-		return c.Status(fiber.StatusNotModified).Send(nil)
+		c.Status(fiber.StatusNotModified)
+		return nil
 	}
 
 	if user.Verified {
-		return c.Status(fiber.StatusNotModified).Send(nil)
+		c.Status(fiber.StatusNotModified)
+		return nil
 	}
 
 	var newToken []byte
@@ -172,11 +176,13 @@ func ResendAccountVerification(c *fiber.Ctx) error {
 
 	var user models.User
 	if err := db.Where(&models.User{Email: data.Email}).First(&user).Error; err != nil {
-		return c.Status(fiber.StatusNotModified).Send(nil)
+		c.Status(fiber.StatusNotModified)
+		return nil
 	}
 
 	if user.Verified {
-		return c.Status(fiber.StatusNotModified).Send(nil)
+		c.Status(fiber.StatusNotModified)
+		return nil
 	}
 
 	token, _, err := utils.GenerateUserToken(data.Email)
@@ -212,7 +218,8 @@ func SendResetPasswordEmail(c *fiber.Ctx) error {
 
 	var user models.User
 	if err := db.Where(&models.User{Email: data.Email}).First(&user).Error; err != nil {
-		return c.Status(fiber.StatusNotModified).Send(nil)
+		c.Status(fiber.StatusNotModified)
+		return nil
 	}
 
 	token, _, err := utils.GenerateUserToken(data.Email)
@@ -257,7 +264,8 @@ func UpdatePassword(c *fiber.Ctx) error {
 
 	var user models.User
 	if err := db.Where("email=? AND token IS NOT NULL", &parsedToken.Email).First(&user).Error; err != nil {
-		return c.Status(fiber.StatusNotModified).Send(nil)
+		c.Status(fiber.StatusNotModified)
+		return nil
 	}
 
 	newPassword, err := utils.CreateEncryptedPassword([]byte(data.Password))

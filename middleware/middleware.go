@@ -2,23 +2,26 @@ package middleware
 
 import (
 	"github.com/gofiber/fiber/v2"
+	"github.com/google/uuid"
 	"github.com/mattcarlotta/nvi-api/utils"
 )
 
-func RequiresCookieSession() fiber.Handler {
-	return func(c *fiber.Ctx) error {
-		cookie := c.Cookies("SESSION_TOKEN")
-		if len(cookie) == 0 {
-			return utils.SendErrorResponse(c, fiber.StatusUnauthorized, "You must be logged in order to do that!")
-		}
-
-		token, err := utils.ValidateSessionToken(cookie)
-		if err != nil {
-			return utils.SendErrorResponse(c, fiber.StatusUnauthorized, err.Error())
-		}
-
-		c.Locals("userSessionId", token.UserId)
-
-		return c.Next()
+func RequiresCookieSession(c *fiber.Ctx) error {
+	token, err := utils.ValidateSessionToken(c.Cookies("SESSION_TOKEN"))
+	if err != nil {
+		return c.Status(fiber.StatusUnauthorized).JSON(fiber.Map{"error": err.Error()})
 	}
+
+	if len(token.UserId) == 0 {
+		return c.Status(fiber.StatusUnauthorized).JSON(fiber.Map{"error": "Not a valid token."})
+	}
+
+	parsedId, err := uuid.Parse(token.UserId)
+	if err != nil {
+		return c.Status(fiber.StatusUnauthorized).JSON(fiber.Map{"error": "Not a valid token."})
+	}
+
+	c.Locals("userSessionId", parsedId)
+
+	return c.Next()
 }

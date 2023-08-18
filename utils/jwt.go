@@ -35,6 +35,10 @@ func GenerateUserToken(email string) (string, time.Time, error) {
 }
 
 func ValidateUserToken(userToken string) (*JWTTokenClaim, error) {
+	if len(userToken) == 0 {
+		return nil, errors.New("No token was provided.")
+	}
+
 	token, err := jwt.ParseWithClaims(
 		userToken,
 		&JWTTokenClaim{},
@@ -58,6 +62,10 @@ func ValidateUserToken(userToken string) (*JWTTokenClaim, error) {
 }
 
 func ValidateSessionToken(jwtCookie string) (*JWTSessionClaim, error) {
+	if len(jwtCookie) == 0 {
+		return nil, errors.New("You must be logged in order to do that!")
+	}
+
 	token, err := jwt.ParseWithClaims(
 		jwtCookie,
 		&JWTSessionClaim{},

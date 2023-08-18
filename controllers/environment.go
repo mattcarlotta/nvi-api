@@ -28,14 +28,7 @@ func GetEnvironmentById(c *fiber.Ctx) error {
 	db := database.GetConnection()
 	userSessionId := c.Locals("userSessionId").(uuid.UUID)
 
-	id := c.Params("id")
-	if len(id) == 0 {
-		return c.Status(fiber.StatusBadRequest).JSON(
-			fiber.Map{"error": "You must provide a valid environment id!"},
-		)
-	}
-
-	parsedId, err := uuid.Parse(id)
+	parsedId, err := uuid.Parse(c.Params("id"))
 	if err != nil {
 		return c.Status(fiber.StatusBadRequest).JSON(
 			fiber.Map{"error": "You must provide a valid environment id!"},
@@ -88,14 +81,7 @@ func DeleteEnvironment(c *fiber.Ctx) error {
 	db := database.GetConnection()
 	userSessionId := c.Locals("userSessionId").(uuid.UUID)
 
-	id := c.Params("id")
-	if len(id) == 0 {
-		return c.Status(fiber.StatusBadRequest).JSON(
-			fiber.Map{"error": "You must provide a valid environment id!"},
-		)
-	}
-
-	parsedId, err := uuid.Parse(id)
+	parsedId, err := uuid.Parse(c.Params("id"))
 	if err != nil {
 		return c.Status(fiber.StatusBadRequest).JSON(
 			fiber.Map{"error": "You must provide a valid environment id!"},

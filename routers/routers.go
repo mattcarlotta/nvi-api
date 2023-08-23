@@ -24,4 +24,7 @@ func Setup(app *fiber.App) {
 	environment.Post("/create/environment/:name", middlewares.RequiresCookieSession, controllers.CreateEnvironment)
 	environment.Delete("/delete/environment/:id", middlewares.RequiresCookieSession, controllers.DeleteEnvironment)
 	environment.Patch("/update/environment", middlewares.RequiresCookieSession, controllers.UpdateEnvironment)
+
+	secret := app.Group("/")
+	secret.Post("/create/secret", middlewares.RequiresCookieSession, controllers.CreateSecret)
 }

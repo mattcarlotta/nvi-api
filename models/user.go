@@ -21,7 +21,7 @@ type User struct {
 }
 
 func (user *User) MatchPassword(password string) bool {
-	return utils.ComparePassword(user.Password, []byte(password))
+	return utils.CompareEncryptedText(user.Password, []byte(password))
 }
 
 func (user *User) GenerateSessionToken() (string, time.Time, error) {
@@ -40,7 +40,7 @@ func (user *User) GenerateSessionToken() (string, time.Time, error) {
 }
 
 func (user *User) BeforeCreate(tx *gorm.DB) (err error) {
-	if pw, err := utils.CreateEncryptedPassword(user.Password); err == nil {
+	if pw, err := utils.CreateEncryptedText(user.Password); err == nil {
 		tx.Statement.SetColumn("Password", pw)
 	}
 	return nil

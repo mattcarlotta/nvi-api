@@ -268,7 +268,7 @@ func UpdatePassword(c *fiber.Ctx) error {
 		return nil
 	}
 
-	newPassword, err := utils.CreateEncryptedPassword([]byte(data.Password))
+	newPassword, err := utils.CreateEncryptedText([]byte(data.Password))
 	if err != nil {
 		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{"error": err.Error()})
 	}

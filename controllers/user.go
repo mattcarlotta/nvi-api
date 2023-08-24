@@ -101,13 +101,13 @@ func Login(c *fiber.Ctx) error {
 		)
 	}
 
-	// if !existingUser.Verified {
-	// 	return c.Status(fiber.StatusUnauthorized).JSON(
-	// 		fiber.Map{"error": "You must verify your email before signing in! Check your inbox for account " +
-	// 			"verification instructions or generate another account verification email.",
-	// 		},
-	// 	)
-	// }
+	if !existingUser.Verified {
+		return c.Status(fiber.StatusUnauthorized).JSON(
+			fiber.Map{"error": "You must verify your email before signing in! Check your inbox for account " +
+				"verification instructions or generate another account verification email.",
+			},
+		)
+	}
 
 	token, exp, err := existingUser.GenerateSessionToken()
 	if err != nil {

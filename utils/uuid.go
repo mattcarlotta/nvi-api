@@ -21,7 +21,7 @@ func ParseUUID(id string) (uuid.UUID, error) {
 }
 
 func ParseUUIDs(ids []string) ([]uuid.UUID, error) {
-	UUIDS := make([]uuid.UUID, len(ids))
+	var UUIDS []uuid.UUID
 	for _, value := range ids {
 		parsedUUID, err := ParseUUID(value)
 		if err != nil {

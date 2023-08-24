@@ -14,7 +14,7 @@ type Secret struct {
 	User         User          `gorm:"foreignKey:UserId;references:ID;constraint:OnUpdate:CASCADE,OnDelete:CASCADE;" json:"-"`
 	Environments []Environment `gorm:"many2many:environment_secrets;constraint:OnUpdate:CASCADE,OnDelete:CASCADE;"`
 	Name         string        `gorm:"type:varchar(255);not null" json:"name"`
-	Content      string        `gorm:"type:varchar(10000);not null" json:"content"`
+	Content      []byte        `gorm:"not null" json:"content"`
 	CreatedAt    time.Time     `json:"createdAt"`
 	UpdatedAt    time.Time     `json:"updatedAt"`
 }

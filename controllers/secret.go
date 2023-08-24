@@ -34,11 +34,10 @@ func CreateSecret(c *fiber.Ctx) error {
 		)
 	}
 
-	environmentIds := make([]uuid.UUID, len(data.EnvironmentIds))
-	err := utils.ParseUUIDs(data.EnvironmentIds, &environmentIds)
+	environmentIds, err := utils.ParseUUIDs(data.EnvironmentIds)
 	if err != nil {
 		return c.Status(fiber.StatusBadRequest).JSON(
-			fiber.Map{"error": "You must provide a valid environment id!"},
+			fiber.Map{"error": err.Error()},
 		)
 	}
 

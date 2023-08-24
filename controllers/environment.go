@@ -4,9 +4,9 @@ import (
 	"fmt"
 
 	"github.com/gofiber/fiber/v2"
-	"github.com/google/uuid"
 	"github.com/mattcarlotta/nvi-api/database"
 	"github.com/mattcarlotta/nvi-api/models"
+	"github.com/mattcarlotta/nvi-api/utils"
 )
 
 type ReqEnv struct {
@@ -16,7 +16,7 @@ type ReqEnv struct {
 
 func GetAllEnvironments(c *fiber.Ctx) error {
 	db := database.GetConnection()
-	userSessionId := c.Locals("userSessionId").(uuid.UUID)
+	userSessionId := utils.GetSessionId(c)
 
 	var environments []models.Environment
 	db.Where(&models.Environment{UserId: userSessionId}).Find(&environments)
@@ -26,9 +26,9 @@ func GetAllEnvironments(c *fiber.Ctx) error {
 
 func GetEnvironmentById(c *fiber.Ctx) error {
 	db := database.GetConnection()
-	userSessionId := c.Locals("userSessionId").(uuid.UUID)
+	userSessionId := utils.GetSessionId(c)
 
-	parsedId, err := uuid.Parse(c.Params("id"))
+	parsedId, err := utils.ParseUUID(c.Params("id"))
 	if err != nil {
 		return c.Status(fiber.StatusBadRequest).JSON(
 			fiber.Map{"error": "You must provide a valid environment id!"},
@@ -49,7 +49,7 @@ func GetEnvironmentById(c *fiber.Ctx) error {
 
 func CreateEnvironment(c *fiber.Ctx) error {
 	db := database.GetConnection()
-	userSessionId := c.Locals("userSessionId").(uuid.UUID)
+	userSessionId := utils.GetSessionId(c)
 
 	envName := c.Params("name")
 	if len(envName) == 0 {
@@ -79,9 +79,9 @@ func CreateEnvironment(c *fiber.Ctx) error {
 
 func DeleteEnvironment(c *fiber.Ctx) error {
 	db := database.GetConnection()
-	userSessionId := c.Locals("userSessionId").(uuid.UUID)
+	userSessionId := utils.GetSessionId(c)
 
-	parsedId, err := uuid.Parse(c.Params("id"))
+	parsedId, err := utils.ParseUUID(c.Params("id"))
 	if err != nil {
 		return c.Status(fiber.StatusBadRequest).JSON(
 			fiber.Map{"error": "You must provide a valid environment id!"},
@@ -108,7 +108,7 @@ func DeleteEnvironment(c *fiber.Ctx) error {
 
 func UpdateEnvironment(c *fiber.Ctx) error {
 	db := database.GetConnection()
-	userSessionId := c.Locals("userSessionId").(uuid.UUID)
+	userSessionId := utils.GetSessionId(c)
 
 	data := new(ReqEnv)
 	if err := c.BodyParser(data); err != nil {
@@ -124,7 +124,7 @@ func UpdateEnvironment(c *fiber.Ctx) error {
 		)
 	}
 
-	parsedId, err := uuid.Parse(data.ID)
+	parsedId, err := utils.ParseUUID(data.ID)
 	if err != nil {
 		return c.Status(fiber.StatusBadRequest).JSON(
 			fiber.Map{"error": "You must provide a valid environment id!"},

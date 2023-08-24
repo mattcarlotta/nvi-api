@@ -9,7 +9,6 @@ import (
 	"github.com/gofiber/fiber/v2/middleware/encryptcookie"
 	"github.com/gofiber/fiber/v2/middleware/helmet"
 	"github.com/gofiber/fiber/v2/middleware/logger"
-	"github.com/google/uuid"
 	"github.com/mattcarlotta/nvi-api/utils"
 )
 
@@ -42,7 +41,7 @@ func RequiresCookieSession(c *fiber.Ctx) error {
 		return c.Status(fiber.StatusUnauthorized).JSON(fiber.Map{"error": err.Error()})
 	}
 
-	parsedId, err := uuid.Parse(token.UserId)
+	parsedId, err := utils.ParseUUID(token.UserId)
 	if err != nil {
 		return c.Status(fiber.StatusUnauthorized).JSON(fiber.Map{"error": "Not a valid token."})
 	}

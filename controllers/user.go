@@ -5,7 +5,6 @@ import (
 	"time"
 
 	"github.com/gofiber/fiber/v2"
-	"github.com/google/uuid"
 	"github.com/mattcarlotta/nvi-api/database"
 	"github.com/mattcarlotta/nvi-api/models"
 	"github.com/mattcarlotta/nvi-api/utils"
@@ -283,7 +282,7 @@ func UpdatePassword(c *fiber.Ctx) error {
 
 func GetAccountInfo(c *fiber.Ctx) error {
 	db := database.GetConnection()
-	userSessionId := c.Locals("userSessionId").(uuid.UUID)
+	userSessionId := utils.GetSessionId(c)
 
 	var user models.User
 	if err := db.Where(&models.User{ID: userSessionId}).First(&user).Error; err != nil {
@@ -297,7 +296,7 @@ func GetAccountInfo(c *fiber.Ctx) error {
 
 func DeleteAccount(c *fiber.Ctx) error {
 	db := database.GetConnection()
-	userSessionId := c.Locals("userSessionId").(uuid.UUID)
+	userSessionId := utils.GetSessionId(c)
 
 	var user models.User
 	if err := db.Where(&models.User{ID: userSessionId}).First(&user).Error; err != nil {

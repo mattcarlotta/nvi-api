@@ -4,19 +4,30 @@ import (
 	"errors"
 	"fmt"
 
+	"github.com/gofiber/fiber/v2"
 	"github.com/google/uuid"
 )
 
-func ParseUUIDs(ids []string) ([]uuid.UUID, error) {
-	uuids := make([]uuid.UUID, len(ids))
-	for _, value := range ids {
-		parsedId, err := uuid.Parse(value)
-		if err != nil {
-			return nil, errors.New(fmt.Sprintf("The follow id '%s' is not a valid uuid!", value))
-		} else {
-			uuids = append(uuids, parsedId)
-		}
-	}
+func GetSessionId(c *fiber.Ctx) uuid.UUID {
+	return c.Locals("userSessionId").(uuid.UUID)
+}
 
-	return uuids, nil
+func ParseUUID(id string) (uuid.UUID, error) {
+	parsedUUID, err := uuid.Parse(id)
+	if err != nil {
+		return uuid.UUID{}, errors.New(fmt.Sprintf("The follow id '%s' is not a valid uuid!", id))
+	}
+	return parsedUUID, nil
+}
+
+func ParseUUIDs(ids []string) ([]uuid.UUID, error) {
+	UUIDS := make([]uuid.UUID, len(ids))
+	for _, value := range ids {
+		parsedUUID, err := ParseUUID(value)
+		if err != nil {
+			return nil, err
+		}
+		UUIDS = append(UUIDS, parsedUUID)
+	}
+	return UUIDS, nil
 }

@@ -4,7 +4,6 @@ import (
 	"fmt"
 
 	"github.com/gofiber/fiber/v2"
-	"github.com/google/uuid"
 	"github.com/mattcarlotta/nvi-api/database"
 	"github.com/mattcarlotta/nvi-api/models"
 	"github.com/mattcarlotta/nvi-api/utils"
@@ -18,7 +17,7 @@ type ReqSecret struct {
 
 func CreateSecret(c *fiber.Ctx) error {
 	db := database.GetConnection()
-	userSessionId := c.Locals("userSessionId").(uuid.UUID)
+	userSessionId := utils.GetSessionId(c)
 
 	data := new(ReqSecret)
 	if err := c.BodyParser(data); err != nil {

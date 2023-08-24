@@ -16,8 +16,13 @@ func main() {
 
 	err := db.AutoMigrate(&models.User{}, &models.Environment{}, &models.Secret{})
 	if err != nil {
-		log.Fatalf("Unable to migrate User model: %s", err.Error())
+		log.Fatalf("Unable to migrate models: %s", err.Error())
 	}
+
+	// err := db.AutoMigrate(&models.User{})
+	// if err != nil {
+	// 	log.Fatalf("Unable to migrate User model: %s", err.Error())
+	// }
 	// err = db.AutoMigrate(&models.Environment{})
 	// if err != nil {
 	// 	log.Fatalf("Unable to migrate Environment model: %s", err.Error())

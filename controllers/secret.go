@@ -13,8 +13,8 @@ import (
 type ReqSecret struct {
 	ID             string   `json:"id"`
 	EnvironmentIds []string `json:"environmentIds"`
-	Name           string   `json:"name"`
-	Content        string   `json:"content"`
+	Key            string   `json:"key"`
+	Value          string   `json:"value"`
 }
 
 // func findDupEnvNames(secrets *[]models.Secret, ids []uuid.UUID) string {
@@ -51,6 +51,38 @@ func getDupKeyinEnvs(secrets *[]models.Secret) string {
 	return envNames
 }
 
+func GetSecretsByEnvironmentId(c *fiber.Ctx) error {
+	db := database.GetConnection()
+	userSessionId := utils.GetSessionId(c)
+
+	parsedId, err := utils.ParseUUID(c.Params("id"))
+	if err != nil {
+		return c.Status(fiber.StatusBadRequest).JSON(
+			fiber.Map{"error": "You must provide a valid environment id!"},
+		)
+	}
+
+	var secrets []models.Secret
+	if err := db.Preload("Environments").Find(
+		&secrets, "user_id=? AND ?=ANY(environments.id)", userSessionId,
+	).Error; err != nil {
+		return c.Status(fiber.StatusOK).JSON(
+			fiber.Map{"error": "The provided environment id doesn't appear to exist!"},
+		)
+	}
+
+	var results []models.Secret
+	for _, s := range secrets {
+		for _, e := range s.Environments {
+			if e.ID == parsedId {
+				results = append(results, s)
+			}
+		}
+	}
+
+	return c.Status(fiber.StatusOK).JSON(results)
+}
+
 func CreateSecret(c *fiber.Ctx) error {
 	db := database.GetConnection()
 	userSessionId := utils.GetSessionId(c)
@@ -58,12 +90,12 @@ func CreateSecret(c *fiber.Ctx) error {
 	data := new(ReqSecret)
 	if err := c.BodyParser(data); err != nil {
 		return c.Status(fiber.StatusBadRequest).JSON(
-			fiber.Map{"error": "You must provide valid environments and a secret key name with content!"},
+			fiber.Map{"error": "You must provide valid environments and a secret key with a value!"},
 		)
 	}
 
-	// TODO(carlotta): Add field validations for "environmentIds," "name," and "content"
-	if len(data.EnvironmentIds) == 0 || len(data.Name) == 0 || len(data.Content) == 0 {
+	// TODO(carlotta): Add field validations for "environmentIds," "key," and "value"
+	if len(data.EnvironmentIds) == 0 || len(data.Key) == 0 || len(data.Value) == 0 {
 		return c.Status(fiber.StatusBadRequest).JSON(
 			fiber.Map{"error": "You must provide valid environments and a secret key name with content!"},
 		)
@@ -87,21 +119,21 @@ func CreateSecret(c *fiber.Ctx) error {
 
 	var secrets []models.Secret
 	if err := db.Preload("Environments", "ID in ?", environmentIds).Find(
-		&secrets, "name=? AND user_id=?", data.Name, userSessionId,
+		&secrets, "key=? AND user_id=?", data.Key, userSessionId,
 	).Error; err == nil {
 		envNames := getDupKeyinEnvs(&secrets)
 		if len(envNames) > 0 {
 			return c.Status(fiber.StatusConflict).JSON(
 				fiber.Map{"error": fmt.Sprintf(
-					"The key '%s' already exists for the following selected environments: %s", data.Name, envNames),
+					"The key '%s' already exists for the following selected environments: %s", data.Key, envNames),
 				},
 			)
 		}
 	}
 
 	newSecret := models.Secret{
-		Name:         data.Name,
-		Content:      []byte(data.Content),
+		Key:          data.Key,
+		Value:        []byte(data.Value),
 		UserId:       userSessionId,
 		Environments: environments,
 	}
@@ -110,7 +142,7 @@ func CreateSecret(c *fiber.Ctx) error {
 	}
 
 	return c.Status(fiber.StatusCreated).SendString(
-		fmt.Sprintf("Successfully created %s!", data.Name),
+		fmt.Sprintf("Successfully created %s!", data.Key),
 	)
 }
 
@@ -139,7 +171,7 @@ func DeleteSecret(c *fiber.Ctx) error {
 	}
 
 	return c.Status(fiber.StatusCreated).SendString(
-		fmt.Sprintf("Successfully deleted the %s secret!", secret.Name),
+		fmt.Sprintf("Successfully deleted the %s secret!", secret.Key),
 	)
 }
 
@@ -155,7 +187,7 @@ func UpdateSecret(c *fiber.Ctx) error {
 	}
 
 	// TODO(carlotta): Add field validations for "id", "environmentIds," "name," and "content"
-	if len(data.ID) == 0 || len(data.EnvironmentIds) == 0 || len(data.Name) == 0 || len(data.Content) == 0 {
+	if len(data.ID) == 0 || len(data.EnvironmentIds) == 0 || len(data.Key) == 0 || len(data.Key) == 0 {
 		return c.Status(fiber.StatusBadRequest).JSON(
 			fiber.Map{
 				"error": "You must provide a valid secret id, one or more environment ids and a secret key name with content!",
@@ -198,7 +230,7 @@ func UpdateSecret(c *fiber.Ctx) error {
 		if err := tx.Preload(
 			"Environments", "ID in ?", environmentIds,
 		).Not("id", parsedId).Find(
-			&secrets, "name=? AND user_id=?", data.Name, userSessionId,
+			&secrets, "key=? AND user_id=?", data.Key, userSessionId,
 		).Error; err != nil || len(secrets) != 0 {
 			if err != nil {
 				return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{"error": err.Error()})
@@ -208,14 +240,14 @@ func UpdateSecret(c *fiber.Ctx) error {
 			if len(envNames) > 0 {
 				return c.Status(fiber.StatusConflict).JSON(
 					fiber.Map{"error": fmt.Sprintf(
-						"The key '%s' already exists for the following selected environments: %s.", data.Name, envNames),
+						"The key '%s' already exists for the following selected environments: %s.", data.Key, envNames),
 					},
 				)
 			}
 
 		}
 
-		newContent, err := utils.CreateEncryptedText([]byte(data.Content))
+		newValue, err := utils.CreateEncryptedText([]byte(data.Key))
 		if err != nil {
 			return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{"error": err.Error()})
 		}
@@ -224,12 +256,12 @@ func UpdateSecret(c *fiber.Ctx) error {
 			return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{"error": err.Error()})
 		}
 
-		if err = tx.Model(&secret).Updates(&models.Secret{Name: data.Name, Content: newContent}).Error; err != nil {
+		if err = tx.Model(&secret).Updates(&models.Secret{Key: data.Key, Value: newValue}).Error; err != nil {
 			return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{"error": err.Error()})
 		}
 
 		return c.Status(fiber.StatusCreated).SendString(
-			fmt.Sprintf("Successfully updated the %s secret!", data.Name),
+			fmt.Sprintf("Successfully updated the %s secret!", data.Key),
 		)
 	})
 }

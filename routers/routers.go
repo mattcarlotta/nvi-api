@@ -26,6 +26,7 @@ func Setup(app *fiber.App) {
 	environment.Patch("/update/environment", middlewares.RequiresCookieSession, controllers.UpdateEnvironment)
 
 	secret := app.Group("/")
+	secret.Get("/secrets/:id", middlewares.RequiresCookieSession, controllers.GetSecretsByEnvironmentId)
 	secret.Post("/create/secret", middlewares.RequiresCookieSession, controllers.CreateSecret)
 	secret.Delete("/delete/secret/:id", middlewares.RequiresCookieSession, controllers.DeleteSecret)
 	secret.Put("/update/secret/", middlewares.RequiresCookieSession, controllers.UpdateSecret)

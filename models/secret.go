@@ -5,6 +5,7 @@ import (
 
 	"github.com/google/uuid"
 	"github.com/mattcarlotta/nvi-api/utils"
+	"gorm.io/datatypes"
 	"gorm.io/gorm"
 )
 
@@ -24,4 +25,14 @@ func (secret *Secret) BeforeCreate(tx *gorm.DB) (err error) {
 		tx.Statement.SetColumn("Value", encText)
 	}
 	return nil
+}
+
+type SecretResult struct {
+	ID           uuid.UUID      `json:"id"`
+	UserId       uuid.UUID      `json:"userId"`
+	Environments datatypes.JSON `json:"environments"`
+	Key          string         `json:"key"`
+	Value        []byte         `json:"value"`
+	CreatedAt    time.Time      `json:"createdAt"`
+	UpdatedAt    time.Time      `json:"updatedAt"`
 }

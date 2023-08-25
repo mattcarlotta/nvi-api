@@ -51,36 +51,68 @@ func getDupKeyinEnvs(secrets *[]models.Secret) string {
 	return envNames
 }
 
-func GetSecretsByEnvironmentId(c *fiber.Ctx) error {
+func GetSecretBySecretId(c *fiber.Ctx) error {
 	db := database.GetConnection()
 	userSessionId := utils.GetSessionId(c)
 
-	parsedId, err := utils.ParseUUID(c.Params("id"))
+	parsedSecretId, err := utils.ParseUUID(c.Params("id"))
 	if err != nil {
 		return c.Status(fiber.StatusBadRequest).JSON(
 			fiber.Map{"error": "You must provide a valid environment id!"},
 		)
 	}
 
-	var secrets []models.Secret
-	if err := db.Preload("Environments").Find(
-		&secrets, "user_id=? AND ?=ANY(environments.id)", userSessionId,
+	var secret models.Secret
+	if err := db.Preload("Environments").First(
+		&secret, "id=? AND user_id=?", parsedSecretId, userSessionId,
 	).Error; err != nil {
-		return c.Status(fiber.StatusOK).JSON(
-			fiber.Map{"error": "The provided environment id doesn't appear to exist!"},
+		return c.Status(fiber.StatusNotFound).JSON(
+			fiber.Map{"error": "Unable to locate a secret with that id!"},
 		)
 	}
 
-	var results []models.Secret
-	for _, s := range secrets {
-		for _, e := range s.Environments {
-			if e.ID == parsedId {
-				results = append(results, s)
-			}
-		}
+	return c.Status(fiber.StatusOK).JSON(secret)
+}
+
+func GetSecretsByEnvironmentId(c *fiber.Ctx) error {
+	db := database.GetConnection()
+	userSessionId := utils.GetSessionId(c)
+
+	parsedEnvId, err := utils.ParseUUID(c.Params("id"))
+	if err != nil {
+		return c.Status(fiber.StatusBadRequest).JSON(
+			fiber.Map{"error": "You must provide a valid environment id!"},
+		)
 	}
 
-	return c.Status(fiber.StatusOK).JSON(results)
+	var secrets []models.SecretResult
+	if err := db.Raw(`
+        SELECT * 
+        FROM (
+	        SELECT 
+		        s.id,
+		        s.user_id,
+		        s.key,
+		        s.value,
+		        s.created_at,
+		        s.updated_at,
+		        jsonb_agg(envs) as environments
+	        FROM secrets s
+	        JOIN environment_secrets es ON s.id = es.secret_id
+	        JOIN environments envs on es.environment_id = envs.id
+	        WHERE s.user_id = ?
+	        GROUP BY s.id
+        ) r
+        WHERE r.environments @> ?;
+    `, userSessionId, `[{"id":"`+parsedEnvId.String()+`"}]`).Scan(&secrets).Error; err != nil {
+		fmt.Printf("Failed to load secrets with %s: %s", parsedEnvId, err.Error())
+
+		return c.Status(fiber.StatusInternalServerError).JSON(
+			fiber.Map{"error": "Failed to locate any secrets with that id."},
+		)
+	}
+
+	return c.Status(fiber.StatusOK).JSON(secrets)
 }
 
 func CreateSecret(c *fiber.Ctx) error {
@@ -103,17 +135,15 @@ func CreateSecret(c *fiber.Ctx) error {
 
 	environmentIds, err := utils.ParseUUIDs(data.EnvironmentIds)
 	if err != nil {
-		return c.Status(fiber.StatusBadRequest).JSON(
-			fiber.Map{"error": err.Error()},
-		)
+		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{"error": err.Error()})
 	}
 
 	var environments []models.Environment
 	if err := db.Find(
 		&environments, "id IN ? AND user_id=?", environmentIds, userSessionId,
 	).Error; err != nil || len(environments) == 0 {
-		return c.Status(fiber.StatusBadRequest).JSON(
-			fiber.Map{"error": "The provided environment doesn't appear to exist!"},
+		return c.Status(fiber.StatusNotFound).JSON(
+			fiber.Map{"error": "The provided environments don't appear to exist!"},
 		)
 	}
 
@@ -131,19 +161,12 @@ func CreateSecret(c *fiber.Ctx) error {
 		}
 	}
 
-	newSecret := models.Secret{
-		Key:          data.Key,
-		Value:        []byte(data.Value),
-		UserId:       userSessionId,
-		Environments: environments,
-	}
+	newSecret := models.Secret{Key: data.Key, Value: []byte(data.Value), UserId: userSessionId, Environments: environments}
 	if err := db.Create(&newSecret).Error; err != nil {
 		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{"error": err.Error()})
 	}
 
-	return c.Status(fiber.StatusCreated).SendString(
-		fmt.Sprintf("Successfully created %s!", data.Key),
-	)
+	return c.Status(fiber.StatusCreated).SendString(fmt.Sprintf("Successfully created %s!", data.Key))
 }
 
 func DeleteSecret(c *fiber.Ctx) error {
@@ -170,9 +193,7 @@ func DeleteSecret(c *fiber.Ctx) error {
 		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{"error": err.Error()})
 	}
 
-	return c.Status(fiber.StatusCreated).SendString(
-		fmt.Sprintf("Successfully deleted the %s secret!", secret.Key),
-	)
+	return c.Status(fiber.StatusCreated).SendString(fmt.Sprintf("Successfully deleted the %s secret!", secret.Key))
 }
 
 func UpdateSecret(c *fiber.Ctx) error {
@@ -197,9 +218,7 @@ func UpdateSecret(c *fiber.Ctx) error {
 
 	parsedId, err := utils.ParseUUID(data.ID)
 	if err != nil {
-		return c.Status(fiber.StatusBadRequest).JSON(
-			fiber.Map{"error": err.Error()},
-		)
+		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{"error": err.Error()})
 	}
 
 	return db.Transaction(func(tx *gorm.DB) error {
@@ -212,9 +231,7 @@ func UpdateSecret(c *fiber.Ctx) error {
 
 		environmentIds, err := utils.ParseUUIDs(data.EnvironmentIds)
 		if err != nil {
-			return c.Status(fiber.StatusBadRequest).JSON(
-				fiber.Map{"error": err.Error()},
-			)
+			return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{"error": err.Error()})
 		}
 
 		var environments []models.Environment
@@ -229,7 +246,9 @@ func UpdateSecret(c *fiber.Ctx) error {
 		var secrets []models.Secret
 		if err := tx.Preload(
 			"Environments", "ID in ?", environmentIds,
-		).Not("id", parsedId).Find(
+		).Not(
+			"id", parsedId,
+		).Find(
 			&secrets, "key=? AND user_id=?", data.Key, userSessionId,
 		).Error; err != nil || len(secrets) != 0 {
 			if err != nil {
@@ -260,8 +279,6 @@ func UpdateSecret(c *fiber.Ctx) error {
 			return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{"error": err.Error()})
 		}
 
-		return c.Status(fiber.StatusCreated).SendString(
-			fmt.Sprintf("Successfully updated the %s secret!", data.Key),
-		)
+		return c.Status(fiber.StatusCreated).SendString(fmt.Sprintf("Successfully updated the %s secret!", data.Key))
 	})
 }

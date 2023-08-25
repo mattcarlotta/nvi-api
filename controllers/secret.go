@@ -21,40 +21,6 @@ type EnvironmentName struct {
 	Name string `json:"name"`
 }
 
-// func findDupEnvNames(secrets *[]models.Secret, ids []uuid.UUID) string {
-// 		var envNames string
-// 		for _, secret := range *secrets {
-// 			for _, env := range secret.Environments {
-// 				for _, id := range ids {
-// 					if env.ID == id {
-// 						if len(envNames) == 0 {
-// 							envNames += env.Name
-// 						} else {
-// 							envNames += fmt.Sprintf(", %s", env.Name)
-// 						}
-// 					}
-// 				}
-// 			}
-// 		}
-
-//         return envNames
-// }
-
-func getDupKeyinEnvs(secrets *[]models.Secret) string {
-	var envNames string
-	for _, secret := range *secrets {
-		for _, env := range secret.Environments {
-			if len(envNames) == 0 {
-				envNames += env.Name
-			} else {
-				envNames += fmt.Sprintf(", %s", env.Name)
-			}
-		}
-	}
-
-	return envNames
-}
-
 func GetSecretBySecretId(c *fiber.Ctx) error {
 	db := database.GetConnection()
 	userSessionId := utils.GetSessionId(c)
@@ -90,26 +56,10 @@ func GetSecretsByEnvironmentId(c *fiber.Ctx) error {
 	}
 
 	var secrets []models.SecretResult
-	if err := db.Raw(`
-        SELECT * 
-        FROM (
-	        SELECT 
-		        s.id,
-		        s.user_id,
-		        s.key,
-		        s.value,
-		        s.created_at,
-		        s.updated_at,
-		        jsonb_agg(envs) as environments
-	        FROM secrets s
-	        JOIN environment_secrets es ON s.id = es.secret_id
-	        JOIN environments envs on es.environment_id = envs.id
-	        WHERE s.user_id = ?
-	        GROUP BY s.id
-        ) r
-        WHERE r.environments @> ?;
-    `, userSessionId, `[{"id":"`+parsedEnvId.String()+`"}]`).Scan(&secrets).Error; err != nil {
-		fmt.Printf("Failed to load secrets with %s: %s", parsedEnvId, err.Error())
+	if err := db.Raw(
+		utils.FindSecretsByEnvIdQuery, userSessionId, utils.GenerateJSONIDString(parsedEnvId),
+	).Scan(&secrets).Error; err != nil {
+		fmt.Printf("Failed to load secrets with id %s, reason: %s", parsedEnvId, err.Error())
 
 		return c.Status(fiber.StatusInternalServerError).JSON(
 			fiber.Map{"error": "Failed to locate any secrets with that id."},
@@ -147,42 +97,14 @@ func CreateSecret(c *fiber.Ctx) error {
 		&environments, "id IN ? AND user_id=?", environmentIds, userSessionId,
 	).Error; err != nil || len(environments) == 0 {
 		return c.Status(fiber.StatusNotFound).JSON(
-			fiber.Map{"error": "The provided environments don't appear to exist!"},
+			fiber.Map{"error": "The provided environment ids don't appear to exist!"},
 		)
 	}
 
-	// var queryEnvironments string
-	// for _, value := range environmentIds {
-	// 	if len(queryEnvironments) == 0 {
-	// 		queryEnvironments += `r.environments @> '[{"id": "` + value.String() + `"}]'`
-	// 	} else {
-	// 		queryEnvironments += `OR r.environments @> '[{"id": "` + value.String() + `"}]'`
-	// 	}
-	// }
-
-	// RAWSQL := `
-	//        SELECT *
-	//        FROM (
-	//         SELECT
-	// 	        s.id,
-	// 	        s.user_id,
-	// 	        s.key,
-	// 	        s.value,
-	// 	        s.created_at,
-	// 	        s.updated_at,
-	// 	        jsonb_agg(envs) as environments
-	//         FROM secrets s
-	//         JOIN environment_secrets es ON s.id = es.secret_id
-	//         JOIN environments envs on es.environment_id = envs.id
-	//         WHERE s.user_id = ?
-	//         GROUP BY s.id
-	//        ) r
-	//        WHERE `
-
-	// RAWSQL += "(" + queryEnvironments + ") AND r.key = ?"
-
 	// var secrets []models.SecretResult
-	// if err := db.Raw(RAWSQL, userSessionId, data.Key).Scan(&secrets).Error; err != nil || len(secrets) > 0 {
+	// if err := db.Raw(
+	//      utils.GenerateFindSecretByEnvIdsQuery, userSessionId, data.Key,
+	// ).Scan(&secrets).Error; err != nil || len(secrets) > 0 {
 	// 	if err != nil {
 	// 		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{"error": err.Error()})
 	// 	}
@@ -199,7 +121,7 @@ func CreateSecret(c *fiber.Ctx) error {
 	if err := db.Preload("Environments", "ID in ?", environmentIds).Find(
 		&secrets, "key=? AND user_id=?", data.Key, userSessionId,
 	).Error; err == nil {
-		envNames := getDupKeyinEnvs(&secrets)
+		envNames := models.GetDupKeyinEnvs(&secrets)
 		if len(envNames) > 0 {
 			return c.Status(fiber.StatusConflict).JSON(
 				fiber.Map{"error": fmt.Sprintf(
@@ -303,7 +225,7 @@ func UpdateSecret(c *fiber.Ctx) error {
 				return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{"error": err.Error()})
 			}
 
-			envNames := getDupKeyinEnvs(&secrets)
+			envNames := models.GetDupKeyinEnvs(&secrets)
 			if len(envNames) > 0 {
 				return c.Status(fiber.StatusConflict).JSON(
 					fiber.Map{"error": fmt.Sprintf(

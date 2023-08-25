@@ -1,6 +1,7 @@
 package models
 
 import (
+	"fmt"
 	"time"
 
 	"github.com/google/uuid"
@@ -25,6 +26,40 @@ func (secret *Secret) BeforeCreate(tx *gorm.DB) (err error) {
 		tx.Statement.SetColumn("Value", encText)
 	}
 	return nil
+}
+
+func GetDupKeyinEnvs(secrets *[]Secret) string {
+	var envNames string
+	for _, secret := range *secrets {
+		for _, env := range secret.Environments {
+			if len(envNames) == 0 {
+				envNames += env.Name
+			} else {
+				envNames += fmt.Sprintf(", %s", env.Name)
+			}
+		}
+	}
+
+	return envNames
+}
+
+func FindDupEnvNames(secrets *[]Secret, ids []uuid.UUID) string {
+	var envNames string
+	for _, secret := range *secrets {
+		for _, env := range secret.Environments {
+			for _, id := range ids {
+				if env.ID == id {
+					if len(envNames) == 0 {
+						envNames += env.Name
+					} else {
+						envNames += fmt.Sprintf(", %s", env.Name)
+					}
+				}
+			}
+		}
+	}
+
+	return envNames
 }
 
 type SecretResult struct {

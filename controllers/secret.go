@@ -17,6 +17,10 @@ type ReqSecret struct {
 	Value          string   `json:"value"`
 }
 
+type EnvironmentName struct {
+	Name string `json:"name"`
+}
+
 // func findDupEnvNames(secrets *[]models.Secret, ids []uuid.UUID) string {
 // 		var envNames string
 // 		for _, secret := range *secrets {
@@ -146,6 +150,50 @@ func CreateSecret(c *fiber.Ctx) error {
 			fiber.Map{"error": "The provided environments don't appear to exist!"},
 		)
 	}
+
+	// var queryEnvironments string
+	// for _, value := range environmentIds {
+	// 	if len(queryEnvironments) == 0 {
+	// 		queryEnvironments += `r.environments @> '[{"id": "` + value.String() + `"}]'`
+	// 	} else {
+	// 		queryEnvironments += `OR r.environments @> '[{"id": "` + value.String() + `"}]'`
+	// 	}
+	// }
+
+	// RAWSQL := `
+	//        SELECT *
+	//        FROM (
+	//         SELECT
+	// 	        s.id,
+	// 	        s.user_id,
+	// 	        s.key,
+	// 	        s.value,
+	// 	        s.created_at,
+	// 	        s.updated_at,
+	// 	        jsonb_agg(envs) as environments
+	//         FROM secrets s
+	//         JOIN environment_secrets es ON s.id = es.secret_id
+	//         JOIN environments envs on es.environment_id = envs.id
+	//         WHERE s.user_id = ?
+	//         GROUP BY s.id
+	//        ) r
+	//        WHERE `
+
+	// RAWSQL += "(" + queryEnvironments + ") AND r.key = ?"
+
+	// var secrets []models.SecretResult
+	// if err := db.Raw(RAWSQL, userSessionId, data.Key).Scan(&secrets).Error; err != nil || len(secrets) > 0 {
+	// 	if err != nil {
+	// 		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{"error": err.Error()})
+	// 	}
+	//
+	// 	return c.Status(fiber.StatusConflict).JSON(
+	// 		fiber.Map{"error": fmt.Sprintf(
+	// 			"The key '%s' already exists in one or more of the selected environments!", data.Key),
+	// 		},
+	// 	)
+	// 	// }
+	// }
 
 	var secrets []models.Secret
 	if err := db.Preload("Environments", "ID in ?", environmentIds).Find(

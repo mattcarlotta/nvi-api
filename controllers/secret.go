@@ -60,7 +60,7 @@ func GetSecretsByEnvironmentId(c *fiber.Ctx) error {
 }
 
 type ReqDeleteSecret struct {
-	EnvironmentIds []string `json:"environmentIds" validate:"required,gte=1"`
+	EnvironmentIds []string `json:"environmentIds" validate:"uuidarray"`
 	Key            string   `json:"key" validate:"required"`
 	Value          string   `json:"value" validate:"required"`
 }
@@ -163,7 +163,7 @@ func DeleteSecret(c *fiber.Ctx) error {
 
 type ReqUpdateSecret struct {
 	ID             string   `json:"id" validate:"required,uuid"`
-	EnvironmentIds []string `json:"environmentIds" validate:"required,gte=1"`
+	EnvironmentIds []string `json:"environmentIds" validate:"uuidarray"`
 	Key            string   `json:"key" validate:"required"`
 	Value          string   `json:"value" validate:"required"`
 }

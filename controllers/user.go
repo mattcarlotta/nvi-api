@@ -10,25 +10,23 @@ import (
 	"github.com/mattcarlotta/nvi-api/utils"
 )
 
-type ReqUser struct {
-	Name     string `json:"name"`
-	Email    string `json:"email"`
-	Password string `json:"password"`
-	Token    string `json:"token"`
+type ReqRegisterUser struct {
+	Name     string `json:"name" validate:"required,gte=3"`
+	Email    string `json:"email" validate:"required,email"`
+	Password string `json:"password" validate:"required,gte=5,lte=36"`
 }
 
 func Register(c *fiber.Ctx) error {
 	db := database.GetConnection()
 
-	data := new(ReqUser)
+	data := new(ReqRegisterUser)
 	if err := c.BodyParser(data); err != nil {
 		return c.Status(fiber.StatusBadRequest).JSON(
 			fiber.Map{"error": "You must provide a valid name, email and password!"},
 		)
 	}
 
-	// TODO(carlotta): Add field validations for "name," "email," and "password"
-	if len(data.Email) == 0 || len(data.Password) == 0 || len(data.Name) == 0 {
+	if err := utils.Validate().Struct(data); err != nil {
 		return c.Status(fiber.StatusBadRequest).JSON(
 			fiber.Map{"error": "You must provide a valid name, email and password!"},
 		)
@@ -67,18 +65,22 @@ func Register(c *fiber.Ctx) error {
 	)
 }
 
+type ReqLoginUser struct {
+	Email    string `json:"email" validate:"required,email"`
+	Password string `json:"password" validate:"required,gte=5,lte=36"`
+}
+
 func Login(c *fiber.Ctx) error {
 	db := database.GetConnection()
 
-	data := new(ReqUser)
+	data := new(ReqLoginUser)
 	if err := c.BodyParser(data); err != nil {
 		return c.Status(fiber.StatusBadRequest).JSON(
 			fiber.Map{"error": "You must provide a valid email and password!"},
 		)
 	}
 
-	// TODO(carlotta): Add field validations for "email" and "password"
-	if len(data.Email) == 0 || len(data.Password) == 0 {
+	if err := utils.Validate().Struct(data); err != nil {
 		return c.Status(fiber.StatusBadRequest).JSON(
 			fiber.Map{"error": "You must provide a valid email and password!"},
 		)
@@ -156,18 +158,21 @@ func VerifyAccount(c *fiber.Ctx) error {
 	return c.Status(fiber.StatusOK).SendString(fmt.Sprintf("Successfully verified %s!", user.Email))
 }
 
+type ReqResendAccountVerification struct {
+	Email string `json:"email" validate:"required,email"`
+}
+
 func ResendAccountVerification(c *fiber.Ctx) error {
 	db := database.GetConnection()
 
-	data := new(ReqUser)
+	data := new(ReqResendAccountVerification)
 	if err := c.BodyParser(data); err != nil {
 		return c.Status(fiber.StatusBadRequest).JSON(
 			fiber.Map{"error": "You must provide a valid email!"},
 		)
 	}
 
-	// TODO(carlotta): Add field validations for "email"
-	if len(data.Email) == 0 {
+	if err := utils.Validate().Struct(data); err != nil {
 		return c.Status(fiber.StatusBadRequest).JSON(
 			fiber.Map{"error": "You must provide a valid email address to resend an account verification email to."},
 		)
@@ -198,18 +203,21 @@ func ResendAccountVerification(c *fiber.Ctx) error {
 	return c.Status(fiber.StatusAccepted).SendString(fmt.Sprintf("Resent a verification email to %s.", user.Email))
 }
 
+type ReqSendResetPassword struct {
+	Email string `json:"email" validate:"required,email"`
+}
+
 func SendResetPasswordEmail(c *fiber.Ctx) error {
 	db := database.GetConnection()
 
-	data := new(ReqUser)
+	data := new(ReqSendResetPassword)
 	if err := c.BodyParser(data); err != nil {
 		return c.Status(fiber.StatusBadRequest).JSON(
 			fiber.Map{"error": "You must provide a valid email!"},
 		)
 	}
 
-	// TODO(carlotta): Add field validations for "email"
-	if len(data.Email) == 0 {
+	if err := utils.Validate().Struct(data); err != nil {
 		return c.Status(fiber.StatusBadRequest).JSON(
 			fiber.Map{"error": "You must provide a valid email address to send an password email to."},
 		)
@@ -235,18 +243,22 @@ func SendResetPasswordEmail(c *fiber.Ctx) error {
 	return c.Status(fiber.StatusAccepted).SendString(fmt.Sprintf("Sent a password reset email to %s.", user.Email))
 }
 
+type ReqUpdateUser struct {
+	Password string `json:"password" validate:"required,gte=5,lte=36"`
+	Token    string `json:"token" validate:"required"`
+}
+
 func UpdatePassword(c *fiber.Ctx) error {
 	db := database.GetConnection()
 
-	data := new(ReqUser)
+	data := new(ReqUpdateUser)
 	if err := c.BodyParser(data); err != nil {
 		return c.Status(fiber.StatusBadRequest).JSON(
 			fiber.Map{"error": "You must provide a valid password and password reset token."},
 		)
 	}
 
-	// TODO(carlotta): Add field validations for "password" and "token"
-	if len(data.Password) == 0 {
+	if err := utils.Validate().Struct(data); err != nil {
 		return c.Status(fiber.StatusBadRequest).JSON(
 			fiber.Map{"error": "You must provide a valid password and password reset token."},
 		)

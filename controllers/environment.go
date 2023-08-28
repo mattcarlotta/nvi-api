@@ -10,11 +10,6 @@ import (
 	"gorm.io/gorm"
 )
 
-type ReqEnv struct {
-	ID          string `json:"id" validate:"required,uuid"`
-	UpdatedName string `json:"updatedName" validate:"required"`
-}
-
 func GetAllEnvironments(c *fiber.Ctx) error {
 	db := database.GetConnection()
 	userSessionId := utils.GetSessionId(c)
@@ -30,8 +25,7 @@ func GetEnvironmentById(c *fiber.Ctx) error {
 	userSessionId := utils.GetSessionId(c)
 
 	id := c.Params("id")
-	err := utils.Validate().Var(id, "required,uuid")
-	if err != nil {
+	if err := utils.Validate().Var(id, "required,uuid"); err != nil {
 		return c.Status(fiber.StatusBadRequest).JSON(
 			fiber.Map{"error": "You must provide a valid environment id!"},
 		)
@@ -54,8 +48,7 @@ func CreateEnvironment(c *fiber.Ctx) error {
 	userSessionId := utils.GetSessionId(c)
 
 	envName := c.Params("name")
-	err := utils.Validate().Var(envName, "required,alphanum")
-	if err != nil {
+	if err := utils.Validate().Var(envName, "required,alphanum"); err != nil {
 		return c.Status(fiber.StatusBadRequest).JSON(
 			fiber.Map{"error": "You must provide a valid environment name!"},
 		)
@@ -85,8 +78,7 @@ func DeleteEnvironment(c *fiber.Ctx) error {
 	userSessionId := utils.GetSessionId(c)
 
 	id := c.Params("id")
-	err := utils.Validate().Var(id, "required,uuid")
-	if err != nil {
+	if err := utils.Validate().Var(id, "required,uuid"); err != nil {
 		return c.Status(fiber.StatusBadRequest).JSON(
 			fiber.Map{"error": "You must provide a valid environment id!"},
 		)
@@ -132,19 +124,23 @@ func DeleteEnvironment(c *fiber.Ctx) error {
 
 }
 
+type ReqUpdateEnv struct {
+	ID          string `json:"id" validate:"required,uuid"`
+	UpdatedName string `json:"updatedName" validate:"required"`
+}
+
 func UpdateEnvironment(c *fiber.Ctx) error {
 	db := database.GetConnection()
 	userSessionId := utils.GetSessionId(c)
 
-	data := new(ReqEnv)
+	data := new(ReqUpdateEnv)
 	if err := c.BodyParser(data); err != nil {
 		return c.Status(fiber.StatusBadRequest).JSON(
 			fiber.Map{"error": "You must provide a valid environment id and updated environment name!"},
 		)
 	}
 
-	err := utils.Validate().Struct(data)
-	if err != nil {
+	if err := utils.Validate().Struct(data); err != nil {
 		return c.Status(fiber.StatusBadRequest).JSON(
 			fiber.Map{"error": "You must provide a valid environment id and updated environment name!"},
 		)

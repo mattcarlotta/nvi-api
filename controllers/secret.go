@@ -10,31 +10,20 @@ import (
 	"gorm.io/gorm"
 )
 
-type ReqSecret struct {
-	ID             string   `json:"id"`
-	EnvironmentIds []string `json:"environmentIds"`
-	Key            string   `json:"key"`
-	Value          string   `json:"value"`
-}
-
-type EnvironmentName struct {
-	Name string `json:"name"`
-}
-
 func GetSecretBySecretId(c *fiber.Ctx) error {
 	db := database.GetConnection()
 	userSessionId := utils.GetSessionId(c)
 
-	parsedSecretId, err := utils.ParseUUID(c.Params("id"))
-	if err != nil {
+	id := c.Params("id")
+	if err := utils.Validate().Var(id, "required,uuid"); err != nil {
 		return c.Status(fiber.StatusBadRequest).JSON(
-			fiber.Map{"error": "You must provide a valid environment id!"},
+			fiber.Map{"error": "You must provide a valid secret id!"},
 		)
 	}
 
 	var secret models.Secret
 	if err := db.Preload("Environments").First(
-		&secret, "id=? AND user_id=?", parsedSecretId, userSessionId,
+		&secret, "id=? AND user_id=?", utils.MustParseUUID(id), userSessionId,
 	).Error; err != nil {
 		return c.Status(fiber.StatusNotFound).JSON(
 			fiber.Map{"error": "Unable to locate a secret with that id!"},
@@ -48,13 +37,14 @@ func GetSecretsByEnvironmentId(c *fiber.Ctx) error {
 	db := database.GetConnection()
 	userSessionId := utils.GetSessionId(c)
 
-	parsedEnvId, err := utils.ParseUUID(c.Params("id"))
-	if err != nil {
+	id := c.Params("id")
+	if err := utils.Validate().Var(id, "required,uuid"); err != nil {
 		return c.Status(fiber.StatusBadRequest).JSON(
 			fiber.Map{"error": "You must provide a valid environment id!"},
 		)
 	}
 
+	parsedEnvId := utils.MustParseUUID(id)
 	var secrets []models.SecretResult
 	if err := db.Raw(
 		utils.FindSecretsByEnvIdQuery, userSessionId, utils.GenerateJSONIDString(parsedEnvId),
@@ -69,19 +59,24 @@ func GetSecretsByEnvironmentId(c *fiber.Ctx) error {
 	return c.Status(fiber.StatusOK).JSON(secrets)
 }
 
+type ReqDeleteSecret struct {
+	EnvironmentIds []string `json:"environmentIds" validate:"required,gte=1"`
+	Key            string   `json:"key" validate:"required"`
+	Value          string   `json:"value" validate:"required"`
+}
+
 func CreateSecret(c *fiber.Ctx) error {
 	db := database.GetConnection()
 	userSessionId := utils.GetSessionId(c)
 
-	data := new(ReqSecret)
+	data := new(ReqDeleteSecret)
 	if err := c.BodyParser(data); err != nil {
 		return c.Status(fiber.StatusBadRequest).JSON(
 			fiber.Map{"error": "You must provide valid environments and a secret key with a value!"},
 		)
 	}
 
-	// TODO(carlotta): Add field validations for "environmentIds," "key," and "value"
-	if len(data.EnvironmentIds) == 0 || len(data.Key) == 0 || len(data.Value) == 0 {
+	if err := utils.Validate().Struct(data); err != nil {
 		return c.Status(fiber.StatusBadRequest).JSON(
 			fiber.Map{"error": "You must provide valid environments and a secret key name with content!"},
 		)
@@ -143,8 +138,8 @@ func DeleteSecret(c *fiber.Ctx) error {
 	db := database.GetConnection()
 	userSessionId := utils.GetSessionId(c)
 
-	parsedId, err := utils.ParseUUID(c.Params("id"))
-	if err != nil {
+	id := c.Params("id")
+	if err := utils.Validate().Var(id, "required,uuid"); err != nil {
 		return c.Status(fiber.StatusBadRequest).JSON(
 			fiber.Map{"error": "You must provide a valid secret id!"},
 		)
@@ -152,7 +147,7 @@ func DeleteSecret(c *fiber.Ctx) error {
 
 	var secret models.Secret
 	if err := db.Where(
-		&models.Environment{ID: parsedId, UserId: userSessionId},
+		&models.Environment{ID: utils.MustParseUUID(id), UserId: userSessionId},
 	).First(&secret).Error; err != nil {
 		return c.Status(fiber.StatusOK).JSON(
 			fiber.Map{"error": "The provided secret doesn't appear to exist!"},
@@ -166,19 +161,25 @@ func DeleteSecret(c *fiber.Ctx) error {
 	return c.Status(fiber.StatusCreated).SendString(fmt.Sprintf("Successfully deleted the %s secret!", secret.Key))
 }
 
+type ReqUpdateSecret struct {
+	ID             string   `json:"id" validate:"required,uuid"`
+	EnvironmentIds []string `json:"environmentIds" validate:"required,gte=1"`
+	Key            string   `json:"key" validate:"required"`
+	Value          string   `json:"value" validate:"required"`
+}
+
 func UpdateSecret(c *fiber.Ctx) error {
 	db := database.GetConnection()
 	userSessionId := utils.GetSessionId(c)
 
-	data := new(ReqSecret)
+	data := new(ReqUpdateSecret)
 	if err := c.BodyParser(data); err != nil {
 		return c.Status(fiber.StatusBadRequest).JSON(
 			fiber.Map{"error": "You must provide valid environments and a secret key name with content!"},
 		)
 	}
 
-	// TODO(carlotta): Add field validations for "id", "environmentIds," "name," and "content"
-	if len(data.ID) == 0 || len(data.EnvironmentIds) == 0 || len(data.Key) == 0 || len(data.Key) == 0 {
+	if err := utils.Validate().Struct(data); err != nil {
 		return c.Status(fiber.StatusBadRequest).JSON(
 			fiber.Map{
 				"error": "You must provide a valid secret id, one or more environment ids and a secret key name with content!",
@@ -186,12 +187,9 @@ func UpdateSecret(c *fiber.Ctx) error {
 		)
 	}
 
-	parsedId, err := utils.ParseUUID(data.ID)
-	if err != nil {
-		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{"error": err.Error()})
-	}
-
 	return db.Transaction(func(tx *gorm.DB) error {
+		parsedId := utils.MustParseUUID(data.ID)
+
 		var secret models.Secret
 		if err := tx.Where(&models.Secret{ID: parsedId, UserId: userSessionId}).First(&secret).Error; err != nil {
 			return c.Status(fiber.StatusBadRequest).JSON(

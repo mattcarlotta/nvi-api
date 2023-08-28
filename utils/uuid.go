@@ -12,6 +12,10 @@ func GetSessionId(c *fiber.Ctx) uuid.UUID {
 	return c.Locals("userSessionId").(uuid.UUID)
 }
 
+func MustParseUUID(id string) uuid.UUID {
+	return uuid.MustParse(id)
+}
+
 func ParseUUID(id string) (uuid.UUID, error) {
 	parsedUUID, err := uuid.Parse(id)
 	if err != nil {

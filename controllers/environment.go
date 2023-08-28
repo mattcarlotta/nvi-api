@@ -11,8 +11,8 @@ import (
 )
 
 type ReqEnv struct {
-	ID          string `json:"id"`
-	UpdatedName string `json:"updatedName"`
+	ID          string `json:"id" validate:"required,uuid"`
+	UpdatedName string `json:"updatedName" validate:"required"`
 }
 
 func GetAllEnvironments(c *fiber.Ctx) error {
@@ -29,7 +29,8 @@ func GetEnvironmentById(c *fiber.Ctx) error {
 	db := database.GetConnection()
 	userSessionId := utils.GetSessionId(c)
 
-	parsedId, err := utils.ParseUUID(c.Params("id"))
+	id := c.Params("id")
+	err := utils.Validate().Var(id, "required,uuid")
 	if err != nil {
 		return c.Status(fiber.StatusBadRequest).JSON(
 			fiber.Map{"error": "You must provide a valid environment id!"},
@@ -38,7 +39,7 @@ func GetEnvironmentById(c *fiber.Ctx) error {
 
 	var environment models.Environment
 	if err := db.Where(
-		&models.Environment{ID: parsedId, UserId: userSessionId},
+		&models.Environment{ID: utils.MustParseUUID(id), UserId: userSessionId},
 	).First(&environment).Error; err != nil {
 		return c.Status(fiber.StatusBadRequest).JSON(
 			fiber.Map{"error": "The provided environment doesn't appear to exist!"},
@@ -53,7 +54,8 @@ func CreateEnvironment(c *fiber.Ctx) error {
 	userSessionId := utils.GetSessionId(c)
 
 	envName := c.Params("name")
-	if len(envName) == 0 {
+	err := utils.Validate().Var(envName, "required,alphanum")
+	if err != nil {
 		return c.Status(fiber.StatusBadRequest).JSON(
 			fiber.Map{"error": "You must provide a valid environment name!"},
 		)
@@ -82,7 +84,8 @@ func DeleteEnvironment(c *fiber.Ctx) error {
 	db := database.GetConnection()
 	userSessionId := utils.GetSessionId(c)
 
-	parsedId, err := utils.ParseUUID(c.Params("id"))
+	id := c.Params("id")
+	err := utils.Validate().Var(id, "required,uuid")
 	if err != nil {
 		return c.Status(fiber.StatusBadRequest).JSON(
 			fiber.Map{"error": "You must provide a valid environment id!"},
@@ -90,6 +93,8 @@ func DeleteEnvironment(c *fiber.Ctx) error {
 	}
 
 	return db.Transaction(func(tx *gorm.DB) error {
+		parsedId := utils.MustParseUUID(id)
+
 		var environment models.Environment
 		if err := tx.Where(
 			&models.Environment{ID: parsedId, UserId: userSessionId},
@@ -138,23 +143,16 @@ func UpdateEnvironment(c *fiber.Ctx) error {
 		)
 	}
 
-	// TODO(carlotta): Add field validations for "id" and "updatedName"
-	if len(data.ID) == 0 || len(data.UpdatedName) == 0 {
+	err := utils.Validate().Struct(data)
+	if err != nil {
 		return c.Status(fiber.StatusBadRequest).JSON(
 			fiber.Map{"error": "You must provide a valid environment id and updated environment name!"},
 		)
 	}
 
-	parsedId, err := utils.ParseUUID(data.ID)
-	if err != nil {
-		return c.Status(fiber.StatusBadRequest).JSON(
-			fiber.Map{"error": "You must provide a valid environment id!"},
-		)
-	}
-
 	var environment models.Environment
 	if err := db.Where(
-		&models.Environment{ID: parsedId, UserId: userSessionId},
+		&models.Environment{ID: utils.MustParseUUID(data.ID), UserId: userSessionId},
 	).First(&environment).Error; err != nil {
 		return c.Status(fiber.StatusOK).JSON(
 			fiber.Map{"error": "The provided environment doesn't appear to exist."},

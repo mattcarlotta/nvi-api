@@ -36,7 +36,6 @@ func CreateConnection() *gorm.DB {
 func GetConnection() *gorm.DB {
 	if DB == nil {
 		return CreateConnection()
-	} else {
-		return DB
 	}
+	return DB
 }

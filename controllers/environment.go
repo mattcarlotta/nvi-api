@@ -12,17 +12,17 @@ import (
 
 func GetAllEnvironments(c *fiber.Ctx) error {
 	db := database.GetConnection()
-	userSessionId := utils.GetSessionId(c)
+	userSessionID := utils.GetSessionID(c)
 
 	var environments []models.Environment
-	db.Where(&models.Environment{UserId: userSessionId}).Find(&environments)
+	db.Where(&models.Environment{UserID: userSessionID}).Find(&environments)
 
 	return c.Status(fiber.StatusOK).JSON(environments)
 }
 
-func GetEnvironmentById(c *fiber.Ctx) error {
+func GetEnvironmentByID(c *fiber.Ctx) error {
 	db := database.GetConnection()
-	userSessionId := utils.GetSessionId(c)
+	userSessionID := utils.GetSessionID(c)
 
 	id := c.Params("id")
 	if err := utils.Validate().Var(id, "required,uuid"); err != nil {
@@ -33,7 +33,7 @@ func GetEnvironmentById(c *fiber.Ctx) error {
 
 	var environment models.Environment
 	if err := db.Where(
-		&models.Environment{ID: utils.MustParseUUID(id), UserId: userSessionId},
+		&models.Environment{ID: utils.MustParseUUID(id), UserID: userSessionID},
 	).First(&environment).Error; err != nil {
 		return c.Status(fiber.StatusBadRequest).JSON(
 			fiber.Map{"error": "The provided environment doesn't appear to exist!"},
@@ -45,7 +45,7 @@ func GetEnvironmentById(c *fiber.Ctx) error {
 
 func CreateEnvironment(c *fiber.Ctx) error {
 	db := database.GetConnection()
-	userSessionId := utils.GetSessionId(c)
+	userSessionID := utils.GetSessionID(c)
 
 	envName := c.Params("name")
 	if err := utils.Validate().Var(envName, "required,alphanum"); err != nil {
@@ -54,7 +54,7 @@ func CreateEnvironment(c *fiber.Ctx) error {
 		)
 	}
 
-	newEnv := models.Environment{Name: envName, UserId: userSessionId}
+	newEnv := models.Environment{Name: envName, UserID: userSessionID}
 	var environment models.Environment
 	if err := db.Where(&newEnv).First(&environment).Error; err == nil {
 		return c.Status(fiber.StatusOK).JSON(
@@ -75,7 +75,7 @@ func CreateEnvironment(c *fiber.Ctx) error {
 
 func DeleteEnvironment(c *fiber.Ctx) error {
 	db := database.GetConnection()
-	userSessionId := utils.GetSessionId(c)
+	userSessionID := utils.GetSessionID(c)
 
 	id := c.Params("id")
 	if err := utils.Validate().Var(id, "required,uuid"); err != nil {
@@ -85,11 +85,11 @@ func DeleteEnvironment(c *fiber.Ctx) error {
 	}
 
 	return db.Transaction(func(tx *gorm.DB) error {
-		parsedId := utils.MustParseUUID(id)
+		parsedID := utils.MustParseUUID(id)
 
 		var environment models.Environment
 		if err := tx.Where(
-			&models.Environment{ID: parsedId, UserId: userSessionId},
+			&models.Environment{ID: parsedID, UserID: userSessionID},
 		).First(&environment).Error; err != nil {
 			return c.Status(fiber.StatusOK).JSON(
 				fiber.Map{"error": "The provided environment doesn't appear to exist!"},
@@ -97,8 +97,8 @@ func DeleteEnvironment(c *fiber.Ctx) error {
 		}
 
 		var secrets []models.Secret
-		if err := tx.Preload("Environments").Not("id", parsedId).Find(
-			&secrets, "user_id=?", userSessionId,
+		if err := tx.Preload("Environments").Not("id", parsedID).Find(
+			&secrets, "user_id=?", userSessionID,
 		).Error; err != nil || len(secrets) > 0 {
 			if err != nil {
 				return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{"error": err.Error()})
@@ -131,7 +131,7 @@ type ReqUpdateEnv struct {
 
 func UpdateEnvironment(c *fiber.Ctx) error {
 	db := database.GetConnection()
-	userSessionId := utils.GetSessionId(c)
+	userSessionID := utils.GetSessionID(c)
 
 	data := new(ReqUpdateEnv)
 	if err := c.BodyParser(data); err != nil {
@@ -148,7 +148,7 @@ func UpdateEnvironment(c *fiber.Ctx) error {
 
 	var environment models.Environment
 	if err := db.Where(
-		&models.Environment{ID: utils.MustParseUUID(data.ID), UserId: userSessionId},
+		&models.Environment{ID: utils.MustParseUUID(data.ID), UserID: userSessionID},
 	).First(&environment).Error; err != nil {
 		return c.Status(fiber.StatusOK).JSON(
 			fiber.Map{"error": "The provided environment doesn't appear to exist."},

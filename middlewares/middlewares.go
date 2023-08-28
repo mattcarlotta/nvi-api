@@ -41,12 +41,12 @@ func RequiresCookieSession(c *fiber.Ctx) error {
 		return c.Status(fiber.StatusUnauthorized).JSON(fiber.Map{"error": err.Error()})
 	}
 
-	parsedId, err := utils.ParseUUID(token.UserId)
+	parsedID, err := utils.ParseUUID(token.UserID)
 	if err != nil {
 		return c.Status(fiber.StatusUnauthorized).JSON(fiber.Map{"error": "Not a valid token."})
 	}
 
-	c.Locals("userSessionId", parsedId)
+	c.Locals("userSessionID", parsedID)
 
 	return c.Next()
 }

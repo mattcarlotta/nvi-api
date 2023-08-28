@@ -39,7 +39,6 @@ func Validate() *validator.Validate {
 			log.Fatalf("Unable to register uuidarray validator: %s", err.Error())
 		}
 		return validate
-	} else {
-		return validate
 	}
+	return validate
 }

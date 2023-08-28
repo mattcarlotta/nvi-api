@@ -2,7 +2,7 @@ package utils
 
 import "github.com/google/uuid"
 
-const FindSecretsByEnvIdQuery = `
+const FindSecretsByEnvIDQuery = `
 SELECT * 
 FROM (
 	SELECT 
@@ -26,7 +26,7 @@ func GenerateJSONIDString(id uuid.UUID) string {
 	return `[{"id":"` + id.String() + `"}]`
 }
 
-func GenerateFindSecretByEnvIdsQuery(ids []uuid.UUID) string {
+func GenerateFindSecretByEnvIDsQuery(ids []uuid.UUID) string {
 	var queryEnvironments string
 	for _, value := range ids {
 		if len(queryEnvironments) == 0 {

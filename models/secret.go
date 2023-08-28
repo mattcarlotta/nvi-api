@@ -12,8 +12,8 @@ import (
 
 type Secret struct {
 	ID           uuid.UUID     `gorm:"type:uuid;default:uuid_generate_v4();primary_key" json:"id"`
-	UserId       uuid.UUID     `gorm:"type:uuid" json:"userId"`
-	User         User          `gorm:"foreignKey:UserId;references:ID;constraint:OnUpdate:CASCADE,OnDelete:CASCADE;" json:"-"`
+	UserID       uuid.UUID     `gorm:"type:uuid" json:"userID"`
+	User         User          `gorm:"foreignKey:UserID;references:ID;constraint:OnUpdate:CASCADE,OnDelete:CASCADE;" json:"-"`
 	Environments []Environment `gorm:"many2many:environment_secrets;constraint:OnUpdate:CASCADE,OnDelete:CASCADE;" json:"environments"`
 	Key          string        `gorm:"type:varchar(255);not null" json:"key"`
 	Value        []byte        `gorm:"not null" json:"value"`
@@ -22,7 +22,7 @@ type Secret struct {
 }
 
 func (secret *Secret) BeforeCreate(tx *gorm.DB) (err error) {
-	if encText, err := utils.CreateEncryptedText([]byte(secret.Value)); err == nil {
+	if encText, err := utils.CreateEncryptedText(secret.Value); err == nil {
 		tx.Statement.SetColumn("Value", encText)
 	}
 	return nil
@@ -64,7 +64,7 @@ func FindDupEnvNames(secrets *[]Secret, ids []uuid.UUID) string {
 
 type SecretResult struct {
 	ID           uuid.UUID      `json:"id"`
-	UserId       uuid.UUID      `json:"userId"`
+	UserID       uuid.UUID      `json:"userID"`
 	Environments datatypes.JSON `json:"environments"`
 	Key          string         `json:"key"`
 	Value        []byte         `json:"value"`

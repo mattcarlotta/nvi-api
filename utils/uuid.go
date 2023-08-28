@@ -7,8 +7,8 @@ import (
 	"github.com/google/uuid"
 )
 
-func GetSessionId(c *fiber.Ctx) uuid.UUID {
-	return c.Locals("userSessionId").(uuid.UUID)
+func GetSessionID(c *fiber.Ctx) uuid.UUID {
+	return c.Locals("userSessionID").(uuid.UUID)
 }
 
 func MustParseUUID(id string) uuid.UUID {
@@ -18,13 +18,13 @@ func MustParseUUID(id string) uuid.UUID {
 func ParseUUID(id string) (uuid.UUID, error) {
 	parsedUUID, err := uuid.Parse(id)
 	if err != nil {
-		return uuid.UUID{}, fmt.Errorf("The follow id '%s' is not a valid uuid!", id)
+		return uuid.UUID{}, fmt.Errorf("the follow id '%s' is not a valid uuid", id)
 	}
 	return parsedUUID, nil
 }
 
 func ParseUUIDs(ids []string) ([]uuid.UUID, error) {
-	var UUIDS []uuid.UUID
+	UUIDS := make([]uuid.UUID, len(ids))
 	for _, value := range ids {
 		parsedUUID, err := ParseUUID(value)
 		if err != nil {

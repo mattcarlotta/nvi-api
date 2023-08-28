@@ -294,10 +294,10 @@ func UpdatePassword(c *fiber.Ctx) error {
 
 func GetAccountInfo(c *fiber.Ctx) error {
 	db := database.GetConnection()
-	userSessionId := utils.GetSessionId(c)
+	userSessionID := utils.GetSessionID(c)
 
 	var user models.User
-	if err := db.Where(&models.User{ID: userSessionId}).First(&user).Error; err != nil {
+	if err := db.Where(&models.User{ID: userSessionID}).First(&user).Error; err != nil {
 		return c.Status(fiber.StatusInternalServerError).JSON(
 			fiber.Map{"error": "Encountered an unexpected error. Unable to locate the associated account."},
 		)
@@ -308,10 +308,10 @@ func GetAccountInfo(c *fiber.Ctx) error {
 
 func DeleteAccount(c *fiber.Ctx) error {
 	db := database.GetConnection()
-	userSessionId := utils.GetSessionId(c)
+	userSessionID := utils.GetSessionID(c)
 
 	var user models.User
-	if err := db.Where(&models.User{ID: userSessionId}).First(&user).Error; err != nil {
+	if err := db.Where(&models.User{ID: userSessionID}).First(&user).Error; err != nil {
 		return c.Status(fiber.StatusInternalServerError).JSON(
 			fiber.Map{"error": "Encountered an unexpected error. Unable to locate the associated account."},
 		)

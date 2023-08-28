@@ -29,7 +29,7 @@ func (user *User) GenerateSessionToken() (string, time.Time, error) {
 	claims := &utils.JWTSessionClaim{
 		Email:  user.Email,
 		Name:   user.Name,
-		UserId: user.ID.String(),
+		UserID: user.ID.String(),
 		StandardClaims: jwt.StandardClaims{
 			ExpiresAt: exp.Unix(),
 		},

@@ -17,7 +17,7 @@ type JWTTokenClaim struct {
 type JWTSessionClaim struct {
 	Email  string `json:"email"`
 	Name   string `json:"name"`
-	UserId string `json:"userId"`
+	UserID string `json:"userID"`
 	jwt.StandardClaims
 }
 
@@ -36,7 +36,7 @@ func GenerateUserToken(email string) (string, time.Time, error) {
 
 func ValidateUserToken(userToken string) (*JWTTokenClaim, error) {
 	if len(userToken) == 0 {
-		return nil, errors.New("No token was provided.")
+		return nil, errors.New("no token was provided")
 	}
 
 	token, err := jwt.ParseWithClaims(
@@ -53,9 +53,9 @@ func ValidateUserToken(userToken string) (*JWTTokenClaim, error) {
 
 	claims, ok := token.Claims.(*JWTTokenClaim)
 	if !ok {
-		return nil, errors.New("Unable to parse user token.")
+		return nil, errors.New("unable to parse user token")
 	} else if claims.ExpiresAt < time.Now().Local().Unix() {
-		return nil, errors.New("Token expired.")
+		return nil, errors.New("token expired")
 	}
 
 	return claims, nil
@@ -63,7 +63,7 @@ func ValidateUserToken(userToken string) (*JWTTokenClaim, error) {
 
 func ValidateSessionToken(jwtCookie string) (*JWTSessionClaim, error) {
 	if len(jwtCookie) == 0 {
-		return nil, errors.New("You must be logged in order to do that!")
+		return nil, errors.New("you must be logged in order to do that")
 	}
 
 	token, err := jwt.ParseWithClaims(
@@ -80,9 +80,9 @@ func ValidateSessionToken(jwtCookie string) (*JWTSessionClaim, error) {
 
 	claims, ok := token.Claims.(*JWTSessionClaim)
 	if !ok {
-		return nil, errors.New("Unable to parse session token.")
+		return nil, errors.New("unable to parse session token")
 	} else if claims.ExpiresAt < time.Now().Local().Unix() {
-		return nil, errors.New("Session expired.")
+		return nil, errors.New("session expired")
 	}
 
 	return claims, nil

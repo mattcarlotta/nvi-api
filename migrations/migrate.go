@@ -10,12 +10,17 @@ import (
 
 func main() {
 	db := database.GetConnection()
-	db.Migrator().DropTable(&models.User{})
-	db.Migrator().DropTable(&models.Environment{})
-	db.Migrator().DropTable(&models.Secret{})
+	if err := db.Migrator().DropTable(&models.User{}); err != nil {
+		log.Fatalf("Unable to drop user table: %s", err.Error())
+	}
+	if err := db.Migrator().DropTable(&models.Environment{}); err != nil {
+		log.Fatalf("Unable to environment table: %s", err.Error())
+	}
+	if err := db.Migrator().DropTable(&models.Secret{}); err != nil {
+		log.Fatalf("Unable to secret table: %s", err.Error())
+	}
 
-	err := db.AutoMigrate(&models.User{}, &models.Environment{}, &models.Secret{})
-	if err != nil {
+	if err := db.AutoMigrate(&models.User{}, &models.Environment{}, &models.Secret{}); err != nil {
 		log.Fatalf("Unable to migrate models: %s", err.Error())
 	}
 

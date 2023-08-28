@@ -1,6 +1,7 @@
 package utils
 
 import (
+	"log"
 	"reflect"
 
 	"github.com/go-playground/validator/v10"
@@ -34,7 +35,9 @@ func validateUUIDArray(fl validator.FieldLevel) bool {
 func Validate() *validator.Validate {
 	if validate == nil {
 		validate = validator.New()
-		validate.RegisterValidation("uuidarray", validateUUIDArray)
+		if err := validate.RegisterValidation("uuidarray", validateUUIDArray); err != nil {
+			log.Fatalf("Unable to register uuidarray validator: %s", err.Error())
+		}
 		return validate
 	} else {
 		return validate

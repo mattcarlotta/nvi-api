@@ -1,7 +1,6 @@
 package utils
 
 import (
-	"errors"
 	"fmt"
 
 	"github.com/gofiber/fiber/v2"
@@ -19,7 +18,7 @@ func MustParseUUID(id string) uuid.UUID {
 func ParseUUID(id string) (uuid.UUID, error) {
 	parsedUUID, err := uuid.Parse(id)
 	if err != nil {
-		return uuid.UUID{}, errors.New(fmt.Sprintf("The follow id '%s' is not a valid uuid!", id))
+		return uuid.UUID{}, fmt.Errorf("The follow id '%s' is not a valid uuid!", id)
 	}
 	return parsedUUID, nil
 }

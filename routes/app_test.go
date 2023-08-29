@@ -1,10 +1,10 @@
 package routes
 
 import (
-	"github.com/gofiber/fiber/v2"
 	"os"
 	"testing"
 
+	"github.com/gofiber/fiber/v2"
 	"github.com/mattcarlotta/nvi-api/database"
 )
 
@@ -19,6 +19,5 @@ func TestMain(m *testing.M) {
 	EnvironmentRoutes(app)
 	SecretRoutes(app)
 
-	// log.Fatal(app.Listen(utils.GetEnv("PORT")))
 	os.Exit(m.Run())
 }

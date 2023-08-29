@@ -63,38 +63,32 @@ func Login(c *fiber.Ctx) error {
 	data := new(models.ReqLoginUser)
 	if err := c.BodyParser(data); err != nil {
 		return c.Status(fiber.StatusBadRequest).JSON(
-			fiber.Map{"error": "You must provide a valid email and password!"},
+			fiber.Map{"error": utils.ErrorCode[utils.LoginEmptyBody]},
 		)
 	}
 
 	if err := utils.Validate().Struct(data); err != nil {
 		return c.Status(fiber.StatusBadRequest).JSON(
-			fiber.Map{"error": "You must provide a valid email and password!"},
+			fiber.Map{"error": utils.ErrorCode[utils.LoginInvalidBody]},
 		)
 	}
 
 	var existingUser models.User
 	if err := db.Where(&models.User{Email: data.Email}).First(&existingUser).Error; err != nil {
-		return c.Status(fiber.StatusNoContent).JSON(
-			fiber.Map{"error": fmt.Sprintf(
-				"The provided email '%s' may not exist or the provided password is incorrect.", data.Email),
-			},
+		return c.Status(fiber.StatusOK).JSON(
+			fiber.Map{"error": utils.ErrorCode[utils.LoginUnregisteredEmail]},
 		)
 	}
 
 	if !existingUser.MatchPassword(data.Password) {
-		return c.Status(fiber.StatusNoContent).JSON(
-			fiber.Map{"error": fmt.Sprintf(
-				"The provided email '%s' may not exist or the provided password is incorrect.", data.Email),
-			},
+		return c.Status(fiber.StatusOK).JSON(
+			fiber.Map{"error": utils.ErrorCode[utils.LoginInvalidPassword]},
 		)
 	}
 
 	if !existingUser.Verified {
 		return c.Status(fiber.StatusUnauthorized).JSON(
-			fiber.Map{"error": "You must verify your email before signing in! Check your inbox for account " +
-				"verification instructions or generate another account verification email.",
-			},
+			fiber.Map{"error": utils.ErrorCode[utils.LoginAccountNotVerified]},
 		)
 	}
 

@@ -10,34 +10,26 @@ import (
 	"github.com/mattcarlotta/nvi-api/utils"
 )
 
-type ReqRegisterUser struct {
-	Name     string `json:"name" validate:"required,gte=2,lte=255"`
-	Email    string `json:"email" validate:"required,email,lte=100"`
-	Password string `json:"password" validate:"required,gte=5,lte=36"`
-}
-
 func Register(c *fiber.Ctx) error {
 	db := database.GetConnection()
 
-	data := new(ReqRegisterUser)
+	data := new(models.ReqRegisterUser)
 	if err := c.BodyParser(data); err != nil {
 		return c.Status(fiber.StatusBadRequest).JSON(
-			fiber.Map{"error": "You must provide a valid name, email and password!"},
+			fiber.Map{"error": utils.ErrorCode[utils.RegisterEmptyBody]},
 		)
 	}
 
 	if err := utils.Validate().Struct(data); err != nil {
 		return c.Status(fiber.StatusBadRequest).JSON(
-			fiber.Map{"error": "You must provide a valid name, email and password!"},
+			fiber.Map{"error": utils.ErrorCode[utils.RegisterInvalidBody]},
 		)
 	}
 
 	var user models.User
-	if err := db.Where(&models.User{Email: data.Email}).First(&user).Error; err == nil {
+	if err := db.Where("email=?", data.Email).First(&user).Error; err == nil {
 		return c.Status(fiber.StatusOK).JSON(
-			fiber.Map{"error": fmt.Sprintf(
-				"The provided email '%s' may already exist or is not a valid email address.", data.Email),
-			},
+			fiber.Map{"error": utils.ErrorCode[utils.RegisterEmailTaken]},
 		)
 	}
 
@@ -47,14 +39,14 @@ func Register(c *fiber.Ctx) error {
 	}
 
 	newToken := []byte(token)
-	newUser := models.User{
-		Email:    data.Email,
-		Name:     data.Name,
-		Password: []byte(data.Password),
-		Token:    &newToken,
-	}
-
-	if err = db.Create(&newUser).Error; err != nil {
+	if err = db.Create(
+		&models.User{
+			Email:    data.Email,
+			Name:     data.Name,
+			Password: data.Password,
+			Token:    &newToken,
+		},
+	).Error; err != nil {
 		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{"error": err.Error()})
 	}
 
@@ -65,15 +57,10 @@ func Register(c *fiber.Ctx) error {
 	)
 }
 
-type ReqLoginUser struct {
-	Email    string `json:"email" validate:"required,email,lte=100"`
-	Password string `json:"password" validate:"required,gte=5,lte=36"`
-}
-
 func Login(c *fiber.Ctx) error {
 	db := database.GetConnection()
 
-	data := new(ReqLoginUser)
+	data := new(models.ReqLoginUser)
 	if err := c.BodyParser(data); err != nil {
 		return c.Status(fiber.StatusBadRequest).JSON(
 			fiber.Map{"error": "You must provide a valid email and password!"},
@@ -158,14 +145,10 @@ func VerifyAccount(c *fiber.Ctx) error {
 	return c.Status(fiber.StatusOK).SendString(fmt.Sprintf("Successfully verified %s!", user.Email))
 }
 
-type ReqResendAccountVerification struct {
-	Email string `json:"email" validate:"required,email,lte=100"`
-}
-
 func ResendAccountVerification(c *fiber.Ctx) error {
 	db := database.GetConnection()
 
-	data := new(ReqResendAccountVerification)
+	data := new(models.ReqEmailUser)
 	if err := c.BodyParser(data); err != nil {
 		return c.Status(fiber.StatusBadRequest).JSON(
 			fiber.Map{"error": "You must provide a valid email!"},
@@ -203,14 +186,10 @@ func ResendAccountVerification(c *fiber.Ctx) error {
 	return c.Status(fiber.StatusAccepted).SendString(fmt.Sprintf("Resent a verification email to %s.", user.Email))
 }
 
-type ReqSendResetPassword struct {
-	Email string `json:"email" validate:"required,email,lte=100"`
-}
-
 func SendResetPasswordEmail(c *fiber.Ctx) error {
 	db := database.GetConnection()
 
-	data := new(ReqSendResetPassword)
+	data := new(models.ReqEmailUser)
 	if err := c.BodyParser(data); err != nil {
 		return c.Status(fiber.StatusBadRequest).JSON(
 			fiber.Map{"error": "You must provide a valid email!"},
@@ -243,15 +222,10 @@ func SendResetPasswordEmail(c *fiber.Ctx) error {
 	return c.Status(fiber.StatusAccepted).SendString(fmt.Sprintf("Sent a password reset email to %s.", user.Email))
 }
 
-type ReqUpdateUser struct {
-	Password string `json:"password" validate:"required,gte=5,lte=36"`
-	Token    string `json:"token" validate:"required"`
-}
-
 func UpdatePassword(c *fiber.Ctx) error {
 	db := database.GetConnection()
 
-	data := new(ReqUpdateUser)
+	data := new(models.ReqUpdateUser)
 	if err := c.BodyParser(data); err != nil {
 		return c.Status(fiber.StatusBadRequest).JSON(
 			fiber.Map{"error": "You must provide a valid password and password reset token."},

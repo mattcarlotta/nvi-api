@@ -13,25 +13,25 @@ import (
 )
 
 func Setup(app *fiber.App) {
-	app.Use(cors.New(
-		cors.Config{
-			AllowOrigins:     utils.GetEnv("CLIENT_HOST"),
-			AllowHeaders:     "Origin, Content-Type, Accept",
-			AllowCredentials: true,
-		},
-	))
-	app.Use(helmet.New())
-	app.Use(encryptcookie.New(
-		encryptcookie.Config{
-			Key: utils.GetEnv("COOKIE_KEY"),
-		}),
+	app.Use(
+		cors.New(
+			cors.Config{
+				AllowOrigins:     utils.GetEnv("CLIENT_HOST"),
+				AllowHeaders:     "Origin, Content-Type, Accept",
+				AllowCredentials: true,
+			},
+		),
+		helmet.New(),
+		encryptcookie.New(
+			encryptcookie.Config{
+				Key: utils.GetEnv("COOKIE_KEY"),
+			}),
+		compress.New(
+			compress.Config{
+				Level: compress.LevelBestSpeed,
+			}),
+		logger.New(),
 	)
-	app.Use(compress.New(
-		compress.Config{
-			Level: compress.LevelBestSpeed,
-		}),
-	)
-	app.Use(logger.New())
 }
 
 func RequiresCookieSession(c *fiber.Ctx) error {

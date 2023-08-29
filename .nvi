@@ -4,9 +4,20 @@ files = ["development.env"]
 exec = "fresh"
 required = ["API_HOST", "CLIENT_HOST", "COOKIE_KEY", "DB_HOST", "DB_NAME", "DB_PASSWORD", "DB_PORT", "DB_USER", "JWT_SECRET_KEY", "PORT"]
 
-
 [migrate]
 debug = true
 files = ["development.env"]
 exec = "go run migrations/migrate.go"
+required = ["API_HOST", "CLIENT_HOST", "COOKIE_KEY", "DB_HOST", "DB_NAME", "DB_PASSWORD", "DB_PORT", "DB_USER", "JWT_SECRET_KEY", "PORT"]
+
+[migrate_test]
+debug = true
+files = ["test.env"]
+exec = "go run migrations/migrate.go"
+required = ["API_HOST", "CLIENT_HOST", "COOKIE_KEY", "DB_HOST", "DB_NAME", "DB_PASSWORD", "DB_PORT", "DB_USER", "JWT_SECRET_KEY", "PORT"]
+
+[test]
+debug = false
+files = ["test.env"]
+exec = "go test ./... -count=1"
 required = ["API_HOST", "CLIENT_HOST", "COOKIE_KEY", "DB_HOST", "DB_NAME", "DB_PASSWORD", "DB_PORT", "DB_USER", "JWT_SECRET_KEY", "PORT"]

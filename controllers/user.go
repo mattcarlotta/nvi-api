@@ -11,8 +11,8 @@ import (
 )
 
 type ReqRegisterUser struct {
-	Name     string `json:"name" validate:"required,gte=3"`
-	Email    string `json:"email" validate:"required,email"`
+	Name     string `json:"name" validate:"required,gte=2,lte=255"`
+	Email    string `json:"email" validate:"required,email,lte=100"`
 	Password string `json:"password" validate:"required,gte=5,lte=36"`
 }
 
@@ -66,7 +66,7 @@ func Register(c *fiber.Ctx) error {
 }
 
 type ReqLoginUser struct {
-	Email    string `json:"email" validate:"required,email"`
+	Email    string `json:"email" validate:"required,email,lte=100"`
 	Password string `json:"password" validate:"required,gte=5,lte=36"`
 }
 
@@ -159,7 +159,7 @@ func VerifyAccount(c *fiber.Ctx) error {
 }
 
 type ReqResendAccountVerification struct {
-	Email string `json:"email" validate:"required,email"`
+	Email string `json:"email" validate:"required,email,lte=100"`
 }
 
 func ResendAccountVerification(c *fiber.Ctx) error {
@@ -204,7 +204,7 @@ func ResendAccountVerification(c *fiber.Ctx) error {
 }
 
 type ReqSendResetPassword struct {
-	Email string `json:"email" validate:"required,email"`
+	Email string `json:"email" validate:"required,email,lte=100"`
 }
 
 func SendResetPasswordEmail(c *fiber.Ctx) error {

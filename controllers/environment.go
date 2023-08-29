@@ -126,7 +126,7 @@ func DeleteEnvironment(c *fiber.Ctx) error {
 
 type ReqUpdateEnv struct {
 	ID          string `json:"id" validate:"required,uuid"`
-	UpdatedName string `json:"updatedName" validate:"required"`
+	UpdatedName string `json:"updatedName" validate:"required,lte=255"`
 }
 
 func UpdateEnvironment(c *fiber.Ctx) error {

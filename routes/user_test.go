@@ -3,6 +3,7 @@ package routes
 import (
 	"bytes"
 	"encoding/json"
+	"fmt"
 	"io"
 	"log"
 	"net/http/httptest"
@@ -169,6 +170,9 @@ func TestRegisterUserSuccess(t *testing.T) {
 		log.Fatal("failed to make request to register user controller")
 	}
 
+	body, _ := io.ReadAll(resp.Body)
+	bodyMessage := string(body)
+
 	defer func() {
 		var existingUser models.User
 		if err := db.Where(&models.User{Email: user.Email}).First(&existingUser).Error; err != nil {
@@ -181,4 +185,7 @@ func TestRegisterUserSuccess(t *testing.T) {
 	}()
 
 	assert.Equal(t, test.expectedCode, resp.StatusCode)
+	assert.Equal(t, bodyMessage, fmt.Sprintf(
+		"Welcome, %s! Please check your %s inbox for steps to verify your account.", user.Name, user.Email,
+	))
 }

@@ -1,6 +1,12 @@
-# NVI-API Error Codes
+# NVI API Error Codes
 
 Click here for [field validation rules](https://github.com/go-playground/validator#baked-in-validations)
+
+## E000
+
+- Error Name: `Unknown`
+- Status: `500`
+- Explanation: the server ran into an unexpected error, see server logs or response error for more details
 
 ## E001
 
@@ -8,6 +14,7 @@ Click here for [field validation rules](https://github.com/go-playground/validat
 - Controller: `user`
 - Path: `/register`
 - Method: `POST`
+- Status: `400`
 - Content: `application/json`
 - Explanation: the request body is missing a valid `name`, `email` and/or `password` fields
 
@@ -17,6 +24,7 @@ Click here for [field validation rules](https://github.com/go-playground/validat
 - Controller: `user`
 - Path: `/register`
 - Method: `POST`
+- Status: `400`
 - Content: `application/json`
 - Body: `name, email, password`
 - Explanation: the request body doesn't pass one or more of the following field validation rules:
@@ -30,6 +38,7 @@ Click here for [field validation rules](https://github.com/go-playground/validat
 - Controller: `user`
 - Path: `/register`
 - Method: `POST`
+- Status: `200`
 - Content: `application/json`
 - Body: `name, email, password`
 - Explanation: the request body contains an `email` field that's already in use
@@ -41,6 +50,7 @@ Click here for [field validation rules](https://github.com/go-playground/validat
 - Controller: `user`
 - Path: `/login`
 - Method: `POST`
+- Status: `400`
 - Content: `application/json`
 - Body: `email, password`
 - Explanation: the request body is missing a valid `email` field and/or `password` field
@@ -52,6 +62,7 @@ Click here for [field validation rules](https://github.com/go-playground/validat
 - Controller: `user`
 - Path: `/login`
 - Method: `POST`
+- Status: `400`
 - Content: `application/json`
 - Body: `email, password`
 - Explanation: the request body doesn't pass one or more of the following field validation rules:
@@ -65,6 +76,7 @@ Click here for [field validation rules](https://github.com/go-playground/validat
 - Controller: `user`
 - Path: `/login`
 - Method: `POST`
+- Status: `200`
 - Content: `application/json`
 - Body: `email, password`
 - Explanation: the request body contains an unregistered `email` field
@@ -75,6 +87,7 @@ Click here for [field validation rules](https://github.com/go-playground/validat
 - Controller: `user`
 - Path: `/login`
 - Method: `POST`
+- Status: `200`
 - Content: `application/json`
 - Body: `email, password`
 - Explanation: the request body contains an invalid `password` field for the provided `email` field
@@ -85,6 +98,7 @@ Click here for [field validation rules](https://github.com/go-playground/validat
 - Controller: `user`
 - Path: `/login`
 - Method: `POST`
+- Status: `401`
 - Content: `application/json`
 - Body: `email, password`
 - Explanation: the request body contains an `email` field that hasn't been verified yet

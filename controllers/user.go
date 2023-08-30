@@ -78,7 +78,7 @@ func Login(c *fiber.Ctx) error {
 
 	token, exp, err := existingUser.GenerateSessionToken()
 	if err != nil {
-		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{"error": err.Error()})
+		return c.Status(fiber.StatusInternalServerError).JSON(utils.UnknownJSONError(err))
 	}
 
 	utils.SetSessionCookie(c, token, exp)

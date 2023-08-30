@@ -13,7 +13,10 @@ import (
 func main() {
 	database.CreateConnection()
 
-	app := fiber.New()
+	app := fiber.New(fiber.Config{
+		ServerHeader: "nvi-api",
+		AppName:      "Nvi API v0.0.1",
+	})
 
 	middlewares.Setup(app)
 

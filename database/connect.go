@@ -21,6 +21,7 @@ func CreateConnection() *gorm.DB {
 		utils.GetEnv("DB_PORT"),
 	)
 
+	// TODO(carlotta): make this logger conditional to avoid exposing PII
 	dbc, err := gorm.Open(postgres.Open(dsn), &gorm.Config{
 		Logger: logger.Default.LogMode(logger.Info),
 	})

@@ -1,6 +1,9 @@
 package utils
 
-import "fmt"
+import (
+	"fmt"
+	"log"
+)
 
 type ErrorResponseCode int
 
@@ -34,6 +37,7 @@ type ResponseError struct {
 }
 
 func JSONError(code ErrorResponseCode) ResponseError {
+	log.Printf("Error: %s", ErrorCode[code])
 	return ResponseError{
 		Resource: fmt.Sprintf("https://github.com/mattcarlotta/nvi-api/blob/main/ERRORS.md#%s", ErrorCode[code]),
 		Error:    ErrorCode[code],
@@ -41,6 +45,7 @@ func JSONError(code ErrorResponseCode) ResponseError {
 }
 
 func UnknownJSONError(err error) ResponseError {
+	log.Printf("An unknown error occured: %s", err.Error())
 	return ResponseError{
 		Resource: fmt.Sprintf("https://github.com/mattcarlotta/nvi-api/blob/main/ERRORS.md#%s", ErrorCode[Unknown]),
 		Error:    err.Error(),

@@ -1,15 +1,18 @@
 package testutils
 
 import (
+	"encoding/json"
+	"io"
 	"log"
 
 	"github.com/mattcarlotta/nvi-api/database"
 	"github.com/mattcarlotta/nvi-api/models"
+	"github.com/mattcarlotta/nvi-api/utils"
 )
 
-var Password = []byte("password123")
+var StrPassword = "password123"
+var Password = []byte(StrPassword)
 var NewToken = []byte("hello")
-var StrPassword = string(Password)
 
 type TestResponse struct {
 	Route        string
@@ -44,4 +47,17 @@ func CreateUser(email *string, verified bool) {
 	if err := db.Create(newUser).Error; err != nil {
 		log.Fatal("unable to create a user")
 	}
+}
+
+func ParseJSONBody(body *io.ReadCloser) utils.ResponseError {
+	var errResponse utils.ResponseError
+	responseBodyBytes, _ := io.ReadAll(*body)
+	_ = json.Unmarshal(responseBodyBytes, &errResponse)
+
+	return errResponse
+}
+
+func ParseTextBody(body *io.ReadCloser) string {
+	resBody, _ := io.ReadAll(*body)
+	return string(resBody)
 }

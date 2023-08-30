@@ -4,7 +4,6 @@ import (
 	"bytes"
 	"encoding/json"
 	"fmt"
-	"io"
 	"log"
 	"net/http/httptest"
 	"testing"
@@ -31,18 +30,17 @@ func TestRegisterUserEmptyBody(t *testing.T) {
 		log.Fatal("failed to make request to register user controller")
 	}
 
-	var errResponse utils.ResponseError
-	responseBodyBytes, _ := io.ReadAll(resp.Body)
-	_ = json.Unmarshal(responseBodyBytes, &errResponse)
+	resBody := testutils.ParseJSONBody(&resp.Body)
 
 	assert.Equal(t, test.ExpectedCode, resp.StatusCode)
-	assert.Equal(t, errResponse.Error, utils.ErrorCode[utils.RegisterEmptyBody])
+	assert.Equal(t, resBody.Error, utils.ErrorCode[utils.RegisterEmptyBody])
 }
 
 func TestRegisterUserInvalidBody(t *testing.T) {
 	user := &models.ReqRegisterUser{
-		Name:     "invalid",
-		Email:    "invalidexample", // invalid email to trigger validation failure
+		Name: "invalid",
+		// invalid email to trigger validation failure
+		Email:    "invalidexample",
 		Password: string(testutils.Password),
 	}
 
@@ -52,8 +50,8 @@ func TestRegisterUserInvalidBody(t *testing.T) {
 		ExpectedCode: fiber.StatusBadRequest,
 	}
 
-	reqBodyStr, _ := json.Marshal(user)
-	req := httptest.NewRequest(test.Method, test.Route, bytes.NewBufferString(string(reqBodyStr)))
+	reqBody, _ := json.Marshal(user)
+	req := httptest.NewRequest(test.Method, test.Route, bytes.NewBufferString(string(reqBody)))
 	req.Header.Add("Content-Type", "application/json")
 
 	resp, err := app.Test(req, -1)
@@ -61,12 +59,10 @@ func TestRegisterUserInvalidBody(t *testing.T) {
 		log.Fatal("failed to make request to register user controller")
 	}
 
-	var errResponse utils.ResponseError
-	responseBodyBytes, _ := io.ReadAll(resp.Body)
-	_ = json.Unmarshal(responseBodyBytes, &errResponse)
+	resBody := testutils.ParseJSONBody(&resp.Body)
 
 	assert.Equal(t, test.ExpectedCode, resp.StatusCode)
-	assert.Equal(t, errResponse.Error, utils.ErrorCode[utils.RegisterInvalidBody])
+	assert.Equal(t, resBody.Error, utils.ErrorCode[utils.RegisterInvalidBody])
 }
 
 func TestRegisterEmailTaken(t *testing.T) {
@@ -85,8 +81,8 @@ func TestRegisterEmailTaken(t *testing.T) {
 		ExpectedCode: fiber.StatusOK,
 	}
 
-	reqBodyStr, _ := json.Marshal(user)
-	req := httptest.NewRequest(test.Method, test.Route, bytes.NewBufferString(string(reqBodyStr)))
+	reqBody, _ := json.Marshal(user)
+	req := httptest.NewRequest(test.Method, test.Route, bytes.NewBufferString(string(reqBody)))
 	req.Header.Add("Content-Type", "application/json")
 
 	resp, err := app.Test(req, -1)
@@ -94,14 +90,12 @@ func TestRegisterEmailTaken(t *testing.T) {
 		log.Fatal("failed to make request to register user controller")
 	}
 
-	var errResponse utils.ResponseError
-	responseBodyBytes, _ := io.ReadAll(resp.Body)
-	_ = json.Unmarshal(responseBodyBytes, &errResponse)
+	resBody := testutils.ParseJSONBody(&resp.Body)
 
 	defer testutils.DeleteUser(&email)
 
 	assert.Equal(t, test.ExpectedCode, resp.StatusCode)
-	assert.Equal(t, errResponse.Error, utils.ErrorCode[utils.RegisterEmailTaken])
+	assert.Equal(t, resBody.Error, utils.ErrorCode[utils.RegisterEmailTaken])
 }
 
 func TestRegisterUserSuccess(t *testing.T) {
@@ -117,8 +111,8 @@ func TestRegisterUserSuccess(t *testing.T) {
 		ExpectedCode: fiber.StatusCreated,
 	}
 
-	reqBodyStr, _ := json.Marshal(user)
-	req := httptest.NewRequest(test.Method, test.Route, bytes.NewBufferString(string(reqBodyStr)))
+	reqBody, _ := json.Marshal(user)
+	req := httptest.NewRequest(test.Method, test.Route, bytes.NewBufferString(string(reqBody)))
 	req.Header.Add("Content-Type", "application/json")
 
 	resp, err := app.Test(req, -1)
@@ -126,13 +120,12 @@ func TestRegisterUserSuccess(t *testing.T) {
 		log.Fatal("failed to make request to register user controller")
 	}
 
-	body, _ := io.ReadAll(resp.Body)
-	bodyMessage := string(body)
+	resBody := testutils.ParseTextBody(&resp.Body)
 
 	defer testutils.DeleteUser(&user.Email)
 
 	assert.Equal(t, test.ExpectedCode, resp.StatusCode)
-	assert.Equal(t, bodyMessage, fmt.Sprintf(
+	assert.Equal(t, resBody, fmt.Sprintf(
 		"Welcome, %s! Please check your %s inbox for steps to verify your account.", user.Name, user.Email,
 	))
 }
@@ -152,17 +145,16 @@ func TestLoginUserEmptyBody(t *testing.T) {
 		log.Fatal("failed to make request to user login controller")
 	}
 
-	var errResponse utils.ResponseError
-	responseBodyBytes, _ := io.ReadAll(resp.Body)
-	_ = json.Unmarshal(responseBodyBytes, &errResponse)
+	resBody := testutils.ParseJSONBody(&resp.Body)
 
 	assert.Equal(t, test.ExpectedCode, resp.StatusCode)
-	assert.Equal(t, errResponse.Error, utils.ErrorCode[utils.LoginEmptyBody])
+	assert.Equal(t, resBody.Error, utils.ErrorCode[utils.LoginEmptyBody])
 }
 
 func TestLoginUserInvalidBody(t *testing.T) {
 	user := &models.ReqLoginUser{
-		Email:    "invalidexample", // invalid email to trigger validation failure
+		// invalid email to trigger validation failure
+		Email:    "invalidexample",
 		Password: testutils.StrPassword,
 	}
 
@@ -172,8 +164,8 @@ func TestLoginUserInvalidBody(t *testing.T) {
 		ExpectedCode: fiber.StatusBadRequest,
 	}
 
-	reqBodyStr, _ := json.Marshal(user)
-	req := httptest.NewRequest(test.Method, test.Route, bytes.NewBufferString(string(reqBodyStr)))
+	reqBody, _ := json.Marshal(user)
+	req := httptest.NewRequest(test.Method, test.Route, bytes.NewBufferString(string(reqBody)))
 	req.Header.Add("Content-Type", "application/json")
 
 	resp, err := app.Test(req, -1)
@@ -181,12 +173,10 @@ func TestLoginUserInvalidBody(t *testing.T) {
 		log.Fatal("failed to make request to login user controller")
 	}
 
-	var errResponse utils.ResponseError
-	responseBodyBytes, _ := io.ReadAll(resp.Body)
-	_ = json.Unmarshal(responseBodyBytes, &errResponse)
+	resBody := testutils.ParseJSONBody(&resp.Body)
 
 	assert.Equal(t, test.ExpectedCode, resp.StatusCode)
-	assert.Equal(t, errResponse.Error, utils.ErrorCode[utils.LoginInvalidBody])
+	assert.Equal(t, resBody.Error, utils.ErrorCode[utils.LoginInvalidBody])
 }
 
 func TestLoginUnregisteredEmail(t *testing.T) {
@@ -201,8 +191,8 @@ func TestLoginUnregisteredEmail(t *testing.T) {
 		ExpectedCode: fiber.StatusOK,
 	}
 
-	reqBodyStr, _ := json.Marshal(user)
-	req := httptest.NewRequest(test.Method, test.Route, bytes.NewBufferString(string(reqBodyStr)))
+	reqBody, _ := json.Marshal(user)
+	req := httptest.NewRequest(test.Method, test.Route, bytes.NewBufferString(string(reqBody)))
 	req.Header.Add("Content-Type", "application/json")
 
 	resp, err := app.Test(req, -1)
@@ -210,12 +200,10 @@ func TestLoginUnregisteredEmail(t *testing.T) {
 		log.Fatal("failed to make request to login user controller")
 	}
 
-	var errResponse utils.ResponseError
-	responseBodyBytes, _ := io.ReadAll(resp.Body)
-	_ = json.Unmarshal(responseBodyBytes, &errResponse)
+	resBody := testutils.ParseJSONBody(&resp.Body)
 
 	assert.Equal(t, test.ExpectedCode, resp.StatusCode)
-	assert.Equal(t, errResponse.Error, utils.ErrorCode[utils.LoginUnregisteredEmail])
+	assert.Equal(t, resBody.Error, utils.ErrorCode[utils.LoginUnregisteredEmail])
 }
 
 func TestLoginInvalidPassword(t *testing.T) {
@@ -234,8 +222,8 @@ func TestLoginInvalidPassword(t *testing.T) {
 		ExpectedCode: fiber.StatusOK,
 	}
 
-	reqBodyStr, _ := json.Marshal(user)
-	req := httptest.NewRequest(test.Method, test.Route, bytes.NewBufferString(string(reqBodyStr)))
+	reqBody, _ := json.Marshal(user)
+	req := httptest.NewRequest(test.Method, test.Route, bytes.NewBufferString(string(reqBody)))
 	req.Header.Add("Content-Type", "application/json")
 
 	resp, err := app.Test(req, -1)
@@ -243,14 +231,12 @@ func TestLoginInvalidPassword(t *testing.T) {
 		log.Fatal("failed to make request to login user controller")
 	}
 
-	var errResponse utils.ResponseError
-	responseBodyBytes, _ := io.ReadAll(resp.Body)
-	_ = json.Unmarshal(responseBodyBytes, &errResponse)
+	resBody := testutils.ParseJSONBody(&resp.Body)
 
 	defer testutils.DeleteUser(&email)
 
 	assert.Equal(t, test.ExpectedCode, resp.StatusCode)
-	assert.Equal(t, errResponse.Error, utils.ErrorCode[utils.LoginInvalidPassword])
+	assert.Equal(t, resBody.Error, utils.ErrorCode[utils.LoginInvalidPassword])
 }
 
 func TestLoginAccountNotVerified(t *testing.T) {
@@ -268,8 +254,8 @@ func TestLoginAccountNotVerified(t *testing.T) {
 		ExpectedCode: fiber.StatusUnauthorized,
 	}
 
-	reqBodyStr, _ := json.Marshal(user)
-	req := httptest.NewRequest(test.Method, test.Route, bytes.NewBufferString(string(reqBodyStr)))
+	reqBody, _ := json.Marshal(user)
+	req := httptest.NewRequest(test.Method, test.Route, bytes.NewBufferString(string(reqBody)))
 	req.Header.Add("Content-Type", "application/json")
 
 	resp, err := app.Test(req, -1)
@@ -277,14 +263,12 @@ func TestLoginAccountNotVerified(t *testing.T) {
 		log.Fatal("failed to make request to login user controller")
 	}
 
-	var errResponse utils.ResponseError
-	responseBodyBytes, _ := io.ReadAll(resp.Body)
-	_ = json.Unmarshal(responseBodyBytes, &errResponse)
+	resBody := testutils.ParseJSONBody(&resp.Body)
 
 	defer testutils.DeleteUser(&email)
 
 	assert.Equal(t, test.ExpectedCode, resp.StatusCode)
-	assert.Equal(t, errResponse.Error, utils.ErrorCode[utils.LoginAccountNotVerified])
+	assert.Equal(t, resBody.Error, utils.ErrorCode[utils.LoginAccountNotVerified])
 }
 
 func TestLoginSuccess(t *testing.T) {
@@ -302,8 +286,8 @@ func TestLoginSuccess(t *testing.T) {
 		ExpectedCode: fiber.StatusOK,
 	}
 
-	reqBodyStr, _ := json.Marshal(user)
-	req := httptest.NewRequest(test.Method, test.Route, bytes.NewBufferString(string(reqBodyStr)))
+	reqBody, _ := json.Marshal(user)
+	req := httptest.NewRequest(test.Method, test.Route, bytes.NewBufferString(string(reqBody)))
 	req.Header.Add("Content-Type", "application/json")
 
 	resp, err := app.Test(req, -1)

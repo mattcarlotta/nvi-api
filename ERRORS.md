@@ -143,6 +143,29 @@ token may need to be regenerated
 
 ## E012
 
+- Error Name: `GetEnvironmentInvalidToken`
+- Controller: `environment`
+- Path: `/environment/:id`
+- Method: `GET`
+- Status: `400`
+- Content: `text/plain; charset=utf-8`
+- Params: `id`
+- Explanation: the request params doesn't pass one or more of the following field validation rules:
+  - id: `required,uuid`
+
+## E013
+
+- Error Name: `GetEnvironmentNonExistentID`
+- Controller: `environment`
+- Path: `/environment/:id`
+- Method: `GET`
+- Status: `404`
+- Content: `text/plain; charset=utf-8`
+- Params: `id`
+- Explanation: the request params contains an `id` that doesn't match a user created environment
+
+## E014
+
 - Error Name: `CreateEnvironmentInvalidName`
 - Controller: `environment`
 - Path: `/create/environment/:name`
@@ -153,7 +176,7 @@ token may need to be regenerated
 - Explanation: the request params doesn't pass one or more of the following field validation rules:
   - name: `required,envname,lte=255` (`envname` is a custom validation)
 
-## E013
+## E015
 
 - Error Name: `CreateEnvironmentNameTaken`
 - Controller: `environment`
@@ -165,25 +188,3 @@ token may need to be regenerated
 - Explanation: the request params contains an environment `name` that already in use by the user; another name should 
 be used instead
 
-## E014
-
-- Error Name: `GetEnvironmentInvalidToken`
-- Controller: `environment`
-- Path: `/environment/:id`
-- Method: `GET`
-- Status: `400`
-- Content: `text/plain; charset=utf-8`
-- Params: `id`
-- Explanation: the request params doesn't pass one or more of the following field validation rules:
-  - id: `required,uuid`
-
-## E015
-
-- Error Name: `GetEnvironmentNonExistentID`
-- Controller: `environment`
-- Path: `/environment/:id`
-- Method: `GET`
-- Status: `404`
-- Content: `text/plain; charset=utf-8`
-- Params: `id`
-- Explanation: the request params contains an `id` that doesn't match a user created environment

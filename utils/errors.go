@@ -39,10 +39,10 @@ var ErrorCode = map[ErrorResponseCode]string{
 	SendResetPasswordInvalidEmail:         "E009",
 	UpdatePasswordInvalidBody:             "E010",
 	UpdatePasswordInvalidToken:            "E011",
-	CreateEnvironmentInvalidName:          "E012",
-	CreateEnvironmentNameTaken:            "E013",
-	GetEnvironmentInvalidID:               "E014",
-	GetEnvironmentNonExistentID:           "E015",
+	GetEnvironmentInvalidID:               "E012",
+	GetEnvironmentNonExistentID:           "E013",
+	CreateEnvironmentInvalidName:          "E014",
+	CreateEnvironmentNameTaken:            "E015",
 }
 
 type ResponseError struct {

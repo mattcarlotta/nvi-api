@@ -26,10 +26,10 @@ func DeleteUser(existingUser *models.User) {
 	}
 }
 
-func RemoveUserByEmail(email *string) {
+func RemoveUserByEmail(email string) {
 	db := database.GetConnection()
 	var existingUser models.User
-	if err := db.Where(&models.User{Email: *email}).First(&existingUser).Error; err != nil {
+	if err := db.Where(&models.User{Email: email}).First(&existingUser).Error; err != nil {
 		log.Fatal("unable to locate created user")
 	}
 
@@ -39,10 +39,10 @@ func RemoveUserByEmail(email *string) {
 
 }
 
-func CreateUser(email *string, verified bool) models.User {
+func CreateUser(email string, verified bool) (models.User, string) {
 	db := database.GetConnection()
 
-	token, _, err := utils.GenerateUserToken(*email)
+	token, _, err := utils.GenerateUserToken(email)
 	if err != nil {
 		log.Fatal("unable to generate a new user token")
 	}
@@ -50,7 +50,7 @@ func CreateUser(email *string, verified bool) models.User {
 	tokenByte := []byte(token)
 	newUser := &models.User{
 		Name:     "Name",
-		Email:    *email,
+		Email:    email,
 		Password: Password,
 		Token:    &tokenByte,
 		Verified: verified,
@@ -61,11 +61,51 @@ func CreateUser(email *string, verified bool) models.User {
 	}
 
 	var existingUser models.User
-	if err := db.Where(&models.User{Email: *email}).First(&existingUser).Error; err != nil {
+	if err := db.Where(&models.User{Email: email}).First(&existingUser).Error; err != nil {
 		log.Fatal("unable to locate created user")
 	}
 
-	return existingUser
+	token, _, err = existingUser.GenerateSessionToken()
+	if err != nil {
+		log.Fatal("Unable to generate a user session token")
+	}
+
+	return existingUser, token
+}
+
+// func DeleteEnvironment(existingEnvironment *models.Environment) {
+// 	db := database.GetConnection()
+// 	if err := db.Delete(&existingEnvironment).Error; err != nil {
+// 		log.Fatal("unable to delete created environment")
+// 	}
+// }
+
+func CreateEnvironment(envName string, userSessionID string) models.Environment {
+	db := database.GetConnection()
+
+	token, err := utils.ValidateSessionToken(userSessionID)
+	if err != nil {
+		log.Fatal("unable to parse session token")
+	}
+
+	parsedID, err := utils.ParseUUID(token.UserID)
+	if err != nil {
+		log.Fatal("unable to parse user token id from session")
+	}
+
+	newEnv := models.Environment{Name: envName, UserID: parsedID}
+	if err := db.Create(&newEnv).Error; err != nil {
+		log.Fatal("unable to create the new environment")
+	}
+
+	var environment models.Environment
+	if err := db.Where(
+		&models.Environment{Name: newEnv.Name, UserID: parsedID},
+	).First(&environment).Error; err != nil {
+		log.Fatal("unable to locate the new environment")
+	}
+
+	return environment
 }
 
 // func ParseJSONSuccessBody(body *io.ReadCloser) utils.ResponseError {
@@ -84,7 +124,7 @@ func ParseJSONErrorBody(body *io.ReadCloser) utils.ResponseError {
 	return errResponse
 }
 
-func ParseTextError(body *io.ReadCloser) string {
+func ParseText(body *io.ReadCloser) string {
 	resBody, _ := io.ReadAll(*body)
 	return string(resBody)
 }

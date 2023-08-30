@@ -14,3 +14,8 @@ type Environment struct {
 	CreatedAt time.Time `json:"createdAt"`
 	UpdatedAt time.Time `json:"updatedAt"`
 }
+
+type ReqUpdateEnv struct {
+	ID          string `json:"id" validate:"required,uuid"`
+	UpdatedName string `json:"updatedName" validate:"required,envname,lte=255"`
+}

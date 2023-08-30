@@ -3,6 +3,7 @@ package utils
 import (
 	"log"
 	"reflect"
+	"regexp"
 
 	"github.com/go-playground/validator/v10"
 )
@@ -32,11 +33,20 @@ func validateUUIDArray(fl validator.FieldLevel) bool {
 	return true
 }
 
+var environmentNameRegex = regexp.MustCompile("^[a-zA-Z0-9_]+$")
+
+func validateEnvironmentName(fl validator.FieldLevel) bool {
+	return environmentNameRegex.MatchString(fl.Field().String())
+}
+
 func Validate() *validator.Validate {
 	if validate == nil {
 		validate = validator.New()
 		if err := validate.RegisterValidation("uuidarray", validateUUIDArray); err != nil {
 			log.Fatalf("Unable to register uuidarray validator: %s", err.Error())
+		}
+		if err := validate.RegisterValidation("envname", validateEnvironmentName); err != nil {
+			log.Fatalf("Unable to register envname validator: %s", err.Error())
 		}
 		return validate
 	}

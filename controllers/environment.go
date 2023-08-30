@@ -26,18 +26,14 @@ func GetEnvironmentByID(c *fiber.Ctx) error {
 
 	id := c.Params("id")
 	if err := utils.Validate().Var(id, "required,uuid"); err != nil {
-		return c.Status(fiber.StatusBadRequest).JSON(
-			fiber.Map{"error": "You must provide a valid environment id!"},
-		)
+		return c.Status(fiber.StatusBadRequest).JSON(utils.JSONError(utils.GetEnvironmentInvalidID))
 	}
 
 	var environment models.Environment
 	if err := db.Where(
 		&models.Environment{ID: utils.MustParseUUID(id), UserID: userSessionID},
 	).First(&environment).Error; err != nil {
-		return c.Status(fiber.StatusBadRequest).JSON(
-			fiber.Map{"error": "The provided environment doesn't appear to exist!"},
-		)
+		return c.Status(fiber.StatusNotFound).JSON(utils.JSONError(utils.GetEnvironmentNonExistentID))
 	}
 
 	return c.Status(fiber.StatusOK).JSON(environment)
@@ -48,26 +44,20 @@ func CreateEnvironment(c *fiber.Ctx) error {
 	userSessionID := utils.GetSessionID(c)
 
 	envName := c.Params("name")
-	if err := utils.Validate().Var(envName, "required,alphanum"); err != nil {
-		return c.Status(fiber.StatusBadRequest).JSON(
-			fiber.Map{"error": "You must provide a valid environment name!"},
-		)
+	if err := utils.Validate().Var(envName, "required,envname,lte=255"); err != nil {
+		return c.Status(fiber.StatusBadRequest).JSON(utils.JSONError(utils.CreateEnvironmentInvalidName))
 	}
 
 	newEnv := models.Environment{Name: envName, UserID: userSessionID}
 	var environment models.Environment
 	if err := db.Where(&newEnv).First(&environment).Error; err == nil {
-		return c.Status(fiber.StatusOK).JSON(
-			fiber.Map{"error": fmt.Sprintf(
-				"The provided environment '%s' already exists. Please choose a different environment name!", envName),
-			},
-		)
+		return c.Status(fiber.StatusConflict).JSON(utils.JSONError(utils.CreateEnvironmentNameTaken))
 	}
 
 	// TODO(carlotta): add a limit to how many environments can be created per account
 
 	if err := db.Create(&newEnv).Error; err != nil {
-		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{"error": err.Error()})
+		return c.Status(fiber.StatusInternalServerError).JSON(utils.UnknownJSONError(err))
 	}
 
 	return c.Status(fiber.StatusCreated).SendString(fmt.Sprintf("Successfully created a(n) %s environment!", envName))
@@ -124,16 +114,11 @@ func DeleteEnvironment(c *fiber.Ctx) error {
 
 }
 
-type ReqUpdateEnv struct {
-	ID          string `json:"id" validate:"required,uuid"`
-	UpdatedName string `json:"updatedName" validate:"required,lte=255"`
-}
-
 func UpdateEnvironment(c *fiber.Ctx) error {
 	db := database.GetConnection()
 	userSessionID := utils.GetSessionID(c)
 
-	data := new(ReqUpdateEnv)
+	data := new(models.ReqUpdateEnv)
 	if err := c.BodyParser(data); err != nil {
 		return c.Status(fiber.StatusBadRequest).JSON(
 			fiber.Map{"error": "You must provide a valid environment id and updated environment name!"},

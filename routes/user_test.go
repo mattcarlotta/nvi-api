@@ -67,7 +67,7 @@ func TestRegisterUserInvalidBody(t *testing.T) {
 
 func TestRegisterEmailTaken(t *testing.T) {
 	email := "taken_email@example.com"
-	u := testutils.CreateUser(&email, false)
+	u, _ := testutils.CreateUser(email, false)
 
 	user := &models.ReqRegisterUser{
 		Name:     "Taken",
@@ -120,9 +120,9 @@ func TestRegisterUserSuccess(t *testing.T) {
 		log.Fatal("failed to make request to register user controller")
 	}
 
-	resBody := testutils.ParseTextError(&resp.Body)
+	resBody := testutils.ParseText(&resp.Body)
 
-	defer testutils.RemoveUserByEmail(&user.Email)
+	defer testutils.RemoveUserByEmail(user.Email)
 
 	assert.Equal(t, test.ExpectedCode, resp.StatusCode)
 	assert.Equal(t, resBody, fmt.Sprintf(
@@ -208,7 +208,7 @@ func TestLoginUnregisteredEmail(t *testing.T) {
 
 func TestLoginInvalidPassword(t *testing.T) {
 	email := "login_invalid_password@example.com"
-	u := testutils.CreateUser(&email, false)
+	u, _ := testutils.CreateUser(email, false)
 
 	badPassword := testutils.StrPassword + "4"
 	user := &models.ReqLoginUser{
@@ -241,7 +241,7 @@ func TestLoginInvalidPassword(t *testing.T) {
 
 func TestLoginAccountNotVerified(t *testing.T) {
 	email := "login_account_not_verified@example.com"
-	u := testutils.CreateUser(&email, false)
+	u, _ := testutils.CreateUser(email, false)
 
 	user := &models.ReqLoginUser{
 		Email:    email,
@@ -273,7 +273,7 @@ func TestLoginAccountNotVerified(t *testing.T) {
 
 func TestLoginSuccess(t *testing.T) {
 	email := "login_success@example.com"
-	u := testutils.CreateUser(&email, true)
+	u, _ := testutils.CreateUser(email, true)
 
 	user := &models.ReqLoginUser{
 		Email:    email,
@@ -309,7 +309,7 @@ func TestVerifyAccountInvalidToken(t *testing.T) {
 	}
 
 	req := httptest.NewRequest(test.Method, test.Route, nil)
-	req.Header.Add("Content-Type", "text/plain; charset=us-ascii")
+	req.Header.Add("Content-Type", "text/plain; charset=utf-8")
 
 	resp, err := app.Test(req, -1)
 	if err != nil {
@@ -334,7 +334,7 @@ func TestVerifyAccountInvalidEmailToken(t *testing.T) {
 	}
 
 	req := httptest.NewRequest(test.Method, test.Route, nil)
-	req.Header.Add("Content-Type", "text/plain; charset=us-ascii")
+	req.Header.Add("Content-Type", "text/plain; charset=utf-8")
 
 	resp, err := app.Test(req, -1)
 	if err != nil {
@@ -345,13 +345,7 @@ func TestVerifyAccountInvalidEmailToken(t *testing.T) {
 }
 
 func TestVerifyAccountEmailAlreadyVerified(t *testing.T) {
-	email := "already_verified@example.com"
-	u := testutils.CreateUser(&email, true)
-
-	token, _, err := utils.GenerateUserToken(email)
-	if err != nil {
-		log.Fatal("unable to generate a new user token")
-	}
+	u, token := testutils.CreateUser("already_verified@example.com", true)
 
 	test := &testutils.TestResponse{
 		Route:        fmt.Sprintf("/verify/account?token=%s", token),
@@ -360,7 +354,7 @@ func TestVerifyAccountEmailAlreadyVerified(t *testing.T) {
 	}
 
 	req := httptest.NewRequest(test.Method, test.Route, nil)
-	req.Header.Add("Content-Type", "text/plain; charset=us-ascii")
+	req.Header.Add("Content-Type", "text/plain; charset=utf-8")
 
 	resp, err := app.Test(req, -1)
 	if err != nil {
@@ -374,12 +368,7 @@ func TestVerifyAccountEmailAlreadyVerified(t *testing.T) {
 
 func TestVerifyAccountSuccess(t *testing.T) {
 	email := "verify_account@example.com"
-	u := testutils.CreateUser(&email, false)
-
-	token, _, err := utils.GenerateUserToken(email)
-	if err != nil {
-		log.Fatal("unable to generate a new user token")
-	}
+	u, token := testutils.CreateUser(email, false)
 
 	test := &testutils.TestResponse{
 		Route:        fmt.Sprintf("/verify/account?token=%s", token),
@@ -388,14 +377,14 @@ func TestVerifyAccountSuccess(t *testing.T) {
 	}
 
 	req := httptest.NewRequest(test.Method, test.Route, nil)
-	req.Header.Add("Content-Type", "text/plain; charset=us-ascii")
+	req.Header.Add("Content-Type", "text/plain; charset=utf-8")
 
 	resp, err := app.Test(req, -1)
 	if err != nil {
 		log.Fatal("failed to make request to verify account user controller")
 	}
 
-	resBody := testutils.ParseTextError(&resp.Body)
+	resBody := testutils.ParseText(&resp.Body)
 
 	defer testutils.DeleteUser(&u)
 
@@ -411,7 +400,7 @@ func TestResendAccountVerifyInvalidToken(t *testing.T) {
 	}
 
 	req := httptest.NewRequest(test.Method, test.Route, nil)
-	req.Header.Add("Content-Type", "text/plain; charset=us-ascii")
+	req.Header.Add("Content-Type", "text/plain; charset=utf-8")
 
 	resp, err := app.Test(req, -1)
 	if err != nil {
@@ -432,7 +421,7 @@ func TestResendAccountVerifyInvalidEmail(t *testing.T) {
 	}
 
 	req := httptest.NewRequest(test.Method, test.Route, nil)
-	req.Header.Add("Content-Type", "text/plain; charset=us-ascii")
+	req.Header.Add("Content-Type", "text/plain; charset=utf-8")
 
 	resp, err := app.Test(req, -1)
 	if err != nil {
@@ -444,7 +433,7 @@ func TestResendAccountVerifyInvalidEmail(t *testing.T) {
 
 func TestResendAccountVerifyEmailAlreadyVerified(t *testing.T) {
 	email := "already_reverified@example.com"
-	u := testutils.CreateUser(&email, true)
+	u, _ := testutils.CreateUser(email, true)
 
 	test := &testutils.TestResponse{
 		Route:        fmt.Sprintf("/reverify/account?email=%s", email),
@@ -453,7 +442,7 @@ func TestResendAccountVerifyEmailAlreadyVerified(t *testing.T) {
 	}
 
 	req := httptest.NewRequest(test.Method, test.Route, nil)
-	req.Header.Add("Content-Type", "text/plain; charset=us-ascii")
+	req.Header.Add("Content-Type", "text/plain; charset=utf-8")
 
 	resp, err := app.Test(req, -1)
 	if err != nil {
@@ -467,7 +456,7 @@ func TestResendAccountVerifyEmailAlreadyVerified(t *testing.T) {
 
 func TestResendAccountVerifySuccess(t *testing.T) {
 	email := "not_reverified@example.com"
-	u := testutils.CreateUser(&email, false)
+	u, _ := testutils.CreateUser(email, false)
 
 	test := &testutils.TestResponse{
 		Route:        fmt.Sprintf("/reverify/account?email=%s", email),
@@ -476,14 +465,14 @@ func TestResendAccountVerifySuccess(t *testing.T) {
 	}
 
 	req := httptest.NewRequest(test.Method, test.Route, nil)
-	req.Header.Add("Content-Type", "text/plain; charset=us-ascii")
+	req.Header.Add("Content-Type", "text/plain; charset=utf-8")
 
 	resp, err := app.Test(req, -1)
 	if err != nil {
 		log.Fatal("failed to make request to reverify account user controller")
 	}
 
-	resBody := testutils.ParseTextError(&resp.Body)
+	resBody := testutils.ParseText(&resp.Body)
 
 	defer testutils.DeleteUser(&u)
 
@@ -499,7 +488,7 @@ func TestSendResetPasswordInvalidEmail(t *testing.T) {
 	}
 
 	req := httptest.NewRequest(test.Method, test.Route, nil)
-	req.Header.Add("Content-Type", "text/plain; charset=us-ascii")
+	req.Header.Add("Content-Type", "text/plain; charset=utf-8")
 
 	resp, err := app.Test(req, -1)
 	if err != nil {
@@ -520,7 +509,7 @@ func TestSendResetPasswordUnregisteredEmail(t *testing.T) {
 	}
 
 	req := httptest.NewRequest(test.Method, test.Route, nil)
-	req.Header.Add("Content-Type", "text/plain; charset=us-ascii")
+	req.Header.Add("Content-Type", "text/plain; charset=utf-8")
 
 	resp, err := app.Test(req, -1)
 	if err != nil {
@@ -532,7 +521,7 @@ func TestSendResetPasswordUnregisteredEmail(t *testing.T) {
 
 func TestSendResetPasswordSuccess(t *testing.T) {
 	email := "reset_password@example.com"
-	u := testutils.CreateUser(&email, false)
+	u, _ := testutils.CreateUser(email, false)
 
 	test := &testutils.TestResponse{
 		Route:        fmt.Sprintf("/reset/password?email=%s", email),
@@ -541,14 +530,14 @@ func TestSendResetPasswordSuccess(t *testing.T) {
 	}
 
 	req := httptest.NewRequest(test.Method, test.Route, nil)
-	req.Header.Add("Content-Type", "text/plain; charset=us-ascii")
+	req.Header.Add("Content-Type", "text/plain; charset=utf-8")
 
 	resp, err := app.Test(req, -1)
 	if err != nil {
 		log.Fatal("failed to make request to send reset password user controller")
 	}
 
-	resBody := testutils.ParseTextError(&resp.Body)
+	resBody := testutils.ParseText(&resp.Body)
 
 	defer testutils.DeleteUser(&u)
 
@@ -632,8 +621,7 @@ func TestUpdatePasswordInvalidToken(t *testing.T) {
 }
 
 func TestUpdatePasswordSuccess(t *testing.T) {
-	email := "update_password@example.com"
-	u := testutils.CreateUser(&email, true)
+	u, _ := testutils.CreateUser("update_password@example.com", true)
 
 	user := &models.ReqUpdateUser{
 		Password: testutils.StrPassword,
@@ -655,7 +643,7 @@ func TestUpdatePasswordSuccess(t *testing.T) {
 		log.Fatal("failed to make request to update password user controller")
 	}
 
-	resBody := testutils.ParseTextError(&resp.Body)
+	resBody := testutils.ParseText(&resp.Body)
 
 	defer testutils.DeleteUser(&u)
 
@@ -664,8 +652,7 @@ func TestUpdatePasswordSuccess(t *testing.T) {
 }
 
 func GetAccountInfoSuccess(t *testing.T) {
-	email := "update_password@example.com"
-	u := testutils.CreateUser(&email, true)
+	_, token := testutils.CreateUser("update_password@example.com", true)
 
 	test := &testutils.TestResponse{
 		Route:        "/account",
@@ -673,13 +660,8 @@ func GetAccountInfoSuccess(t *testing.T) {
 		ExpectedCode: fiber.StatusOK,
 	}
 
-	token, _, err := u.GenerateSessionToken()
-	if err != nil {
-		log.Fatal("Unable to generate a user session token")
-	}
-
 	req := httptest.NewRequest(test.Method, test.Route, nil)
-	req.Header.Add("Content-Type", "text/plain; charset=us-ascii")
+	req.Header.Add("Content-Type", "text/plain; charset=utf-8")
 	req.Header.Add("Cookie", fmt.Sprintf("SESSION_TOKEN=%s", token))
 
 	resp, err := app.Test(req, -1)
@@ -691,8 +673,7 @@ func GetAccountInfoSuccess(t *testing.T) {
 }
 
 func DeleteAccountSuccess(t *testing.T) {
-	email := "delete_account@example.com"
-	u := testutils.CreateUser(&email, true)
+	_, token := testutils.CreateUser("delete_account@example.com", true)
 
 	test := &testutils.TestResponse{
 		Route:        "/delete/account",
@@ -700,13 +681,8 @@ func DeleteAccountSuccess(t *testing.T) {
 		ExpectedCode: fiber.StatusOK,
 	}
 
-	token, _, err := u.GenerateSessionToken()
-	if err != nil {
-		log.Fatal("Unable to generate a user session token")
-	}
-
 	req := httptest.NewRequest(test.Method, test.Route, nil)
-	req.Header.Add("Content-Type", "text/plain; charset=us-ascii")
+	req.Header.Add("Content-Type", "text/plain; charset=utf-8")
 	req.Header.Add("Cookie", fmt.Sprintf("SESSION_TOKEN=%s", token))
 
 	resp, err := app.Test(req, -1)

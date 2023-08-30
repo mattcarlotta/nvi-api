@@ -20,6 +20,10 @@ const (
 	SendResetPasswordInvalidEmail
 	UpdatePasswordInvalidBody
 	UpdatePasswordInvalidToken
+	CreateEnvironmentInvalidName
+	CreateEnvironmentNameTaken
+	GetEnvironmentInvalidID
+	GetEnvironmentNonExistentID
 )
 
 var ErrorCode = map[ErrorResponseCode]string{
@@ -35,6 +39,10 @@ var ErrorCode = map[ErrorResponseCode]string{
 	SendResetPasswordInvalidEmail:         "E009",
 	UpdatePasswordInvalidBody:             "E010",
 	UpdatePasswordInvalidToken:            "E011",
+	CreateEnvironmentInvalidName:          "E012",
+	CreateEnvironmentNameTaken:            "E013",
+	GetEnvironmentInvalidID:               "E014",
+	GetEnvironmentNonExistentID:           "E015",
 }
 
 type ResponseError struct {

@@ -689,3 +689,30 @@ func GetAccountInfoSuccess(t *testing.T) {
 
 	assert.Equal(t, test.ExpectedCode, resp.StatusCode)
 }
+
+func DeleteAccountSuccess(t *testing.T) {
+	email := "delete_account@example.com"
+	u := testutils.CreateUser(&email, true)
+
+	test := &testutils.TestResponse{
+		Route:        "/delete/account",
+		Method:       fiber.MethodDelete,
+		ExpectedCode: fiber.StatusOK,
+	}
+
+	token, _, err := u.GenerateSessionToken()
+	if err != nil {
+		log.Fatal("Unable to generate a user session token")
+	}
+
+	req := httptest.NewRequest(test.Method, test.Route, nil)
+	req.Header.Add("Content-Type", "text/plain; charset=us-ascii")
+	req.Header.Add("Cookie", fmt.Sprintf("SESSION_TOKEN=%s", token))
+
+	resp, err := app.Test(req, -1)
+	if err != nil {
+		log.Fatal("failed to make request to get account info user controller")
+	}
+
+	assert.Equal(t, test.ExpectedCode, resp.StatusCode)
+}

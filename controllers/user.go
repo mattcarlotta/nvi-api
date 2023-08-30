@@ -15,27 +15,21 @@ func Register(c *fiber.Ctx) error {
 
 	data := new(models.ReqRegisterUser)
 	if err := c.BodyParser(data); err != nil {
-		return c.Status(fiber.StatusBadRequest).JSON(
-			fiber.Map{"error": utils.ErrorCode[utils.RegisterEmptyBody]},
-		)
+		return c.Status(fiber.StatusBadRequest).JSON(utils.JSONError(utils.RegisterEmptyBody))
 	}
 
 	if err := utils.Validate().Struct(data); err != nil {
-		return c.Status(fiber.StatusBadRequest).JSON(
-			fiber.Map{"error": utils.ErrorCode[utils.RegisterInvalidBody]},
-		)
+		return c.Status(fiber.StatusBadRequest).JSON(utils.JSONError(utils.RegisterInvalidBody))
 	}
 
 	var user models.User
 	if err := db.Where("email=?", data.Email).First(&user).Error; err == nil {
-		return c.Status(fiber.StatusOK).JSON(
-			fiber.Map{"error": utils.ErrorCode[utils.RegisterEmailTaken]},
-		)
+		return c.Status(fiber.StatusOK).JSON(utils.JSONError(utils.RegisterEmailTaken))
 	}
 
 	token, _, err := utils.GenerateUserToken(data.Email)
 	if err != nil {
-		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{"error": err.Error()})
+		return c.Status(fiber.StatusInternalServerError).JSON(utils.UnknownJSONError(err))
 	}
 
 	newToken := []byte(token)
@@ -43,11 +37,11 @@ func Register(c *fiber.Ctx) error {
 		&models.User{
 			Email:    data.Email,
 			Name:     data.Name,
-			Password: data.Password,
+			Password: []byte(data.Password),
 			Token:    &newToken,
 		},
 	).Error; err != nil {
-		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{"error": err.Error()})
+		return c.Status(fiber.StatusInternalServerError).JSON(utils.UnknownJSONError(err))
 	}
 
 	// TODO(carlotta): Send account verification email
@@ -62,34 +56,24 @@ func Login(c *fiber.Ctx) error {
 
 	data := new(models.ReqLoginUser)
 	if err := c.BodyParser(data); err != nil {
-		return c.Status(fiber.StatusBadRequest).JSON(
-			fiber.Map{"error": utils.ErrorCode[utils.LoginEmptyBody]},
-		)
+		return c.Status(fiber.StatusBadRequest).JSON(utils.JSONError(utils.LoginEmptyBody))
 	}
 
 	if err := utils.Validate().Struct(data); err != nil {
-		return c.Status(fiber.StatusBadRequest).JSON(
-			fiber.Map{"error": utils.ErrorCode[utils.LoginInvalidBody]},
-		)
+		return c.Status(fiber.StatusBadRequest).JSON(utils.JSONError(utils.LoginInvalidBody))
 	}
 
 	var existingUser models.User
 	if err := db.Where(&models.User{Email: data.Email}).First(&existingUser).Error; err != nil {
-		return c.Status(fiber.StatusOK).JSON(
-			fiber.Map{"error": utils.ErrorCode[utils.LoginUnregisteredEmail]},
-		)
+		return c.Status(fiber.StatusOK).JSON(utils.JSONError(utils.LoginUnregisteredEmail))
 	}
 
 	if !existingUser.MatchPassword(data.Password) {
-		return c.Status(fiber.StatusOK).JSON(
-			fiber.Map{"error": utils.ErrorCode[utils.LoginInvalidPassword]},
-		)
+		return c.Status(fiber.StatusOK).JSON(utils.JSONError(utils.LoginInvalidPassword))
 	}
 
 	if !existingUser.Verified {
-		return c.Status(fiber.StatusUnauthorized).JSON(
-			fiber.Map{"error": utils.ErrorCode[utils.LoginAccountNotVerified]},
-		)
+		return c.Status(fiber.StatusUnauthorized).JSON(utils.JSONError(utils.LoginAccountNotVerified))
 	}
 
 	token, exp, err := existingUser.GenerateSessionToken()

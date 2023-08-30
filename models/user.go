@@ -20,8 +20,8 @@ type User struct {
 	UpdatedAt time.Time `json:"updatedAt"`
 }
 
-func (user *User) MatchPassword(password []byte) bool {
-	return utils.CompareEncryptedText(user.Password, password)
+func (user *User) MatchPassword(password string) bool {
+	return utils.CompareEncryptedText(user.Password, []byte(password))
 }
 
 func (user *User) GenerateSessionToken() (string, time.Time, error) {
@@ -49,12 +49,12 @@ func (user *User) BeforeCreate(tx *gorm.DB) (err error) {
 type ReqRegisterUser struct {
 	Name     string `json:"name" validate:"required,gte=2,lte=255"`
 	Email    string `json:"email" validate:"required,email,lte=100"`
-	Password []byte `json:"password" validate:"required,gte=5,lte=36"`
+	Password string `json:"password" validate:"required,gte=5,lte=36"`
 }
 
 type ReqLoginUser struct {
 	Email    string `json:"email" validate:"required,email,lte=100"`
-	Password []byte `json:"password" validate:"required,gte=5,lte=36"`
+	Password string `json:"password" validate:"required,gte=5,lte=36"`
 }
 
 type ReqEmailUser struct {
@@ -62,6 +62,6 @@ type ReqEmailUser struct {
 }
 
 type ReqUpdateUser struct {
-	Password []byte `json:"password" validate:"required,gte=5,lte=36"`
+	Password string `json:"password" validate:"required,gte=5,lte=36"`
 	Token    string `json:"token" validate:"required"`
 }

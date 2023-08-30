@@ -1,83 +1,91 @@
 # NVI-API Error Codes
 
-Click here for [validation rules](https://github.com/go-playground/validator#baked-in-validations)
+Click here for [field validation rules](https://github.com/go-playground/validator#baked-in-validations)
 
-## E001 - RegisterEmptyBody
+## E001
 
+- Error Name: `RegisterEmptyBody`
 - Controller: `user`
 - Path: `/register`
 - Method: `POST`
 - Content: `application/json`
-- Reason: request body is missing a valid `name`, `email` and/or `password`
+- Explanation: the request body is missing a valid `name`, `email` and/or `password` fields
 
-## E002 - RegisterInvalidBody
+## E002
 
+- Error Name: `RegisterInvalidBody`
 - Controller: `user`
 - Path: `/register`
 - Method: `POST`
 - Content: `application/json`
 - Body: `name, email, password`
-- Reason: request body doesn't pass one or more of the following validation rules:
+- Explanation: the request body doesn't pass one or more of the following field validation rules:
   - name: `required,gte=2,lte=255`
   - email: `required,email,lte=100`
   - password: `required,gte=5,lte=36`
 
-## E003 - RegisterEmailTaken
+## E003
 
+- Error Name: `RegisterEmailTaken`
 - Controller: `user`
 - Path: `/register`
 - Method: `POST`
 - Content: `application/json`
 - Body: `name, email, password`
-- Reason: request body contains an email that's already in use
+- Explanation: the request body contains an `email` field that's already in use
 
 
-## E004 - LoginEmptyBody
+## E004
 
+- Error Name: `LoginEmptyBody`
 - Controller: `user`
 - Path: `/login`
 - Method: `POST`
 - Content: `application/json`
 - Body: `email, password`
-- Reason: request body is missing a valid `email` and/or `password`
+- Explanation: the request body is missing a valid `email` field and/or `password` field
 
 
-## E005 - LoginInvalidBody
+## E005
 
+- Error Name: `LoginInvalidBody`
 - Controller: `user`
 - Path: `/login`
 - Method: `POST`
 - Content: `application/json`
 - Body: `email, password`
-- Reason: request body doesn't pass one or more of the following validation rules:
+- Explanation: the request body doesn't pass one or more of the following field validation rules:
   - email: `required,email,lte=100`
   - password: `required,gte=5,lte=36`
 
 
-## E006 - LoginUnregisteredEmail
+## E006
 
+- Error Name: `LoginUnregisteredEmail`
 - Controller: `user`
 - Path: `/login`
 - Method: `POST`
 - Content: `application/json`
 - Body: `email, password`
-- Reason: request body contains an unregistered `email`
+- Explanation: the request body contains an unregistered `email` field
 
-## E007 - LoginInvalidPassword
+## E007
 
+- Error Name: `LoginInvalidPassword`
 - Controller: `user`
 - Path: `/login`
 - Method: `POST`
 - Content: `application/json`
 - Body: `email, password`
-- Reason: request body contains an invalid `password` for the provided `email`
+- Explanation: the request body contains an invalid `password` field for the provided `email` field
 
-## E008 - LoginAccountNotVerified
+## E008
 
+- Error Name: `LoginAccountNotVerified`
 - Controller: `user`
 - Path: `/login`
 - Method: `POST`
 - Content: `application/json`
 - Body: `email, password`
-- Reason: request body contains an `email` that hasn't been verified yet
+- Explanation: the request body contains an `email` field that hasn't been verified yet
 

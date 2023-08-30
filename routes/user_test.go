@@ -48,7 +48,7 @@ func TestRegisterUserEmptyBody(t *testing.T) {
 		log.Fatal("failed to make request to register user controller")
 	}
 
-	var errResponse utils.ErrorResponse
+	var errResponse utils.ResponseError
 	responseBodyBytes, _ := io.ReadAll(resp.Body)
 	_ = json.Unmarshal(responseBodyBytes, &errResponse)
 
@@ -60,7 +60,7 @@ func TestRegisterUserInvalidBody(t *testing.T) {
 	user := &models.ReqRegisterUser{
 		Name:     "invalid",
 		Email:    "invalidexample", // invalid email to trigger validation failure
-		Password: []byte("password123"),
+		Password: "password123",
 	}
 
 	test := struct {
@@ -82,7 +82,7 @@ func TestRegisterUserInvalidBody(t *testing.T) {
 		log.Fatal("failed to make request to register user controller")
 	}
 
-	var errResponse utils.ErrorResponse
+	var errResponse utils.ResponseError
 	responseBodyBytes, _ := io.ReadAll(resp.Body)
 	_ = json.Unmarshal(responseBodyBytes, &errResponse)
 
@@ -110,7 +110,7 @@ func TestRegisterEmailTaken(t *testing.T) {
 	user := &models.ReqRegisterUser{
 		Name:     "Taken",
 		Email:    email,
-		Password: password,
+		Password: string(password),
 	}
 
 	test := struct {
@@ -132,7 +132,7 @@ func TestRegisterEmailTaken(t *testing.T) {
 		log.Fatal("failed to make request to register user controller")
 	}
 
-	var errResponse utils.ErrorResponse
+	var errResponse utils.ResponseError
 	responseBodyBytes, _ := io.ReadAll(resp.Body)
 	_ = json.Unmarshal(responseBodyBytes, &errResponse)
 
@@ -146,7 +146,7 @@ func TestRegisterUserSuccess(t *testing.T) {
 	user := &models.ReqRegisterUser{
 		Name:     "Register",
 		Email:    "registeruser@example.com",
-		Password: []byte("password123"),
+		Password: "password123",
 	}
 
 	test := struct {
@@ -198,7 +198,7 @@ func TestLoginUserEmptyBody(t *testing.T) {
 		log.Fatal("failed to make request to user login controller")
 	}
 
-	var errResponse utils.ErrorResponse
+	var errResponse utils.ResponseError
 	responseBodyBytes, _ := io.ReadAll(resp.Body)
 	_ = json.Unmarshal(responseBodyBytes, &errResponse)
 
@@ -209,7 +209,7 @@ func TestLoginUserEmptyBody(t *testing.T) {
 func TestLoginUserInvalidBody(t *testing.T) {
 	user := &models.ReqLoginUser{
 		Email:    "invalidexample", // invalid email to trigger validation failure
-		Password: []byte("password123"),
+		Password: "password123",
 	}
 
 	test := struct {
@@ -231,7 +231,7 @@ func TestLoginUserInvalidBody(t *testing.T) {
 		log.Fatal("failed to make request to login user controller")
 	}
 
-	var errResponse utils.ErrorResponse
+	var errResponse utils.ResponseError
 	responseBodyBytes, _ := io.ReadAll(resp.Body)
 	_ = json.Unmarshal(responseBodyBytes, &errResponse)
 
@@ -242,7 +242,7 @@ func TestLoginUserInvalidBody(t *testing.T) {
 func TestLoginUnregisteredEmail(t *testing.T) {
 	user := &models.ReqLoginUser{
 		Email:    "non_existent_email@example.com",
-		Password: []byte("password123"),
+		Password: "password123",
 	}
 
 	test := struct {
@@ -264,7 +264,7 @@ func TestLoginUnregisteredEmail(t *testing.T) {
 		log.Fatal("failed to make request to login user controller")
 	}
 
-	var errResponse utils.ErrorResponse
+	var errResponse utils.ResponseError
 	responseBodyBytes, _ := io.ReadAll(resp.Body)
 	_ = json.Unmarshal(responseBodyBytes, &errResponse)
 
@@ -292,7 +292,7 @@ func TestLoginInvalidPassword(t *testing.T) {
 	badPassword := append(password, []byte("4")...)
 	user := &models.ReqLoginUser{
 		Email:    email,
-		Password: badPassword,
+		Password: string(badPassword),
 	}
 
 	test := struct {
@@ -314,7 +314,7 @@ func TestLoginInvalidPassword(t *testing.T) {
 		log.Fatal("failed to make request to login user controller")
 	}
 
-	var errResponse utils.ErrorResponse
+	var errResponse utils.ResponseError
 	responseBodyBytes, _ := io.ReadAll(resp.Body)
 	_ = json.Unmarshal(responseBodyBytes, &errResponse)
 
@@ -343,7 +343,7 @@ func TestLoginAccountNotVerified(t *testing.T) {
 
 	user := &models.ReqLoginUser{
 		Email:    email,
-		Password: password,
+		Password: string(password),
 	}
 
 	test := struct {
@@ -365,7 +365,7 @@ func TestLoginAccountNotVerified(t *testing.T) {
 		log.Fatal("failed to make request to login user controller")
 	}
 
-	var errResponse utils.ErrorResponse
+	var errResponse utils.ResponseError
 	responseBodyBytes, _ := io.ReadAll(resp.Body)
 	_ = json.Unmarshal(responseBodyBytes, &errResponse)
 
@@ -395,7 +395,7 @@ func TestLoginSuccess(t *testing.T) {
 
 	user := &models.ReqLoginUser{
 		Email:    email,
-		Password: password,
+		Password: string(password),
 	}
 
 	test := struct {

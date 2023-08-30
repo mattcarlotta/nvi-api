@@ -1,13 +1,12 @@
 package utils
 
-type ErrorResponse struct {
-	Error string `json:"error"`
-}
+import "fmt"
 
 type ErrorResponseCode int
 
 const (
-	RegisterEmptyBody = iota
+	Unknown = iota
+	RegisterEmptyBody
 	RegisterInvalidBody
 	RegisterEmailTaken
 	LoginEmptyBody
@@ -18,6 +17,7 @@ const (
 )
 
 var ErrorCode = map[ErrorResponseCode]string{
+	Unknown:                 "E000",
 	RegisterEmptyBody:       "E001",
 	RegisterInvalidBody:     "E002",
 	RegisterEmailTaken:      "E003",
@@ -26,4 +26,23 @@ var ErrorCode = map[ErrorResponseCode]string{
 	LoginUnregisteredEmail:  "E006",
 	LoginInvalidPassword:    "E007",
 	LoginAccountNotVerified: "E008",
+}
+
+type ResponseError struct {
+	Resource string `json:"resource"`
+	Error    string `json:"error"`
+}
+
+func JSONError(code ErrorResponseCode) ResponseError {
+	return ResponseError{
+		Resource: fmt.Sprintf("https://github.com/mattcarlotta/nvi-api/blob/main/ERRORS.md#%s", ErrorCode[code]),
+		Error:    ErrorCode[code],
+	}
+}
+
+func UnknownJSONError(err error) ResponseError {
+	return ResponseError{
+		Resource: fmt.Sprintf("https://github.com/mattcarlotta/nvi-api/blob/main/ERRORS.md#%s", ErrorCode[Unknown]),
+		Error:    err.Error(),
+	}
 }

@@ -8,5 +8,5 @@ func CompareEncryptedText(encyrptedText []byte, text []byte) bool {
 }
 
 func CreateEncryptedText(text []byte) ([]byte, error) {
-	return bcrypt.GenerateFromPassword(text, 0)
+	return bcrypt.GenerateFromPassword(text, bcrypt.DefaultCost)
 }

@@ -17,18 +17,22 @@ const (
 	LoginUnregisteredEmail
 	LoginInvalidPassword
 	LoginAccountNotVerified
+	VerifyAccountInvalidToken
+	ResendAccountVerificationInvalidEmail
 )
 
 var ErrorCode = map[ErrorResponseCode]string{
-	Unknown:                 "E000",
-	RegisterEmptyBody:       "E001",
-	RegisterInvalidBody:     "E002",
-	RegisterEmailTaken:      "E003",
-	LoginEmptyBody:          "E004",
-	LoginInvalidBody:        "E005",
-	LoginUnregisteredEmail:  "E006",
-	LoginInvalidPassword:    "E007",
-	LoginAccountNotVerified: "E008",
+	Unknown:                               "E000",
+	RegisterEmptyBody:                     "E001",
+	RegisterInvalidBody:                   "E002",
+	RegisterEmailTaken:                    "E003",
+	LoginEmptyBody:                        "E004",
+	LoginInvalidBody:                      "E005",
+	LoginUnregisteredEmail:                "E006",
+	LoginInvalidPassword:                  "E007",
+	LoginAccountNotVerified:               "E008",
+	VerifyAccountInvalidToken:             "E009",
+	ResendAccountVerificationInvalidEmail: "E010",
 }
 
 type ResponseError struct {

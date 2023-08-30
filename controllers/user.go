@@ -97,16 +97,12 @@ func VerifyAccount(c *fiber.Ctx) error {
 
 	parsedToken, err := utils.ValidateUserToken(c.Query("token"))
 	if err != nil {
-		return c.Status(fiber.StatusUnauthorized).JSON(
-			fiber.Map{"error": "The provided token is not valid. If the account verification token was sent over 30 " +
-				"days ago, you will need to generate another account verification email.",
-			},
-		)
+		return c.Status(fiber.StatusUnauthorized).JSON(utils.JSONError(utils.VerifyAccountInvalidToken))
 	}
 
 	var user models.User
 	if err := db.Where(&models.User{Email: parsedToken.Email}).First(&user).Error; err != nil {
-		c.Status(fiber.StatusNotModified)
+		c.Status(fiber.StatusUnprocessableEntity)
 		return nil
 	}
 
@@ -117,30 +113,22 @@ func VerifyAccount(c *fiber.Ctx) error {
 
 	var newToken []byte
 	if err = db.Model(&user).Updates(&models.User{Verified: true, Token: &newToken}).Error; err != nil {
-		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{"error": err.Error()})
+		return c.Status(fiber.StatusInternalServerError).JSON(utils.UnknownJSONError(err))
 	}
 
-	return c.Status(fiber.StatusOK).SendString(fmt.Sprintf("Successfully verified %s!", user.Email))
+	return c.Status(fiber.StatusAccepted).SendString(fmt.Sprintf("Successfully verified %s!", user.Email))
 }
 
 func ResendAccountVerification(c *fiber.Ctx) error {
 	db := database.GetConnection()
 
-	data := new(models.ReqEmailUser)
-	if err := c.BodyParser(data); err != nil {
-		return c.Status(fiber.StatusBadRequest).JSON(
-			fiber.Map{"error": "You must provide a valid email!"},
-		)
-	}
-
-	if err := utils.Validate().Struct(data); err != nil {
-		return c.Status(fiber.StatusBadRequest).JSON(
-			fiber.Map{"error": "You must provide a valid email address to resend an account verification email to."},
-		)
+	email := c.Query("email")
+	if err := utils.Validate().Var(email, "required,email,lte=100"); err != nil {
+		return c.Status(fiber.StatusBadRequest).JSON(utils.JSONError(utils.ResendAccountVerificationInvalidEmail))
 	}
 
 	var user models.User
-	if err := db.Where(&models.User{Email: data.Email}).First(&user).Error; err != nil {
+	if err := db.Where(&models.User{Email: email}).First(&user).Error; err != nil {
 		c.Status(fiber.StatusNotModified)
 		return nil
 	}
@@ -150,7 +138,7 @@ func ResendAccountVerification(c *fiber.Ctx) error {
 		return nil
 	}
 
-	token, _, err := utils.GenerateUserToken(data.Email)
+	token, _, err := utils.GenerateUserToken(email)
 	if err != nil {
 		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{"error": err.Error()})
 	}

@@ -300,3 +300,193 @@ func TestLoginSuccess(t *testing.T) {
 	assert.Equal(t, test.ExpectedCode, resp.StatusCode)
 	assert.NotEmpty(t, resp.Header.Get("Set-Cookie"))
 }
+
+func TestVerifyAccountInvalidToken(t *testing.T) {
+	test := &testutils.TestResponse{
+		Route:        "/verify/account",
+		Method:       fiber.MethodPatch,
+		ExpectedCode: fiber.StatusUnauthorized,
+	}
+
+	req := httptest.NewRequest(test.Method, test.Route, nil)
+	req.Header.Add("Content-Type", "text/plain; charset=us-ascii")
+
+	resp, err := app.Test(req, -1)
+	if err != nil {
+		log.Fatal("failed to make request to verify account user controller")
+	}
+
+	resBody := testutils.ParseJSONBody(&resp.Body)
+
+	assert.Equal(t, test.ExpectedCode, resp.StatusCode)
+	assert.Equal(t, resBody.Error, utils.ErrorCode[utils.VerifyAccountInvalidToken])
+}
+
+func TestVerifyAccountInvalidEmailToken(t *testing.T) {
+	token, _, err := utils.GenerateUserToken("email_does_not_exist@example.com")
+	if err != nil {
+		log.Fatal("unable to generate a new user token")
+	}
+	test := &testutils.TestResponse{
+		Route:        fmt.Sprintf("/verify/account?token=%s", token),
+		Method:       fiber.MethodPatch,
+		ExpectedCode: fiber.StatusUnprocessableEntity,
+	}
+
+	req := httptest.NewRequest(test.Method, test.Route, nil)
+	req.Header.Add("Content-Type", "text/plain; charset=us-ascii")
+
+	resp, err := app.Test(req, -1)
+	if err != nil {
+		log.Fatal("failed to make request to verify account user controller")
+	}
+
+	assert.Equal(t, test.ExpectedCode, resp.StatusCode)
+}
+
+func TestVerifyAccountEmailAlreadyVerified(t *testing.T) {
+	email := "already_verified@example.com"
+	testutils.CreateUser(&email, true)
+
+	token, _, err := utils.GenerateUserToken(email)
+	if err != nil {
+		log.Fatal("unable to generate a new user token")
+	}
+
+	test := &testutils.TestResponse{
+		Route:        fmt.Sprintf("/verify/account?token=%s", token),
+		Method:       fiber.MethodPatch,
+		ExpectedCode: fiber.StatusNotModified,
+	}
+
+	req := httptest.NewRequest(test.Method, test.Route, nil)
+	req.Header.Add("Content-Type", "text/plain; charset=us-ascii")
+
+	resp, err := app.Test(req, -1)
+	if err != nil {
+		log.Fatal("failed to make request to verify account user controller")
+	}
+
+	defer testutils.DeleteUser(&email)
+
+	assert.Equal(t, test.ExpectedCode, resp.StatusCode)
+}
+
+func TestVerifyAccountSuccess(t *testing.T) {
+	email := "verify_account@example.com"
+	testutils.CreateUser(&email, false)
+
+	token, _, err := utils.GenerateUserToken(email)
+	if err != nil {
+		log.Fatal("unable to generate a new user token")
+	}
+
+	test := &testutils.TestResponse{
+		Route:        fmt.Sprintf("/verify/account?token=%s", token),
+		Method:       fiber.MethodPatch,
+		ExpectedCode: fiber.StatusAccepted,
+	}
+
+	req := httptest.NewRequest(test.Method, test.Route, nil)
+	req.Header.Add("Content-Type", "text/plain; charset=us-ascii")
+
+	resp, err := app.Test(req, -1)
+	if err != nil {
+		log.Fatal("failed to make request to verify account user controller")
+	}
+
+	resBody := testutils.ParseTextBody(&resp.Body)
+
+	defer testutils.DeleteUser(&email)
+
+	assert.Equal(t, test.ExpectedCode, resp.StatusCode)
+	assert.Equal(t, resBody, fmt.Sprintf("Successfully verified %s!", email))
+}
+
+func TestResendAccountVerifyInvalidToken(t *testing.T) {
+	test := &testutils.TestResponse{
+		Route:        "/reverify/account",
+		Method:       fiber.MethodPatch,
+		ExpectedCode: fiber.StatusBadRequest,
+	}
+
+	req := httptest.NewRequest(test.Method, test.Route, nil)
+	req.Header.Add("Content-Type", "text/plain; charset=us-ascii")
+
+	resp, err := app.Test(req, -1)
+	if err != nil {
+		log.Fatal("failed to make request to reverify account user controller")
+	}
+
+	resBody := testutils.ParseJSONBody(&resp.Body)
+
+	assert.Equal(t, test.ExpectedCode, resp.StatusCode)
+	assert.Equal(t, resBody.Error, utils.ErrorCode[utils.ResendAccountVerificationInvalidEmail])
+}
+
+func TestResendAccountVerifyInvalidEmail(t *testing.T) {
+	test := &testutils.TestResponse{
+		Route:        "/reverify/account?email=not_a_register_user@example.com",
+		Method:       fiber.MethodPatch,
+		ExpectedCode: fiber.StatusNotModified,
+	}
+
+	req := httptest.NewRequest(test.Method, test.Route, nil)
+	req.Header.Add("Content-Type", "text/plain; charset=us-ascii")
+
+	resp, err := app.Test(req, -1)
+	if err != nil {
+		log.Fatal("failed to make request to reverify account user controller")
+	}
+
+	assert.Equal(t, test.ExpectedCode, resp.StatusCode)
+}
+
+func TestResendAccountVerifyEmailAlreadyVerified(t *testing.T) {
+	email := "already_reverified@example.com"
+	testutils.CreateUser(&email, true)
+
+	test := &testutils.TestResponse{
+		Route:        fmt.Sprintf("/reverify/account?email=%s", email),
+		Method:       fiber.MethodPatch,
+		ExpectedCode: fiber.StatusNotModified,
+	}
+
+	req := httptest.NewRequest(test.Method, test.Route, nil)
+	req.Header.Add("Content-Type", "text/plain; charset=us-ascii")
+
+	resp, err := app.Test(req, -1)
+	if err != nil {
+		log.Fatal("failed to make request to reverify account user controller")
+	}
+
+	defer testutils.DeleteUser(&email)
+
+	assert.Equal(t, test.ExpectedCode, resp.StatusCode)
+}
+
+func TestResendAccountVerifySuccess(t *testing.T) {
+	email := "not_reverified@example.com"
+	testutils.CreateUser(&email, false)
+
+	test := &testutils.TestResponse{
+		Route:        fmt.Sprintf("/reverify/account?email=%s", email),
+		Method:       fiber.MethodPatch,
+		ExpectedCode: fiber.StatusAccepted,
+	}
+
+	req := httptest.NewRequest(test.Method, test.Route, nil)
+	req.Header.Add("Content-Type", "text/plain; charset=us-ascii")
+
+	resp, err := app.Test(req, -1)
+	if err != nil {
+		log.Fatal("failed to make request to reverify account user controller")
+	}
+
+	resBody := testutils.ParseTextBody(&resp.Body)
+
+	defer testutils.DeleteUser(&email)
+
+	assert.Equal(t, test.ExpectedCode, resp.StatusCode)
+	assert.Equal(t, resBody, fmt.Sprintf("Resent a verification email to %s.", email))
+}

@@ -103,3 +103,27 @@ Click here for [field validation rules](https://github.com/go-playground/validat
 - Body: `email, password`
 - Explanation: the request body contains an `email` field that hasn't been verified yet
 
+## E009
+
+- Error Name: `VerifyAccountInvalidToken`
+- Controller: `user`
+- Path: `/verify/account`
+- Method: `PATCH`
+- Status: `401`
+- Content: `text/plain; charset=us-ascii`
+- Query: `token`
+- Explanation: a `token` that was assigned as a query `?token=` is invalid (missing, expired or wrong signature); another
+token may need to be regenerated
+
+## E010
+
+- Error Name: `ResendAccountVerificationInvalidEmail`
+- Controller: `user`
+- Path: `/reverify/account`
+- Method: `POST`
+- Status: `400`
+- Content: `text/plain; charset=us-ascii`
+- Query: `email`
+- Explanation: an `email` that was assigned as a query `?email=` doesn't pass the following field validation rules:
+  - email: `required,email,lte=100`
+

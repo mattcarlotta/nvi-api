@@ -2,11 +2,13 @@ package database
 
 import (
 	"fmt"
+	"log"
+	"os"
+
 	"github.com/mattcarlotta/nvi-api/utils"
 	"gorm.io/driver/postgres"
 	"gorm.io/gorm"
 	"gorm.io/gorm/logger"
-	"log"
 )
 
 var DB *gorm.DB
@@ -21,9 +23,13 @@ func CreateConnection() *gorm.DB {
 		utils.GetEnv("DB_PORT"),
 	)
 
-	// TODO(carlotta): make this logger conditional to avoid exposing PII
+	logType := logger.Info
+	if os.Getenv("IN_PRODUCTION") == "true" {
+		logType = logger.Silent
+	}
+
 	dbc, err := gorm.Open(postgres.Open(dsn), &gorm.Config{
-		Logger: logger.Default.LogMode(logger.Info),
+		Logger: logger.Default.LogMode(logType),
 	})
 	if err != nil {
 		log.Fatal("Failed to connect to the database")

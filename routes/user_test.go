@@ -10,37 +10,20 @@ import (
 	"testing"
 
 	"github.com/gofiber/fiber/v2"
-	"github.com/mattcarlotta/nvi-api/database"
 	"github.com/mattcarlotta/nvi-api/models"
+	"github.com/mattcarlotta/nvi-api/test"
 	"github.com/mattcarlotta/nvi-api/utils"
 	"github.com/stretchr/testify/assert"
 )
 
-func cleanup(email string) {
-	db := database.GetConnection()
-
-	var existingUser models.User
-	if err := db.Where(&models.User{Email: email}).First(&existingUser).Error; err != nil {
-		log.Fatal("unable to locate created user")
-	}
-
-	if err := db.Delete(&existingUser).Error; err != nil {
-		log.Fatal("unable to delete created user")
-	}
-}
-
 func TestRegisterUserEmptyBody(t *testing.T) {
-	test := struct {
-		route        string
-		method       string
-		expectedCode int
-	}{
-		route:        "/register",
-		method:       fiber.MethodPost,
-		expectedCode: fiber.StatusBadRequest,
+	test := &testutils.TestResponse{
+		Route:        "/register",
+		Method:       fiber.MethodPost,
+		ExpectedCode: fiber.StatusBadRequest,
 	}
 
-	req := httptest.NewRequest(test.method, test.route, nil)
+	req := httptest.NewRequest(test.Method, test.Route, nil)
 	req.Header.Add("Content-Type", "application/json")
 
 	resp, err := app.Test(req, -1)
@@ -52,7 +35,7 @@ func TestRegisterUserEmptyBody(t *testing.T) {
 	responseBodyBytes, _ := io.ReadAll(resp.Body)
 	_ = json.Unmarshal(responseBodyBytes, &errResponse)
 
-	assert.Equal(t, test.expectedCode, resp.StatusCode)
+	assert.Equal(t, test.ExpectedCode, resp.StatusCode)
 	assert.Equal(t, errResponse.Error, utils.ErrorCode[utils.RegisterEmptyBody])
 }
 
@@ -60,21 +43,17 @@ func TestRegisterUserInvalidBody(t *testing.T) {
 	user := &models.ReqRegisterUser{
 		Name:     "invalid",
 		Email:    "invalidexample", // invalid email to trigger validation failure
-		Password: "password123",
+		Password: string(testutils.Password),
 	}
 
-	test := struct {
-		route        string
-		method       string
-		expectedCode int
-	}{
-		route:        "/register",
-		method:       fiber.MethodPost,
-		expectedCode: fiber.StatusBadRequest,
+	test := &testutils.TestResponse{
+		Route:        "/register",
+		Method:       fiber.MethodPost,
+		ExpectedCode: fiber.StatusBadRequest,
 	}
 
 	reqBodyStr, _ := json.Marshal(user)
-	req := httptest.NewRequest(test.method, test.route, bytes.NewBufferString(string(reqBodyStr)))
+	req := httptest.NewRequest(test.Method, test.Route, bytes.NewBufferString(string(reqBodyStr)))
 	req.Header.Add("Content-Type", "application/json")
 
 	resp, err := app.Test(req, -1)
@@ -86,45 +65,28 @@ func TestRegisterUserInvalidBody(t *testing.T) {
 	responseBodyBytes, _ := io.ReadAll(resp.Body)
 	_ = json.Unmarshal(responseBodyBytes, &errResponse)
 
-	assert.Equal(t, test.expectedCode, resp.StatusCode)
+	assert.Equal(t, test.ExpectedCode, resp.StatusCode)
 	assert.Equal(t, errResponse.Error, utils.ErrorCode[utils.RegisterInvalidBody])
 }
 
 func TestRegisterEmailTaken(t *testing.T) {
-	db := database.GetConnection()
-
-	password := []byte("password123")
-	newToken := []byte("hello")
 	email := "taken_email@example.com"
-	newUser := &models.User{
-		Name:     "Taken",
-		Email:    email,
-		Password: password,
-		Token:    &newToken,
-	}
-
-	if err := db.Create(newUser).Error; err != nil {
-		log.Fatal("unable to create a user")
-	}
+	testutils.CreateUser(&email, false)
 
 	user := &models.ReqRegisterUser{
 		Name:     "Taken",
 		Email:    email,
-		Password: string(password),
+		Password: testutils.StrPassword,
 	}
 
-	test := struct {
-		route        string
-		method       string
-		expectedCode int
-	}{
-		route:        "/register",
-		method:       fiber.MethodPost,
-		expectedCode: fiber.StatusOK,
+	test := &testutils.TestResponse{
+		Route:        "/register",
+		Method:       fiber.MethodPost,
+		ExpectedCode: fiber.StatusOK,
 	}
 
 	reqBodyStr, _ := json.Marshal(user)
-	req := httptest.NewRequest(test.method, test.route, bytes.NewBufferString(string(reqBodyStr)))
+	req := httptest.NewRequest(test.Method, test.Route, bytes.NewBufferString(string(reqBodyStr)))
 	req.Header.Add("Content-Type", "application/json")
 
 	resp, err := app.Test(req, -1)
@@ -136,9 +98,9 @@ func TestRegisterEmailTaken(t *testing.T) {
 	responseBodyBytes, _ := io.ReadAll(resp.Body)
 	_ = json.Unmarshal(responseBodyBytes, &errResponse)
 
-	defer cleanup(newUser.Email)
+	defer testutils.DeleteUser(&email)
 
-	assert.Equal(t, test.expectedCode, resp.StatusCode)
+	assert.Equal(t, test.ExpectedCode, resp.StatusCode)
 	assert.Equal(t, errResponse.Error, utils.ErrorCode[utils.RegisterEmailTaken])
 }
 
@@ -146,21 +108,17 @@ func TestRegisterUserSuccess(t *testing.T) {
 	user := &models.ReqRegisterUser{
 		Name:     "Register",
 		Email:    "registeruser@example.com",
-		Password: "password123",
+		Password: testutils.StrPassword,
 	}
 
-	test := struct {
-		route        string
-		method       string
-		expectedCode int
-	}{
-		route:        "/register",
-		method:       fiber.MethodPost,
-		expectedCode: fiber.StatusCreated,
+	test := &testutils.TestResponse{
+		Route:        "/register",
+		Method:       fiber.MethodPost,
+		ExpectedCode: fiber.StatusCreated,
 	}
 
 	reqBodyStr, _ := json.Marshal(user)
-	req := httptest.NewRequest(test.method, test.route, bytes.NewBufferString(string(reqBodyStr)))
+	req := httptest.NewRequest(test.Method, test.Route, bytes.NewBufferString(string(reqBodyStr)))
 	req.Header.Add("Content-Type", "application/json")
 
 	resp, err := app.Test(req, -1)
@@ -171,26 +129,22 @@ func TestRegisterUserSuccess(t *testing.T) {
 	body, _ := io.ReadAll(resp.Body)
 	bodyMessage := string(body)
 
-	defer cleanup(user.Email)
+	defer testutils.DeleteUser(&user.Email)
 
-	assert.Equal(t, test.expectedCode, resp.StatusCode)
+	assert.Equal(t, test.ExpectedCode, resp.StatusCode)
 	assert.Equal(t, bodyMessage, fmt.Sprintf(
 		"Welcome, %s! Please check your %s inbox for steps to verify your account.", user.Name, user.Email,
 	))
 }
 
 func TestLoginUserEmptyBody(t *testing.T) {
-	test := struct {
-		route        string
-		method       string
-		expectedCode int
-	}{
-		route:        "/login",
-		method:       fiber.MethodPost,
-		expectedCode: fiber.StatusBadRequest,
+	test := &testutils.TestResponse{
+		Route:        "/login",
+		Method:       fiber.MethodPost,
+		ExpectedCode: fiber.StatusBadRequest,
 	}
 
-	req := httptest.NewRequest(test.method, test.route, nil)
+	req := httptest.NewRequest(test.Method, test.Route, nil)
 	req.Header.Add("Content-Type", "application/json")
 
 	resp, err := app.Test(req, -1)
@@ -202,28 +156,24 @@ func TestLoginUserEmptyBody(t *testing.T) {
 	responseBodyBytes, _ := io.ReadAll(resp.Body)
 	_ = json.Unmarshal(responseBodyBytes, &errResponse)
 
-	assert.Equal(t, test.expectedCode, resp.StatusCode)
+	assert.Equal(t, test.ExpectedCode, resp.StatusCode)
 	assert.Equal(t, errResponse.Error, utils.ErrorCode[utils.LoginEmptyBody])
 }
 
 func TestLoginUserInvalidBody(t *testing.T) {
 	user := &models.ReqLoginUser{
 		Email:    "invalidexample", // invalid email to trigger validation failure
-		Password: "password123",
+		Password: testutils.StrPassword,
 	}
 
-	test := struct {
-		route        string
-		method       string
-		expectedCode int
-	}{
-		route:        "/login",
-		method:       fiber.MethodPost,
-		expectedCode: fiber.StatusBadRequest,
+	test := &testutils.TestResponse{
+		Route:        "/login",
+		Method:       fiber.MethodPost,
+		ExpectedCode: fiber.StatusBadRequest,
 	}
 
 	reqBodyStr, _ := json.Marshal(user)
-	req := httptest.NewRequest(test.method, test.route, bytes.NewBufferString(string(reqBodyStr)))
+	req := httptest.NewRequest(test.Method, test.Route, bytes.NewBufferString(string(reqBodyStr)))
 	req.Header.Add("Content-Type", "application/json")
 
 	resp, err := app.Test(req, -1)
@@ -235,28 +185,24 @@ func TestLoginUserInvalidBody(t *testing.T) {
 	responseBodyBytes, _ := io.ReadAll(resp.Body)
 	_ = json.Unmarshal(responseBodyBytes, &errResponse)
 
-	assert.Equal(t, test.expectedCode, resp.StatusCode)
+	assert.Equal(t, test.ExpectedCode, resp.StatusCode)
 	assert.Equal(t, errResponse.Error, utils.ErrorCode[utils.LoginInvalidBody])
 }
 
 func TestLoginUnregisteredEmail(t *testing.T) {
 	user := &models.ReqLoginUser{
 		Email:    "non_existent_email@example.com",
-		Password: "password123",
+		Password: testutils.StrPassword,
 	}
 
-	test := struct {
-		route        string
-		method       string
-		expectedCode int
-	}{
-		route:        "/login",
-		method:       fiber.MethodPost,
-		expectedCode: fiber.StatusOK,
+	test := &testutils.TestResponse{
+		Route:        "/login",
+		Method:       fiber.MethodPost,
+		ExpectedCode: fiber.StatusOK,
 	}
 
 	reqBodyStr, _ := json.Marshal(user)
-	req := httptest.NewRequest(test.method, test.route, bytes.NewBufferString(string(reqBodyStr)))
+	req := httptest.NewRequest(test.Method, test.Route, bytes.NewBufferString(string(reqBodyStr)))
 	req.Header.Add("Content-Type", "application/json")
 
 	resp, err := app.Test(req, -1)
@@ -268,45 +214,28 @@ func TestLoginUnregisteredEmail(t *testing.T) {
 	responseBodyBytes, _ := io.ReadAll(resp.Body)
 	_ = json.Unmarshal(responseBodyBytes, &errResponse)
 
-	assert.Equal(t, test.expectedCode, resp.StatusCode)
+	assert.Equal(t, test.ExpectedCode, resp.StatusCode)
 	assert.Equal(t, errResponse.Error, utils.ErrorCode[utils.LoginUnregisteredEmail])
 }
 
 func TestLoginInvalidPassword(t *testing.T) {
-	db := database.GetConnection()
-
-	password := []byte("password123")
-	newToken := []byte("hello")
 	email := "login_invalid_password@example.com"
-	newUser := &models.User{
-		Name:     "Login",
-		Email:    email,
-		Password: password,
-		Token:    &newToken,
-	}
+	testutils.CreateUser(&email, false)
 
-	if err := db.Create(newUser).Error; err != nil {
-		log.Fatal("unable to create a user")
-	}
-
-	badPassword := append(password, []byte("4")...)
+	badPassword := append(testutils.Password, []byte("4")...)
 	user := &models.ReqLoginUser{
 		Email:    email,
 		Password: string(badPassword),
 	}
 
-	test := struct {
-		route        string
-		method       string
-		expectedCode int
-	}{
-		route:        "/login",
-		method:       fiber.MethodPost,
-		expectedCode: fiber.StatusOK,
+	test := &testutils.TestResponse{
+		Route:        "/login",
+		Method:       fiber.MethodPost,
+		ExpectedCode: fiber.StatusOK,
 	}
 
 	reqBodyStr, _ := json.Marshal(user)
-	req := httptest.NewRequest(test.method, test.route, bytes.NewBufferString(string(reqBodyStr)))
+	req := httptest.NewRequest(test.Method, test.Route, bytes.NewBufferString(string(reqBodyStr)))
 	req.Header.Add("Content-Type", "application/json")
 
 	resp, err := app.Test(req, -1)
@@ -318,46 +247,29 @@ func TestLoginInvalidPassword(t *testing.T) {
 	responseBodyBytes, _ := io.ReadAll(resp.Body)
 	_ = json.Unmarshal(responseBodyBytes, &errResponse)
 
-	defer cleanup(newUser.Email)
+	defer testutils.DeleteUser(&email)
 
-	assert.Equal(t, test.expectedCode, resp.StatusCode)
+	assert.Equal(t, test.ExpectedCode, resp.StatusCode)
 	assert.Equal(t, errResponse.Error, utils.ErrorCode[utils.LoginInvalidPassword])
 }
 
 func TestLoginAccountNotVerified(t *testing.T) {
-	db := database.GetConnection()
-
-	password := []byte("password123")
-	newToken := []byte("hello")
 	email := "login_account_not_verified@example.com"
-	newUser := &models.User{
-		Name:     "Login",
-		Email:    email,
-		Password: password,
-		Token:    &newToken,
-	}
-
-	if err := db.Create(newUser).Error; err != nil {
-		log.Fatal("unable to create a user")
-	}
+	testutils.CreateUser(&email, false)
 
 	user := &models.ReqLoginUser{
 		Email:    email,
-		Password: string(password),
+		Password: testutils.StrPassword,
 	}
 
-	test := struct {
-		route        string
-		method       string
-		expectedCode int
-	}{
-		route:        "/login",
-		method:       fiber.MethodPost,
-		expectedCode: fiber.StatusUnauthorized,
+	test := &testutils.TestResponse{
+		Route:        "/login",
+		Method:       fiber.MethodPost,
+		ExpectedCode: fiber.StatusUnauthorized,
 	}
 
 	reqBodyStr, _ := json.Marshal(user)
-	req := httptest.NewRequest(test.method, test.route, bytes.NewBufferString(string(reqBodyStr)))
+	req := httptest.NewRequest(test.Method, test.Route, bytes.NewBufferString(string(reqBodyStr)))
 	req.Header.Add("Content-Type", "application/json")
 
 	resp, err := app.Test(req, -1)
@@ -369,47 +281,29 @@ func TestLoginAccountNotVerified(t *testing.T) {
 	responseBodyBytes, _ := io.ReadAll(resp.Body)
 	_ = json.Unmarshal(responseBodyBytes, &errResponse)
 
-	defer cleanup(newUser.Email)
+	defer testutils.DeleteUser(&email)
 
-	assert.Equal(t, test.expectedCode, resp.StatusCode)
+	assert.Equal(t, test.ExpectedCode, resp.StatusCode)
 	assert.Equal(t, errResponse.Error, utils.ErrorCode[utils.LoginAccountNotVerified])
 }
 
 func TestLoginSuccess(t *testing.T) {
-	db := database.GetConnection()
-
-	password := []byte("password123")
-	newToken := []byte("hello")
 	email := "login_success@example.com"
-	newUser := &models.User{
-		Name:     "Login",
-		Email:    email,
-		Password: password,
-		Token:    &newToken,
-		Verified: true,
-	}
-
-	if err := db.Create(newUser).Error; err != nil {
-		log.Fatal("unable to create a user")
-	}
+	testutils.CreateUser(&email, true)
 
 	user := &models.ReqLoginUser{
 		Email:    email,
-		Password: string(password),
+		Password: testutils.StrPassword,
 	}
 
-	test := struct {
-		route        string
-		method       string
-		expectedCode int
-	}{
-		route:        "/login",
-		method:       fiber.MethodPost,
-		expectedCode: fiber.StatusOK,
+	test := &testutils.TestResponse{
+		Route:        "/login",
+		Method:       fiber.MethodPost,
+		ExpectedCode: fiber.StatusOK,
 	}
 
 	reqBodyStr, _ := json.Marshal(user)
-	req := httptest.NewRequest(test.method, test.route, bytes.NewBufferString(string(reqBodyStr)))
+	req := httptest.NewRequest(test.Method, test.Route, bytes.NewBufferString(string(reqBodyStr)))
 	req.Header.Add("Content-Type", "application/json")
 
 	resp, err := app.Test(req, -1)
@@ -417,10 +311,8 @@ func TestLoginSuccess(t *testing.T) {
 		log.Fatal("failed to make request to login user controller")
 	}
 
-	cookie := resp.Header.Get("Set-Cookie")
+	testutils.DeleteUser(&email)
 
-	defer cleanup(newUser.Email)
-
-	assert.Equal(t, test.expectedCode, resp.StatusCode)
-	assert.NotEmpty(t, cookie)
+	assert.Equal(t, test.ExpectedCode, resp.StatusCode)
+	assert.NotEmpty(t, resp.Header.Get("Set-Cookie"))
 }

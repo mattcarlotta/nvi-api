@@ -9,30 +9,32 @@ type ErrorResponseCode int
 
 const (
 	Unknown = iota
-	RegisterEmptyBody
 	RegisterInvalidBody
 	RegisterEmailTaken
-	LoginEmptyBody
 	LoginInvalidBody
 	LoginUnregisteredEmail
 	LoginInvalidPassword
 	LoginAccountNotVerified
 	VerifyAccountInvalidToken
 	ResendAccountVerificationInvalidEmail
+	SendResetPasswordInvalidEmail
+	UpdatePasswordInvalidBody
+	UpdatePasswordInvalidToken
 )
 
 var ErrorCode = map[ErrorResponseCode]string{
 	Unknown:                               "E000",
-	RegisterEmptyBody:                     "E001",
-	RegisterInvalidBody:                   "E002",
-	RegisterEmailTaken:                    "E003",
-	LoginEmptyBody:                        "E004",
-	LoginInvalidBody:                      "E005",
-	LoginUnregisteredEmail:                "E006",
-	LoginInvalidPassword:                  "E007",
-	LoginAccountNotVerified:               "E008",
-	VerifyAccountInvalidToken:             "E009",
-	ResendAccountVerificationInvalidEmail: "E010",
+	RegisterInvalidBody:                   "E001",
+	RegisterEmailTaken:                    "E002",
+	LoginInvalidBody:                      "E003",
+	LoginUnregisteredEmail:                "E004",
+	LoginInvalidPassword:                  "E005",
+	LoginAccountNotVerified:               "E006",
+	VerifyAccountInvalidToken:             "E007",
+	ResendAccountVerificationInvalidEmail: "E008",
+	SendResetPasswordInvalidEmail:         "E009",
+	UpdatePasswordInvalidBody:             "E010",
+	UpdatePasswordInvalidToken:            "E011",
 }
 
 type ResponseError struct {

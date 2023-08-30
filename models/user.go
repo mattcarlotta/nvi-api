@@ -57,10 +57,6 @@ type ReqLoginUser struct {
 	Password string `json:"password" validate:"required,gte=5,lte=36"`
 }
 
-type ReqEmailUser struct {
-	Email string `json:"email" validate:"required,email,lte=100"`
-}
-
 type ReqUpdateUser struct {
 	Password string `json:"password" validate:"required,gte=5,lte=36"`
 	Token    string `json:"token" validate:"required"`

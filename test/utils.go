@@ -12,7 +12,6 @@ import (
 
 var StrPassword = "password123"
 var Password = []byte(StrPassword)
-var NewToken = []byte("hello")
 
 type TestResponse struct {
 	Route        string
@@ -20,7 +19,14 @@ type TestResponse struct {
 	ExpectedCode int
 }
 
-func DeleteUser(email *string) {
+func DeleteUser(existingUser *models.User) {
+	db := database.GetConnection()
+	if err := db.Delete(&existingUser).Error; err != nil {
+		log.Fatal("unable to delete created user")
+	}
+}
+
+func RemoveUserByEmail(email *string) {
 	db := database.GetConnection()
 	var existingUser models.User
 	if err := db.Where(&models.User{Email: *email}).First(&existingUser).Error; err != nil {
@@ -33,23 +39,44 @@ func DeleteUser(email *string) {
 
 }
 
-func CreateUser(email *string, verified bool) {
+func CreateUser(email *string, verified bool) models.User {
 	db := database.GetConnection()
 
+	token, _, err := utils.GenerateUserToken(*email)
+	if err != nil {
+		log.Fatal("unable to generate a new user token")
+	}
+
+	tokenByte := []byte(token)
 	newUser := &models.User{
 		Name:     "Name",
 		Email:    *email,
 		Password: Password,
-		Token:    &NewToken,
+		Token:    &tokenByte,
 		Verified: verified,
 	}
 
 	if err := db.Create(newUser).Error; err != nil {
 		log.Fatal("unable to create a user")
 	}
+
+	var existingUser models.User
+	if err := db.Where(&models.User{Email: *email}).First(&existingUser).Error; err != nil {
+		log.Fatal("unable to locate created user")
+	}
+
+	return existingUser
 }
 
-func ParseJSONBody(body *io.ReadCloser) utils.ResponseError {
+// func ParseJSONSuccessBody(body *io.ReadCloser) utils.ResponseError {
+// 	var res utils.ResponseError
+// 	responseBodyBytes, _ := io.ReadAll(*body)
+// 	_ = json.Unmarshal(responseBodyBytes, &res)
+
+// 	return res
+// }
+
+func ParseJSONErrorBody(body *io.ReadCloser) utils.ResponseError {
 	var errResponse utils.ResponseError
 	responseBodyBytes, _ := io.ReadAll(*body)
 	_ = json.Unmarshal(responseBodyBytes, &errResponse)
@@ -57,7 +84,7 @@ func ParseJSONBody(body *io.ReadCloser) utils.ResponseError {
 	return errResponse
 }
 
-func ParseTextBody(body *io.ReadCloser) string {
+func ParseTextError(body *io.ReadCloser) string {
 	resBody, _ := io.ReadAll(*body)
 	return string(resBody)
 }

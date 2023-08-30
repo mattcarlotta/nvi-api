@@ -30,10 +30,10 @@ func TestRegisterUserEmptyBody(t *testing.T) {
 		log.Fatal("failed to make request to register user controller")
 	}
 
-	resBody := testutils.ParseJSONBody(&resp.Body)
+	resBody := testutils.ParseJSONErrorBody(&resp.Body)
 
 	assert.Equal(t, test.ExpectedCode, resp.StatusCode)
-	assert.Equal(t, resBody.Error, utils.ErrorCode[utils.RegisterEmptyBody])
+	assert.Equal(t, resBody.Error, utils.ErrorCode[utils.RegisterInvalidBody])
 }
 
 func TestRegisterUserInvalidBody(t *testing.T) {
@@ -41,7 +41,7 @@ func TestRegisterUserInvalidBody(t *testing.T) {
 		Name: "invalid",
 		// invalid email to trigger validation failure
 		Email:    "invalidexample",
-		Password: string(testutils.Password),
+		Password: testutils.StrPassword,
 	}
 
 	test := &testutils.TestResponse{
@@ -59,7 +59,7 @@ func TestRegisterUserInvalidBody(t *testing.T) {
 		log.Fatal("failed to make request to register user controller")
 	}
 
-	resBody := testutils.ParseJSONBody(&resp.Body)
+	resBody := testutils.ParseJSONErrorBody(&resp.Body)
 
 	assert.Equal(t, test.ExpectedCode, resp.StatusCode)
 	assert.Equal(t, resBody.Error, utils.ErrorCode[utils.RegisterInvalidBody])
@@ -67,7 +67,7 @@ func TestRegisterUserInvalidBody(t *testing.T) {
 
 func TestRegisterEmailTaken(t *testing.T) {
 	email := "taken_email@example.com"
-	testutils.CreateUser(&email, false)
+	u := testutils.CreateUser(&email, false)
 
 	user := &models.ReqRegisterUser{
 		Name:     "Taken",
@@ -90,9 +90,9 @@ func TestRegisterEmailTaken(t *testing.T) {
 		log.Fatal("failed to make request to register user controller")
 	}
 
-	resBody := testutils.ParseJSONBody(&resp.Body)
+	resBody := testutils.ParseJSONErrorBody(&resp.Body)
 
-	defer testutils.DeleteUser(&email)
+	defer testutils.DeleteUser(&u)
 
 	assert.Equal(t, test.ExpectedCode, resp.StatusCode)
 	assert.Equal(t, resBody.Error, utils.ErrorCode[utils.RegisterEmailTaken])
@@ -120,9 +120,9 @@ func TestRegisterUserSuccess(t *testing.T) {
 		log.Fatal("failed to make request to register user controller")
 	}
 
-	resBody := testutils.ParseTextBody(&resp.Body)
+	resBody := testutils.ParseTextError(&resp.Body)
 
-	defer testutils.DeleteUser(&user.Email)
+	defer testutils.RemoveUserByEmail(&user.Email)
 
 	assert.Equal(t, test.ExpectedCode, resp.StatusCode)
 	assert.Equal(t, resBody, fmt.Sprintf(
@@ -145,10 +145,10 @@ func TestLoginUserEmptyBody(t *testing.T) {
 		log.Fatal("failed to make request to user login controller")
 	}
 
-	resBody := testutils.ParseJSONBody(&resp.Body)
+	resBody := testutils.ParseJSONErrorBody(&resp.Body)
 
 	assert.Equal(t, test.ExpectedCode, resp.StatusCode)
-	assert.Equal(t, resBody.Error, utils.ErrorCode[utils.LoginEmptyBody])
+	assert.Equal(t, resBody.Error, utils.ErrorCode[utils.LoginInvalidBody])
 }
 
 func TestLoginUserInvalidBody(t *testing.T) {
@@ -173,7 +173,7 @@ func TestLoginUserInvalidBody(t *testing.T) {
 		log.Fatal("failed to make request to login user controller")
 	}
 
-	resBody := testutils.ParseJSONBody(&resp.Body)
+	resBody := testutils.ParseJSONErrorBody(&resp.Body)
 
 	assert.Equal(t, test.ExpectedCode, resp.StatusCode)
 	assert.Equal(t, resBody.Error, utils.ErrorCode[utils.LoginInvalidBody])
@@ -200,7 +200,7 @@ func TestLoginUnregisteredEmail(t *testing.T) {
 		log.Fatal("failed to make request to login user controller")
 	}
 
-	resBody := testutils.ParseJSONBody(&resp.Body)
+	resBody := testutils.ParseJSONErrorBody(&resp.Body)
 
 	assert.Equal(t, test.ExpectedCode, resp.StatusCode)
 	assert.Equal(t, resBody.Error, utils.ErrorCode[utils.LoginUnregisteredEmail])
@@ -208,12 +208,12 @@ func TestLoginUnregisteredEmail(t *testing.T) {
 
 func TestLoginInvalidPassword(t *testing.T) {
 	email := "login_invalid_password@example.com"
-	testutils.CreateUser(&email, false)
+	u := testutils.CreateUser(&email, false)
 
-	badPassword := append(testutils.Password, []byte("4")...)
+	badPassword := testutils.StrPassword + "4"
 	user := &models.ReqLoginUser{
 		Email:    email,
-		Password: string(badPassword),
+		Password: badPassword,
 	}
 
 	test := &testutils.TestResponse{
@@ -231,9 +231,9 @@ func TestLoginInvalidPassword(t *testing.T) {
 		log.Fatal("failed to make request to login user controller")
 	}
 
-	resBody := testutils.ParseJSONBody(&resp.Body)
+	resBody := testutils.ParseJSONErrorBody(&resp.Body)
 
-	defer testutils.DeleteUser(&email)
+	defer testutils.DeleteUser(&u)
 
 	assert.Equal(t, test.ExpectedCode, resp.StatusCode)
 	assert.Equal(t, resBody.Error, utils.ErrorCode[utils.LoginInvalidPassword])
@@ -241,7 +241,7 @@ func TestLoginInvalidPassword(t *testing.T) {
 
 func TestLoginAccountNotVerified(t *testing.T) {
 	email := "login_account_not_verified@example.com"
-	testutils.CreateUser(&email, false)
+	u := testutils.CreateUser(&email, false)
 
 	user := &models.ReqLoginUser{
 		Email:    email,
@@ -263,9 +263,9 @@ func TestLoginAccountNotVerified(t *testing.T) {
 		log.Fatal("failed to make request to login user controller")
 	}
 
-	resBody := testutils.ParseJSONBody(&resp.Body)
+	resBody := testutils.ParseJSONErrorBody(&resp.Body)
 
-	defer testutils.DeleteUser(&email)
+	defer testutils.DeleteUser(&u)
 
 	assert.Equal(t, test.ExpectedCode, resp.StatusCode)
 	assert.Equal(t, resBody.Error, utils.ErrorCode[utils.LoginAccountNotVerified])
@@ -273,7 +273,7 @@ func TestLoginAccountNotVerified(t *testing.T) {
 
 func TestLoginSuccess(t *testing.T) {
 	email := "login_success@example.com"
-	testutils.CreateUser(&email, true)
+	u := testutils.CreateUser(&email, true)
 
 	user := &models.ReqLoginUser{
 		Email:    email,
@@ -295,7 +295,7 @@ func TestLoginSuccess(t *testing.T) {
 		log.Fatal("failed to make request to login user controller")
 	}
 
-	testutils.DeleteUser(&email)
+	testutils.DeleteUser(&u)
 
 	assert.Equal(t, test.ExpectedCode, resp.StatusCode)
 	assert.NotEmpty(t, resp.Header.Get("Set-Cookie"))
@@ -316,7 +316,7 @@ func TestVerifyAccountInvalidToken(t *testing.T) {
 		log.Fatal("failed to make request to verify account user controller")
 	}
 
-	resBody := testutils.ParseJSONBody(&resp.Body)
+	resBody := testutils.ParseJSONErrorBody(&resp.Body)
 
 	assert.Equal(t, test.ExpectedCode, resp.StatusCode)
 	assert.Equal(t, resBody.Error, utils.ErrorCode[utils.VerifyAccountInvalidToken])
@@ -346,7 +346,7 @@ func TestVerifyAccountInvalidEmailToken(t *testing.T) {
 
 func TestVerifyAccountEmailAlreadyVerified(t *testing.T) {
 	email := "already_verified@example.com"
-	testutils.CreateUser(&email, true)
+	u := testutils.CreateUser(&email, true)
 
 	token, _, err := utils.GenerateUserToken(email)
 	if err != nil {
@@ -367,14 +367,14 @@ func TestVerifyAccountEmailAlreadyVerified(t *testing.T) {
 		log.Fatal("failed to make request to verify account user controller")
 	}
 
-	defer testutils.DeleteUser(&email)
+	defer testutils.DeleteUser(&u)
 
 	assert.Equal(t, test.ExpectedCode, resp.StatusCode)
 }
 
 func TestVerifyAccountSuccess(t *testing.T) {
 	email := "verify_account@example.com"
-	testutils.CreateUser(&email, false)
+	u := testutils.CreateUser(&email, false)
 
 	token, _, err := utils.GenerateUserToken(email)
 	if err != nil {
@@ -395,9 +395,9 @@ func TestVerifyAccountSuccess(t *testing.T) {
 		log.Fatal("failed to make request to verify account user controller")
 	}
 
-	resBody := testutils.ParseTextBody(&resp.Body)
+	resBody := testutils.ParseTextError(&resp.Body)
 
-	defer testutils.DeleteUser(&email)
+	defer testutils.DeleteUser(&u)
 
 	assert.Equal(t, test.ExpectedCode, resp.StatusCode)
 	assert.Equal(t, resBody, fmt.Sprintf("Successfully verified %s!", email))
@@ -418,7 +418,7 @@ func TestResendAccountVerifyInvalidToken(t *testing.T) {
 		log.Fatal("failed to make request to reverify account user controller")
 	}
 
-	resBody := testutils.ParseJSONBody(&resp.Body)
+	resBody := testutils.ParseJSONErrorBody(&resp.Body)
 
 	assert.Equal(t, test.ExpectedCode, resp.StatusCode)
 	assert.Equal(t, resBody.Error, utils.ErrorCode[utils.ResendAccountVerificationInvalidEmail])
@@ -444,7 +444,7 @@ func TestResendAccountVerifyInvalidEmail(t *testing.T) {
 
 func TestResendAccountVerifyEmailAlreadyVerified(t *testing.T) {
 	email := "already_reverified@example.com"
-	testutils.CreateUser(&email, true)
+	u := testutils.CreateUser(&email, true)
 
 	test := &testutils.TestResponse{
 		Route:        fmt.Sprintf("/reverify/account?email=%s", email),
@@ -460,14 +460,14 @@ func TestResendAccountVerifyEmailAlreadyVerified(t *testing.T) {
 		log.Fatal("failed to make request to reverify account user controller")
 	}
 
-	defer testutils.DeleteUser(&email)
+	defer testutils.DeleteUser(&u)
 
 	assert.Equal(t, test.ExpectedCode, resp.StatusCode)
 }
 
 func TestResendAccountVerifySuccess(t *testing.T) {
 	email := "not_reverified@example.com"
-	testutils.CreateUser(&email, false)
+	u := testutils.CreateUser(&email, false)
 
 	test := &testutils.TestResponse{
 		Route:        fmt.Sprintf("/reverify/account?email=%s", email),
@@ -483,10 +483,209 @@ func TestResendAccountVerifySuccess(t *testing.T) {
 		log.Fatal("failed to make request to reverify account user controller")
 	}
 
-	resBody := testutils.ParseTextBody(&resp.Body)
+	resBody := testutils.ParseTextError(&resp.Body)
 
-	defer testutils.DeleteUser(&email)
+	defer testutils.DeleteUser(&u)
 
 	assert.Equal(t, test.ExpectedCode, resp.StatusCode)
 	assert.Equal(t, resBody, fmt.Sprintf("Resent a verification email to %s.", email))
+}
+
+func TestSendResetPasswordInvalidEmail(t *testing.T) {
+	test := &testutils.TestResponse{
+		Route:        "/reset/password",
+		Method:       fiber.MethodPatch,
+		ExpectedCode: fiber.StatusBadRequest,
+	}
+
+	req := httptest.NewRequest(test.Method, test.Route, nil)
+	req.Header.Add("Content-Type", "text/plain; charset=us-ascii")
+
+	resp, err := app.Test(req, -1)
+	if err != nil {
+		log.Fatal("failed to make request to send reset password user controller")
+	}
+
+	resBody := testutils.ParseJSONErrorBody(&resp.Body)
+
+	assert.Equal(t, test.ExpectedCode, resp.StatusCode)
+	assert.Equal(t, resBody.Error, utils.ErrorCode[utils.SendResetPasswordInvalidEmail])
+}
+
+func TestSendResetPasswordUnregisteredEmail(t *testing.T) {
+	test := &testutils.TestResponse{
+		Route:        "/reset/password?email=not_a_register_user@example.com",
+		Method:       fiber.MethodPatch,
+		ExpectedCode: fiber.StatusNotModified,
+	}
+
+	req := httptest.NewRequest(test.Method, test.Route, nil)
+	req.Header.Add("Content-Type", "text/plain; charset=us-ascii")
+
+	resp, err := app.Test(req, -1)
+	if err != nil {
+		log.Fatal("failed to make request to send reset password user controller")
+	}
+
+	assert.Equal(t, test.ExpectedCode, resp.StatusCode)
+}
+
+func TestSendResetPasswordSuccess(t *testing.T) {
+	email := "reset_password@example.com"
+	u := testutils.CreateUser(&email, false)
+
+	test := &testutils.TestResponse{
+		Route:        fmt.Sprintf("/reset/password?email=%s", email),
+		Method:       fiber.MethodPatch,
+		ExpectedCode: fiber.StatusAccepted,
+	}
+
+	req := httptest.NewRequest(test.Method, test.Route, nil)
+	req.Header.Add("Content-Type", "text/plain; charset=us-ascii")
+
+	resp, err := app.Test(req, -1)
+	if err != nil {
+		log.Fatal("failed to make request to send reset password user controller")
+	}
+
+	resBody := testutils.ParseTextError(&resp.Body)
+
+	defer testutils.DeleteUser(&u)
+
+	assert.Equal(t, test.ExpectedCode, resp.StatusCode)
+	assert.Equal(t, resBody, fmt.Sprintf("Sent a password reset email to %s.", email))
+}
+
+func TestUpdatePasswordEmptyBody(t *testing.T) {
+	test := &testutils.TestResponse{
+		Route:        "/update/password",
+		Method:       fiber.MethodPatch,
+		ExpectedCode: fiber.StatusBadRequest,
+	}
+
+	req := httptest.NewRequest(test.Method, test.Route, nil)
+	req.Header.Add("Content-Type", "application/json")
+
+	resp, err := app.Test(req, -1)
+	if err != nil {
+		log.Fatal("failed to make request to update password user controller")
+	}
+
+	resBody := testutils.ParseJSONErrorBody(&resp.Body)
+
+	assert.Equal(t, test.ExpectedCode, resp.StatusCode)
+	assert.Equal(t, resBody.Error, utils.ErrorCode[utils.UpdatePasswordInvalidBody])
+}
+
+func TestUpdatePasswordInvalidBody(t *testing.T) {
+	user := &models.ReqUpdateUser{
+		Password: testutils.StrPassword,
+		Token:    "", // invalid token
+	}
+
+	test := &testutils.TestResponse{
+		Route:        "/update/password",
+		Method:       fiber.MethodPatch,
+		ExpectedCode: fiber.StatusBadRequest,
+	}
+
+	reqBody, _ := json.Marshal(user)
+	req := httptest.NewRequest(test.Method, test.Route, bytes.NewBufferString(string(reqBody)))
+	req.Header.Add("Content-Type", "application/json")
+
+	resp, err := app.Test(req, -1)
+	if err != nil {
+		log.Fatal("failed to make request to update password user controller")
+	}
+
+	resBody := testutils.ParseJSONErrorBody(&resp.Body)
+
+	assert.Equal(t, test.ExpectedCode, resp.StatusCode)
+	assert.Equal(t, resBody.Error, utils.ErrorCode[utils.UpdatePasswordInvalidBody])
+}
+
+func TestUpdatePasswordInvalidToken(t *testing.T) {
+	user := &models.ReqUpdateUser{
+		Password: testutils.StrPassword,
+		Token:    "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.SAItwXkQ_rZnRZ52ZdmCAlkZUheO9cClR6EPhcd854E", // invalid token
+	}
+
+	test := &testutils.TestResponse{
+		Route:        "/update/password",
+		Method:       fiber.MethodPatch,
+		ExpectedCode: fiber.StatusUnauthorized,
+	}
+
+	reqBody, _ := json.Marshal(user)
+	req := httptest.NewRequest(test.Method, test.Route, bytes.NewBufferString(string(reqBody)))
+	req.Header.Add("Content-Type", "application/json")
+
+	resp, err := app.Test(req, -1)
+	if err != nil {
+		log.Fatal("failed to make request to update password user controller")
+	}
+
+	resBody := testutils.ParseJSONErrorBody(&resp.Body)
+
+	assert.Equal(t, test.ExpectedCode, resp.StatusCode)
+	assert.Equal(t, resBody.Error, utils.ErrorCode[utils.UpdatePasswordInvalidToken])
+}
+
+func TestUpdatePasswordSuccess(t *testing.T) {
+	email := "update_password@example.com"
+	u := testutils.CreateUser(&email, true)
+
+	user := &models.ReqUpdateUser{
+		Password: testutils.StrPassword,
+		Token:    string(*u.Token),
+	}
+
+	test := &testutils.TestResponse{
+		Route:        "/update/password",
+		Method:       fiber.MethodPatch,
+		ExpectedCode: fiber.StatusCreated,
+	}
+
+	reqBody, _ := json.Marshal(user)
+	req := httptest.NewRequest(test.Method, test.Route, bytes.NewBufferString(string(reqBody)))
+	req.Header.Add("Content-Type", "application/json")
+
+	resp, err := app.Test(req, -1)
+	if err != nil {
+		log.Fatal("failed to make request to update password user controller")
+	}
+
+	resBody := testutils.ParseTextError(&resp.Body)
+
+	defer testutils.DeleteUser(&u)
+
+	assert.Equal(t, test.ExpectedCode, resp.StatusCode)
+	assert.Equal(t, resBody, "Your account has been updated with a new password!")
+}
+
+func GetAccountInfoSuccess(t *testing.T) {
+	email := "update_password@example.com"
+	u := testutils.CreateUser(&email, true)
+
+	test := &testutils.TestResponse{
+		Route:        "/account",
+		Method:       fiber.MethodGet,
+		ExpectedCode: fiber.StatusOK,
+	}
+
+	token, _, err := u.GenerateSessionToken()
+	if err != nil {
+		log.Fatal("Unable to generate a user session token")
+	}
+
+	req := httptest.NewRequest(test.Method, test.Route, nil)
+	req.Header.Add("Content-Type", "text/plain; charset=us-ascii")
+	req.Header.Add("Cookie", fmt.Sprintf("SESSION_TOKEN=%s", token))
+
+	resp, err := app.Test(req, -1)
+	if err != nil {
+		log.Fatal("failed to make request to get account info user controller")
+	}
+
+	assert.Equal(t, test.ExpectedCode, resp.StatusCode)
 }

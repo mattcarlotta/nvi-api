@@ -10,16 +10,6 @@ Click here for [field validation rules](https://github.com/go-playground/validat
 
 ## E001
 
-- Error Name: `RegisterEmptyBody`
-- Controller: `user`
-- Path: `/register`
-- Method: `POST`
-- Status: `400`
-- Content: `application/json`
-- Explanation: the request body is missing a valid `name`, `email` and/or `password` fields
-
-## E002
-
 - Error Name: `RegisterInvalidBody`
 - Controller: `user`
 - Path: `/register`
@@ -32,7 +22,7 @@ Click here for [field validation rules](https://github.com/go-playground/validat
   - email: `required,email,lte=100`
   - password: `required,gte=5,lte=36`
 
-## E003
+## E002
 
 - Error Name: `RegisterEmailTaken`
 - Controller: `user`
@@ -44,19 +34,7 @@ Click here for [field validation rules](https://github.com/go-playground/validat
 - Explanation: the request body contains an `email` field that's already in use
 
 
-## E004
-
-- Error Name: `LoginEmptyBody`
-- Controller: `user`
-- Path: `/login`
-- Method: `POST`
-- Status: `400`
-- Content: `application/json`
-- Body: `email, password`
-- Explanation: the request body is missing a valid `email` field and/or `password` field
-
-
-## E005
+## E003
 
 - Error Name: `LoginInvalidBody`
 - Controller: `user`
@@ -70,7 +48,7 @@ Click here for [field validation rules](https://github.com/go-playground/validat
   - password: `required,gte=5,lte=36`
 
 
-## E006
+## E004
 
 - Error Name: `LoginUnregisteredEmail`
 - Controller: `user`
@@ -81,7 +59,7 @@ Click here for [field validation rules](https://github.com/go-playground/validat
 - Body: `email, password`
 - Explanation: the request body contains an unregistered `email` field
 
-## E007
+## E005
 
 - Error Name: `LoginInvalidPassword`
 - Controller: `user`
@@ -92,7 +70,7 @@ Click here for [field validation rules](https://github.com/go-playground/validat
 - Body: `email, password`
 - Explanation: the request body contains an invalid `password` field for the provided `email` field
 
-## E008
+## E006
 
 - Error Name: `LoginAccountNotVerified`
 - Controller: `user`
@@ -103,7 +81,7 @@ Click here for [field validation rules](https://github.com/go-playground/validat
 - Body: `email, password`
 - Explanation: the request body contains an `email` field that hasn't been verified yet
 
-## E009
+## E007
 
 - Error Name: `VerifyAccountInvalidToken`
 - Controller: `user`
@@ -115,15 +93,51 @@ Click here for [field validation rules](https://github.com/go-playground/validat
 - Explanation: a `token` that was assigned as a query `?token=` is invalid (missing, expired or wrong signature); another
 token may need to be regenerated
 
-## E010
+## E008
 
 - Error Name: `ResendAccountVerificationInvalidEmail`
 - Controller: `user`
 - Path: `/reverify/account`
-- Method: `POST`
+- Method: `PATCH`
 - Status: `400`
 - Content: `text/plain; charset=us-ascii`
 - Query: `email`
 - Explanation: an `email` that was assigned as a query `?email=` doesn't pass the following field validation rules:
   - email: `required,email,lte=100`
 
+## E009
+
+- Error Name: `SendResetPasswordInvalidEmail`
+- Controller: `user`
+- Path: `/reset/account`
+- Method: `PATCH`
+- Status: `400`
+- Content: `text/plain; charset=us-ascii`
+- Query: `email`
+- Explanation: an `email` that was assigned as a query `?email=` doesn't pass the following field validation rules:
+  - email: `required,email,lte=100`
+
+## E010
+
+- Error Name: `UpdatePasswordInvalidBody`
+- Controller: `user`
+- Path: `/update/password`
+- Method: `PATCH`
+- Status: `400`
+- Content: `application/json`
+- Body: `password, token`
+- Explanation: the request body doesn't pass one or more of the following field validation rules:
+  - password: `required,gte=5,lte=36`
+  - token: `required`
+
+## E011
+
+- Error Name: `UpdatePasswordInvalidToken`
+- Controller: `user`
+- Path: `/update/password`
+- Method: `PATCH`
+- Status: `401`
+- Content: `application/json`
+- Body: `password, token`
+- Explanation: the request body contains a `token` that is invalid or expired, a new update password token will need
+to be created

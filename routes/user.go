@@ -13,7 +13,7 @@ func UserRoutes(app *fiber.App) {
 	user.Post("/logout", controllers.Logout)
 	user.Patch("/verify/account", controllers.VerifyAccount)
 	user.Patch("/reverify/account", controllers.ResendAccountVerification)
-	user.Post("/reset/password", controllers.SendResetPasswordEmail)
+	user.Patch("/reset/password", controllers.SendResetPasswordEmail)
 	user.Patch("/update/password", controllers.UpdatePassword)
 	user.Get("/account", middlewares.RequiresCookieSession, controllers.GetAccountInfo)
 	user.Delete("/delete/account", middlewares.RequiresCookieSession, controllers.DeleteAccount)

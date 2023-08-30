@@ -1,6 +1,7 @@
 package controllers
 
 import (
+	"errors"
 	"fmt"
 	"time"
 
@@ -15,7 +16,7 @@ func Register(c *fiber.Ctx) error {
 
 	data := new(models.ReqRegisterUser)
 	if err := c.BodyParser(data); err != nil {
-		return c.Status(fiber.StatusBadRequest).JSON(utils.JSONError(utils.RegisterEmptyBody))
+		return c.Status(fiber.StatusBadRequest).JSON(utils.JSONError(utils.RegisterInvalidBody))
 	}
 
 	if err := utils.Validate().Struct(data); err != nil {
@@ -56,7 +57,7 @@ func Login(c *fiber.Ctx) error {
 
 	data := new(models.ReqLoginUser)
 	if err := c.BodyParser(data); err != nil {
-		return c.Status(fiber.StatusBadRequest).JSON(utils.JSONError(utils.LoginEmptyBody))
+		return c.Status(fiber.StatusBadRequest).JSON(utils.JSONError(utils.LoginInvalidBody))
 	}
 
 	if err := utils.Validate().Struct(data); err != nil {
@@ -155,26 +156,18 @@ func ResendAccountVerification(c *fiber.Ctx) error {
 func SendResetPasswordEmail(c *fiber.Ctx) error {
 	db := database.GetConnection()
 
-	data := new(models.ReqEmailUser)
-	if err := c.BodyParser(data); err != nil {
-		return c.Status(fiber.StatusBadRequest).JSON(
-			fiber.Map{"error": "You must provide a valid email!"},
-		)
-	}
-
-	if err := utils.Validate().Struct(data); err != nil {
-		return c.Status(fiber.StatusBadRequest).JSON(
-			fiber.Map{"error": "You must provide a valid email address to send an password email to."},
-		)
+	email := c.Query("email")
+	if err := utils.Validate().Var(email, "required,email,lte=100"); err != nil {
+		return c.Status(fiber.StatusBadRequest).JSON(utils.JSONError(utils.SendResetPasswordInvalidEmail))
 	}
 
 	var user models.User
-	if err := db.Where(&models.User{Email: data.Email}).First(&user).Error; err != nil {
+	if err := db.Where(&models.User{Email: email}).First(&user).Error; err != nil {
 		c.Status(fiber.StatusNotModified)
 		return nil
 	}
 
-	token, _, err := utils.GenerateUserToken(data.Email)
+	token, _, err := utils.GenerateUserToken(email)
 	if err != nil {
 		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{"error": err.Error()})
 	}
@@ -193,24 +186,16 @@ func UpdatePassword(c *fiber.Ctx) error {
 
 	data := new(models.ReqUpdateUser)
 	if err := c.BodyParser(data); err != nil {
-		return c.Status(fiber.StatusBadRequest).JSON(
-			fiber.Map{"error": "You must provide a valid password and password reset token."},
-		)
+		return c.Status(fiber.StatusBadRequest).JSON(utils.JSONError(utils.UpdatePasswordInvalidBody))
 	}
 
 	if err := utils.Validate().Struct(data); err != nil {
-		return c.Status(fiber.StatusBadRequest).JSON(
-			fiber.Map{"error": "You must provide a valid password and password reset token."},
-		)
+		return c.Status(fiber.StatusBadRequest).JSON(utils.JSONError(utils.UpdatePasswordInvalidBody))
 	}
 
 	parsedToken, err := utils.ValidateUserToken(data.Token)
 	if err != nil {
-		return c.Status(fiber.StatusUnauthorized).JSON(
-			fiber.Map{"error": "The provided token is not valid. If the token was sent over 30 days ago, you will " +
-				"need to generate another reset password email.",
-			},
-		)
+		return c.Status(fiber.StatusUnauthorized).JSON(utils.JSONError(utils.UpdatePasswordInvalidToken))
 	}
 
 	var user models.User
@@ -238,9 +223,10 @@ func GetAccountInfo(c *fiber.Ctx) error {
 
 	var user models.User
 	if err := db.Where(&models.User{ID: userSessionID}).First(&user).Error; err != nil {
-		return c.Status(fiber.StatusInternalServerError).JSON(
-			fiber.Map{"error": "Encountered an unexpected error. Unable to locate the associated account."},
+		newError := errors.New(
+			"Encountered an unexpected error. Unable to locate the associated account from the current session.",
 		)
+		return c.Status(fiber.StatusInternalServerError).JSON(utils.UnknownJSONError(newError))
 	}
 
 	return c.Status(fiber.StatusOK).JSON(user)

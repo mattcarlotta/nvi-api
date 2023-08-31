@@ -25,8 +25,10 @@ func TestGetAllEnvironmentsSuccess(t *testing.T) {
 
 	res := sendAppRequest(req)
 
-	defer testutils.DeleteUser(&u)
-	defer res.Body.Close()
+	defer func() {
+		testutils.DeleteUser(&u)
+		res.Body.Close()
+	}()
 
 	assert.Equal(t, test.ExpectedCode, res.StatusCode)
 }
@@ -46,8 +48,10 @@ func TestGetEnvironmentInvalidID(t *testing.T) {
 
 	resBody := testutils.ParseJSONBodyError(&res.Body)
 
-	defer testutils.DeleteUser(&u)
-	defer res.Body.Close()
+	defer func() {
+		testutils.DeleteUser(&u)
+		res.Body.Close()
+	}()
 
 	assert.Equal(t, test.ExpectedCode, res.StatusCode)
 	assert.Equal(t, resBody.Error, utils.ErrorCode[utils.GetEnvironmentInvalidID])
@@ -68,8 +72,10 @@ func TestGetEnvironmentNonExistentID(t *testing.T) {
 
 	resBody := testutils.ParseJSONBodyError(&res.Body)
 
-	defer testutils.DeleteUser(&u)
-	defer res.Body.Close()
+	defer func() {
+		testutils.DeleteUser(&u)
+		res.Body.Close()
+	}()
 
 	assert.Equal(t, test.ExpectedCode, res.StatusCode)
 	assert.Equal(t, resBody.Error, utils.ErrorCode[utils.GetEnvironmentNonExistentID])
@@ -89,8 +95,10 @@ func TestGetEnvironmentSuccess(t *testing.T) {
 
 	res := sendAppRequest(req)
 
-	defer testutils.DeleteUser(&u)
-	defer res.Body.Close()
+	defer func() {
+		testutils.DeleteUser(&u)
+		res.Body.Close()
+	}()
 
 	assert.Equal(t, test.ExpectedCode, res.StatusCode)
 }
@@ -110,8 +118,10 @@ func TestCurrentEnvironmentInvalidName(t *testing.T) {
 
 	resBody := testutils.ParseJSONBodyError(&res.Body)
 
-	defer testutils.DeleteUser(&u)
-	defer res.Body.Close()
+	defer func() {
+		testutils.DeleteUser(&u)
+		res.Body.Close()
+	}()
 
 	assert.Equal(t, test.ExpectedCode, res.StatusCode)
 	assert.Equal(t, resBody.Error, utils.ErrorCode[utils.CreateEnvironmentInvalidName])
@@ -133,8 +143,10 @@ func TestCurrentEnvironmentNameTaken(t *testing.T) {
 
 	resBody := testutils.ParseJSONBodyError(&res.Body)
 
-	defer testutils.DeleteUser(&u)
-	defer res.Body.Close()
+	defer func() {
+		testutils.DeleteUser(&u)
+		res.Body.Close()
+	}()
 
 	assert.Equal(t, test.ExpectedCode, res.StatusCode)
 	assert.Equal(t, resBody.Error, utils.ErrorCode[utils.CreateEnvironmentNameTaken])
@@ -156,8 +168,10 @@ func TestCurrentEnvironmentSuccess(t *testing.T) {
 
 	resBody := testutils.ParseText(&res.Body)
 
-	defer testutils.DeleteUser(&u)
-	defer res.Body.Close()
+	defer func() {
+		testutils.DeleteUser(&u)
+		res.Body.Close()
+	}()
 
 	assert.Equal(t, test.ExpectedCode, res.StatusCode)
 	assert.Equal(t, resBody, fmt.Sprintf("Successfully created a(n) %s environment!", envName))
@@ -178,8 +192,10 @@ func TestDeleteEnvironmentInvalidID(t *testing.T) {
 
 	resBody := testutils.ParseJSONBodyError(&res.Body)
 
-	defer testutils.DeleteUser(&u)
-	defer res.Body.Close()
+	defer func() {
+		testutils.DeleteUser(&u)
+		res.Body.Close()
+	}()
 
 	assert.Equal(t, test.ExpectedCode, res.StatusCode)
 	assert.Equal(t, resBody.Error, utils.ErrorCode[utils.DeleteEnvironmentInvalidID])
@@ -200,8 +216,10 @@ func TestDeleteEnvironmentNonExistentID(t *testing.T) {
 
 	resBody := testutils.ParseJSONBodyError(&res.Body)
 
-	defer testutils.DeleteUser(&u)
-	defer res.Body.Close()
+	defer func() {
+		testutils.DeleteUser(&u)
+		res.Body.Close()
+	}()
 
 	assert.Equal(t, test.ExpectedCode, res.StatusCode)
 	assert.Equal(t, resBody.Error, utils.ErrorCode[utils.DeleteEnvironmentNonExistentID])
@@ -223,8 +241,10 @@ func TestDeleteEnvironmentSuccess(t *testing.T) {
 
 	resBody := testutils.ParseText(&res.Body)
 
-	defer testutils.DeleteUser(&u)
-	defer res.Body.Close()
+	defer func() {
+		testutils.DeleteUser(&u)
+		res.Body.Close()
+	}()
 
 	assert.Equal(t, test.ExpectedCode, res.StatusCode)
 	assert.Equal(t, resBody, fmt.Sprintf("Successfully deleted the %s environment!", e.Name))
@@ -245,8 +265,10 @@ func TestUpdateEnvironmentInvalidID(t *testing.T) {
 
 	resBody := testutils.ParseJSONBodyError(&res.Body)
 
-	defer testutils.DeleteUser(&u)
-	defer res.Body.Close()
+	defer func() {
+		testutils.DeleteUser(&u)
+		res.Body.Close()
+	}()
 
 	assert.Equal(t, test.ExpectedCode, res.StatusCode)
 	assert.Equal(t, resBody.Error, utils.ErrorCode[utils.UpdateEnvironmentInvalidBody])
@@ -272,8 +294,10 @@ func TestUpdateEnvironmentNonExistentID(t *testing.T) {
 
 	resBody := testutils.ParseJSONBodyError(&res.Body)
 
-	defer testutils.DeleteUser(&u)
-	defer res.Body.Close()
+	defer func() {
+		testutils.DeleteUser(&u)
+		res.Body.Close()
+	}()
 
 	assert.Equal(t, test.ExpectedCode, res.StatusCode)
 	assert.Equal(t, resBody.Error, utils.ErrorCode[utils.UpdateEnvironmentNonExistentID])
@@ -301,8 +325,10 @@ func TestUpdateEnvironmentSuccess(t *testing.T) {
 
 	resBody := testutils.ParseText(&res.Body)
 
-	defer testutils.DeleteUser(&u)
-	defer res.Body.Close()
+	defer func() {
+		testutils.DeleteUser(&u)
+		res.Body.Close()
+	}()
 
 	assert.Equal(t, test.ExpectedCode, res.StatusCode)
 	assert.Equal(t, resBody, fmt.Sprintf("Successfully updated the environment name to %s!", updatedName))

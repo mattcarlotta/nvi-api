@@ -27,8 +27,10 @@ func TestGetSecretInvalidID(t *testing.T) {
 
 	resBody := testutils.ParseJSONBodyError(&res.Body)
 
-	defer testutils.DeleteUser(&u)
-	defer res.Body.Close()
+	defer func() {
+		testutils.DeleteUser(&u)
+		res.Body.Close()
+	}()
 
 	assert.Equal(t, test.ExpectedCode, res.StatusCode)
 	assert.Equal(t, resBody.Error, utils.ErrorCode[utils.GetSecretInvalidID])
@@ -49,8 +51,10 @@ func TestGetSecretNonExistentID(t *testing.T) {
 
 	resBody := testutils.ParseJSONBodyError(&res.Body)
 
-	defer testutils.DeleteUser(&u)
-	defer res.Body.Close()
+	defer func() {
+		testutils.DeleteUser(&u)
+		res.Body.Close()
+	}()
 
 	assert.Equal(t, test.ExpectedCode, res.StatusCode)
 	assert.Equal(t, resBody.Error, utils.ErrorCode[utils.GetSecretNonExistentID])
@@ -70,8 +74,10 @@ func TestGetSecretSuccess(t *testing.T) {
 
 	res := sendAppRequest(req)
 
-	defer testutils.DeleteUser(&u)
-	defer res.Body.Close()
+	defer func() {
+		testutils.DeleteUser(&u)
+		res.Body.Close()
+	}()
 
 	assert.Equal(t, test.ExpectedCode, res.StatusCode)
 }
@@ -91,8 +97,10 @@ func TestGetSecretsByEnvironmentInvalidID(t *testing.T) {
 
 	resBody := testutils.ParseJSONBodyError(&res.Body)
 
-	defer testutils.DeleteUser(&u)
-	defer res.Body.Close()
+	defer func() {
+		testutils.DeleteUser(&u)
+		res.Body.Close()
+	}()
 
 	assert.Equal(t, test.ExpectedCode, res.StatusCode)
 	assert.Equal(t, resBody.Error, utils.ErrorCode[utils.GetSecretsByEnvInvalidID])
@@ -113,8 +121,10 @@ func TestGetSecretsByEnvironmentNonExistentID(t *testing.T) {
 
 	resBody := testutils.ParseJSONBodyError(&res.Body)
 
-	defer testutils.DeleteUser(&u)
-	defer res.Body.Close()
+	defer func() {
+		testutils.DeleteUser(&u)
+		res.Body.Close()
+	}()
 
 	assert.Equal(t, test.ExpectedCode, res.StatusCode)
 	assert.Equal(t, resBody.Error, utils.ErrorCode[utils.GetSecretsByEnvNonExistentID])
@@ -134,8 +144,10 @@ func TestGetSecretsByEnvironmentSuccess(t *testing.T) {
 
 	res := sendAppRequest(req)
 
-	defer testutils.DeleteUser(&u)
-	defer res.Body.Close()
+	defer func() {
+		testutils.DeleteUser(&u)
+		res.Body.Close()
+	}()
 
 	assert.Equal(t, test.ExpectedCode, res.StatusCode)
 }

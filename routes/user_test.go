@@ -79,8 +79,10 @@ func TestRegisterEmailTaken(t *testing.T) {
 
 	resBody := testutils.ParseJSONBodyError(&res.Body)
 
-	defer testutils.DeleteUser(&u)
-	defer res.Body.Close()
+	defer func() {
+		testutils.DeleteUser(&u)
+		res.Body.Close()
+	}()
 
 	assert.Equal(t, test.ExpectedCode, res.StatusCode)
 	assert.Equal(t, resBody.Error, utils.ErrorCode[utils.RegisterEmailTaken])
@@ -105,8 +107,10 @@ func TestRegisterUserSuccess(t *testing.T) {
 
 	resBody := testutils.ParseText(&res.Body)
 
-	defer testutils.RemoveUserByEmail(user.Email)
-	defer res.Body.Close()
+	defer func() {
+		testutils.RemoveUserByEmail(user.Email)
+		res.Body.Close()
+	}()
 
 	assert.Equal(t, test.ExpectedCode, res.StatusCode)
 	assert.Equal(t, resBody, fmt.Sprintf(
@@ -204,8 +208,10 @@ func TestLoginInvalidPassword(t *testing.T) {
 
 	resBody := testutils.ParseJSONBodyError(&res.Body)
 
-	defer testutils.DeleteUser(&u)
-	defer res.Body.Close()
+	defer func() {
+		testutils.DeleteUser(&u)
+		res.Body.Close()
+	}()
 
 	assert.Equal(t, test.ExpectedCode, res.StatusCode)
 	assert.Equal(t, resBody.Error, utils.ErrorCode[utils.LoginInvalidPassword])
@@ -232,8 +238,10 @@ func TestLoginAccountNotVerified(t *testing.T) {
 
 	resBody := testutils.ParseJSONBodyError(&res.Body)
 
-	defer testutils.DeleteUser(&u)
-	defer res.Body.Close()
+	defer func() {
+		testutils.DeleteUser(&u)
+		res.Body.Close()
+	}()
 
 	assert.Equal(t, test.ExpectedCode, res.StatusCode)
 	assert.Equal(t, resBody.Error, utils.ErrorCode[utils.LoginAccountNotVerified])
@@ -258,8 +266,10 @@ func TestLoginSuccess(t *testing.T) {
 
 	res := sendAppRequest(req)
 
-	defer testutils.DeleteUser(&u)
-	defer res.Body.Close()
+	defer func() {
+		testutils.DeleteUser(&u)
+		res.Body.Close()
+	}()
 
 	assert.Equal(t, test.ExpectedCode, res.StatusCode)
 	assert.NotEmpty(t, res.Header.Get("Set-Cookie"))
@@ -298,6 +308,7 @@ func TestVerifyAccountInvalidEmailToken(t *testing.T) {
 	req := testutils.CreateHTTPRequest(test)
 
 	res := sendAppRequest(req)
+
 	defer res.Body.Close()
 
 	assert.Equal(t, test.ExpectedCode, res.StatusCode)
@@ -316,8 +327,10 @@ func TestVerifyAccountEmailAlreadyVerified(t *testing.T) {
 
 	res := sendAppRequest(req)
 
-	defer testutils.DeleteUser(&u)
-	defer res.Body.Close()
+	defer func() {
+		testutils.DeleteUser(&u)
+		res.Body.Close()
+	}()
 
 	assert.Equal(t, test.ExpectedCode, res.StatusCode)
 }
@@ -338,8 +351,10 @@ func TestVerifyAccountSuccess(t *testing.T) {
 
 	resBody := testutils.ParseText(&res.Body)
 
-	defer testutils.DeleteUser(&u)
-	defer res.Body.Close()
+	defer func() {
+		testutils.DeleteUser(&u)
+		res.Body.Close()
+	}()
 
 	assert.Equal(t, test.ExpectedCode, res.StatusCode)
 	assert.Equal(t, resBody, fmt.Sprintf("Successfully verified %s!", email))
@@ -394,8 +409,10 @@ func TestResendAccountVerifyEmailAlreadyVerified(t *testing.T) {
 
 	res := sendAppRequest(req)
 
-	defer testutils.DeleteUser(&u)
-	defer res.Body.Close()
+	defer func() {
+		testutils.DeleteUser(&u)
+		res.Body.Close()
+	}()
 
 	assert.Equal(t, test.ExpectedCode, res.StatusCode)
 }
@@ -416,8 +433,10 @@ func TestResendAccountVerifySuccess(t *testing.T) {
 
 	resBody := testutils.ParseText(&res.Body)
 
-	defer testutils.DeleteUser(&u)
-	defer res.Body.Close()
+	defer func() {
+		testutils.DeleteUser(&u)
+		res.Body.Close()
+	}()
 
 	assert.Equal(t, test.ExpectedCode, res.StatusCode)
 	assert.Equal(t, resBody, fmt.Sprintf("Resent a verification email to %s.", email))
@@ -474,8 +493,10 @@ func TestSendResetPasswordSuccess(t *testing.T) {
 
 	resBody := testutils.ParseText(&res.Body)
 
-	defer testutils.DeleteUser(&u)
-	defer res.Body.Close()
+	defer func() {
+		testutils.DeleteUser(&u)
+		res.Body.Close()
+	}()
 
 	assert.Equal(t, test.ExpectedCode, res.StatusCode)
 	assert.Equal(t, resBody, fmt.Sprintf("Sent a password reset email to %s.", email))
@@ -569,8 +590,10 @@ func TestUpdatePasswordSuccess(t *testing.T) {
 
 	resBody := testutils.ParseText(&res.Body)
 
-	defer testutils.DeleteUser(&u)
-	defer res.Body.Close()
+	defer func() {
+		testutils.DeleteUser(&u)
+		res.Body.Close()
+	}()
 
 	assert.Equal(t, test.ExpectedCode, res.StatusCode)
 	assert.Equal(t, resBody, "Your account has been updated with a new password!")

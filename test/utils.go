@@ -139,13 +139,14 @@ func CreateAuthHttpRequest(test *TestResponse, token *string, body ...interface{
 // 	responseBodyBytes, _ := io.ReadAll(*body)
 // 	_ = json.Unmarshal(responseBodyBytes, &res)
 
-// 	return res
-// }
+//		return res
+//	}
 
 func ParseJSONBodyError(body *io.ReadCloser) utils.ResponseError {
 	var errResponse utils.ResponseError
-	responseBodyBytes, _ := io.ReadAll(*body)
-	_ = json.Unmarshal(responseBodyBytes, &errResponse)
+	if err := json.NewDecoder(*body).Decode(&errResponse); err != nil {
+		log.Fatal(err)
+	}
 
 	return errResponse
 }

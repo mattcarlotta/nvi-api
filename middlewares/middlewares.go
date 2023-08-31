@@ -25,11 +25,13 @@ func Setup(app *fiber.App) {
 		encryptcookie.New(
 			encryptcookie.Config{
 				Key: utils.GetEnv("COOKIE_KEY"),
-			}),
+			},
+		),
 		compress.New(
 			compress.Config{
 				Level: compress.LevelBestSpeed,
-			}),
+			},
+		),
 		logger.New(),
 	)
 }

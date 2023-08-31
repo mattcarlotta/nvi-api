@@ -88,7 +88,6 @@ Click here for [field validation rules](https://github.com/go-playground/validat
 - Path: `/verify/account`
 - Method: `PATCH`
 - Status: `401`
-- Content: `text/plain; charset=utf-8`
 - Query: `token`
 - Explanation: a `token` that was assigned as a query `?token=` is invalid (missing, expired or wrong signature); another
 token may need to be regenerated
@@ -100,7 +99,6 @@ token may need to be regenerated
 - Path: `/reverify/account`
 - Method: `PATCH`
 - Status: `400`
-- Content: `text/plain; charset=utf-8`
 - Query: `email`
 - Explanation: an `email` that was assigned as a query `?email=` doesn't pass the following field validation rules:
   - email: `required,email,lte=100`
@@ -112,7 +110,6 @@ token may need to be regenerated
 - Path: `/reset/account`
 - Method: `PATCH`
 - Status: `400`
-- Content: `text/plain; charset=utf-8`
 - Query: `email`
 - Explanation: an `email` that was assigned as a query `?email=` doesn't pass the following field validation rules:
   - email: `required,email,lte=100`
@@ -148,7 +145,6 @@ token may need to be regenerated
 - Path: `/environment/:id`
 - Method: `GET`
 - Status: `400`
-- Content: `text/plain; charset=utf-8`
 - Params: `id`
 - Explanation: the request params doesn't pass one or more of the following field validation rules:
   - id: `required,uuid`
@@ -160,7 +156,6 @@ token may need to be regenerated
 - Path: `/environment/:id`
 - Method: `GET`
 - Status: `404`
-- Content: `text/plain; charset=utf-8`
 - Params: `id`
 - Explanation: the request params contains an `id` that doesn't match a user created environment
 
@@ -171,7 +166,6 @@ token may need to be regenerated
 - Path: `/create/environment/:name`
 - Method: `POST`
 - Status: `400`
-- Content: `text/plain; charset=utf-8`
 - Params: `name`
 - Explanation: the request params doesn't pass one or more of the following field validation rules:
   - name: `required,envname,lte=255` (`envname` is a custom validation)
@@ -183,7 +177,6 @@ token may need to be regenerated
 - Path: `/create/environment/:name`
 - Method: `POST`
 - Status: `409`
-- Content: `text/plain; charset=utf-8`
 - Params: `name`
 - Explanation: the request params contains an environment `name` that already in use by the user; another name should 
 be used instead

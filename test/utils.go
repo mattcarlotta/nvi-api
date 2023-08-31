@@ -36,7 +36,6 @@ func RemoveUserByEmail(email string) {
 	if err := db.Delete(&existingUser).Error; err != nil {
 		log.Fatal("unable to delete created user")
 	}
-
 }
 
 func CreateUser(email string, verified bool) (models.User, string) {

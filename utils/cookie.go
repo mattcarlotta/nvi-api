@@ -1,6 +1,7 @@
 package utils
 
 import (
+	"os"
 	"time"
 
 	"github.com/gofiber/fiber/v2"
@@ -13,7 +14,8 @@ func SetSessionCookie(c *fiber.Ctx, value string, expires time.Time) {
 		Expires:  expires,
 		Path:     "/",
 		HTTPOnly: true,
-		//Secure: true,
+		Secure:   os.Getenv("IN_PRODUCTION") == "true",
+		SameSite: "Lax",
 	}
 
 	c.Cookie(&cookie)

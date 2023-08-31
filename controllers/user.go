@@ -224,7 +224,7 @@ func GetAccountInfo(c *fiber.Ctx) error {
 	var user models.User
 	if err := db.Where(&models.User{ID: userSessionID}).First(&user).Error; err != nil {
 		newError := errors.New(
-			"Encountered an unexpected error. Unable to locate the associated account from the current session.",
+			"encountered an unexpected error. Unable to locate the associated account from the current session",
 		)
 		return c.Status(fiber.StatusInternalServerError).JSON(utils.UnknownJSONError(newError))
 	}
@@ -239,14 +239,14 @@ func DeleteAccount(c *fiber.Ctx) error {
 	var user models.User
 	if err := db.Where(&models.User{ID: userSessionID}).First(&user).Error; err != nil {
 		newError := errors.New(
-			"Encountered an unexpected error. Unable to locate the associated account from the current session.",
+			"encountered an unexpected error. Unable to locate the associated account from the current session",
 		)
 		return c.Status(fiber.StatusInternalServerError).JSON(utils.UnknownJSONError(newError))
 	}
 
 	if err := db.Delete(&user).Error; err != nil {
 		newError := errors.New(
-			"Encountered an unexpected error. Unable to delete user account.",
+			"encountered an unexpected error. Unable to delete user account",
 		)
 		return c.Status(fiber.StatusInternalServerError).JSON(utils.UnknownJSONError(newError))
 	}

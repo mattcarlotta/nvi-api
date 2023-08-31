@@ -19,11 +19,13 @@ func TestRegisterUserEmptyBody(t *testing.T) {
 		ExpectedCode: fiber.StatusBadRequest,
 	}
 
-	req := testutils.CreateHttpRequest(test)
+	req := testutils.CreateHTTPRequest(test)
 
 	res := sendAppRequest(req)
 
 	resBody := testutils.ParseJSONBodyError(&res.Body)
+
+	defer res.Body.Close()
 
 	assert.Equal(t, test.ExpectedCode, res.StatusCode)
 	assert.Equal(t, resBody.Error, utils.ErrorCode[utils.RegisterInvalidBody])
@@ -43,11 +45,13 @@ func TestRegisterUserInvalidBody(t *testing.T) {
 		ExpectedCode: fiber.StatusBadRequest,
 	}
 
-	req := testutils.CreateHttpRequest(test, user)
+	req := testutils.CreateHTTPRequest(test, user)
 
 	res := sendAppRequest(req)
 
 	resBody := testutils.ParseJSONBodyError(&res.Body)
+
+	defer res.Body.Close()
 
 	assert.Equal(t, test.ExpectedCode, res.StatusCode)
 	assert.Equal(t, resBody.Error, utils.ErrorCode[utils.RegisterInvalidBody])
@@ -69,13 +73,14 @@ func TestRegisterEmailTaken(t *testing.T) {
 		ExpectedCode: fiber.StatusOK,
 	}
 
-	req := testutils.CreateHttpRequest(test, user)
+	req := testutils.CreateHTTPRequest(test, user)
 
 	res := sendAppRequest(req)
 
 	resBody := testutils.ParseJSONBodyError(&res.Body)
 
 	defer testutils.DeleteUser(&u)
+	defer res.Body.Close()
 
 	assert.Equal(t, test.ExpectedCode, res.StatusCode)
 	assert.Equal(t, resBody.Error, utils.ErrorCode[utils.RegisterEmailTaken])
@@ -94,13 +99,14 @@ func TestRegisterUserSuccess(t *testing.T) {
 		ExpectedCode: fiber.StatusCreated,
 	}
 
-	req := testutils.CreateHttpRequest(test, user)
+	req := testutils.CreateHTTPRequest(test, user)
 
 	res := sendAppRequest(req)
 
 	resBody := testutils.ParseText(&res.Body)
 
 	defer testutils.RemoveUserByEmail(user.Email)
+	defer res.Body.Close()
 
 	assert.Equal(t, test.ExpectedCode, res.StatusCode)
 	assert.Equal(t, resBody, fmt.Sprintf(
@@ -115,11 +121,13 @@ func TestLoginUserEmptyBody(t *testing.T) {
 		ExpectedCode: fiber.StatusBadRequest,
 	}
 
-	req := testutils.CreateHttpRequest(test)
+	req := testutils.CreateHTTPRequest(test)
 
 	res := sendAppRequest(req)
 
 	resBody := testutils.ParseJSONBodyError(&res.Body)
+
+	defer res.Body.Close()
 
 	assert.Equal(t, test.ExpectedCode, res.StatusCode)
 	assert.Equal(t, resBody.Error, utils.ErrorCode[utils.LoginInvalidBody])
@@ -138,11 +146,13 @@ func TestLoginUserInvalidBody(t *testing.T) {
 		ExpectedCode: fiber.StatusBadRequest,
 	}
 
-	req := testutils.CreateHttpRequest(test, user)
+	req := testutils.CreateHTTPRequest(test, user)
 
 	res := sendAppRequest(req)
 
 	resBody := testutils.ParseJSONBodyError(&res.Body)
+
+	defer res.Body.Close()
 
 	assert.Equal(t, test.ExpectedCode, res.StatusCode)
 	assert.Equal(t, resBody.Error, utils.ErrorCode[utils.LoginInvalidBody])
@@ -160,11 +170,13 @@ func TestLoginUnregisteredEmail(t *testing.T) {
 		ExpectedCode: fiber.StatusOK,
 	}
 
-	req := testutils.CreateHttpRequest(test, user)
+	req := testutils.CreateHTTPRequest(test, user)
 
 	res := sendAppRequest(req)
 
 	resBody := testutils.ParseJSONBodyError(&res.Body)
+
+	defer res.Body.Close()
 
 	assert.Equal(t, test.ExpectedCode, res.StatusCode)
 	assert.Equal(t, resBody.Error, utils.ErrorCode[utils.LoginUnregisteredEmail])
@@ -186,13 +198,14 @@ func TestLoginInvalidPassword(t *testing.T) {
 		ExpectedCode: fiber.StatusOK,
 	}
 
-	req := testutils.CreateHttpRequest(test, user)
+	req := testutils.CreateHTTPRequest(test, user)
 
 	res := sendAppRequest(req)
 
 	resBody := testutils.ParseJSONBodyError(&res.Body)
 
 	defer testutils.DeleteUser(&u)
+	defer res.Body.Close()
 
 	assert.Equal(t, test.ExpectedCode, res.StatusCode)
 	assert.Equal(t, resBody.Error, utils.ErrorCode[utils.LoginInvalidPassword])
@@ -213,13 +226,14 @@ func TestLoginAccountNotVerified(t *testing.T) {
 		ExpectedCode: fiber.StatusUnauthorized,
 	}
 
-	req := testutils.CreateHttpRequest(test, user)
+	req := testutils.CreateHTTPRequest(test, user)
 
 	res := sendAppRequest(req)
 
 	resBody := testutils.ParseJSONBodyError(&res.Body)
 
 	defer testutils.DeleteUser(&u)
+	defer res.Body.Close()
 
 	assert.Equal(t, test.ExpectedCode, res.StatusCode)
 	assert.Equal(t, resBody.Error, utils.ErrorCode[utils.LoginAccountNotVerified])
@@ -240,11 +254,12 @@ func TestLoginSuccess(t *testing.T) {
 		ExpectedCode: fiber.StatusOK,
 	}
 
-	req := testutils.CreateHttpRequest(test, user)
+	req := testutils.CreateHTTPRequest(test, user)
 
 	res := sendAppRequest(req)
 
-	testutils.DeleteUser(&u)
+	defer testutils.DeleteUser(&u)
+	defer res.Body.Close()
 
 	assert.Equal(t, test.ExpectedCode, res.StatusCode)
 	assert.NotEmpty(t, res.Header.Get("Set-Cookie"))
@@ -257,11 +272,13 @@ func TestVerifyAccountInvalidToken(t *testing.T) {
 		ExpectedCode: fiber.StatusUnauthorized,
 	}
 
-	req := testutils.CreateHttpRequest(test)
+	req := testutils.CreateHTTPRequest(test)
 
 	res := sendAppRequest(req)
 
 	resBody := testutils.ParseJSONBodyError(&res.Body)
+
+	defer res.Body.Close()
 
 	assert.Equal(t, test.ExpectedCode, res.StatusCode)
 	assert.Equal(t, resBody.Error, utils.ErrorCode[utils.VerifyAccountInvalidToken])
@@ -278,9 +295,10 @@ func TestVerifyAccountInvalidEmailToken(t *testing.T) {
 		ExpectedCode: fiber.StatusUnprocessableEntity,
 	}
 
-	req := testutils.CreateHttpRequest(test)
+	req := testutils.CreateHTTPRequest(test)
 
 	res := sendAppRequest(req)
+	defer res.Body.Close()
 
 	assert.Equal(t, test.ExpectedCode, res.StatusCode)
 }
@@ -294,11 +312,12 @@ func TestVerifyAccountEmailAlreadyVerified(t *testing.T) {
 		ExpectedCode: fiber.StatusNotModified,
 	}
 
-	req := testutils.CreateHttpRequest(test)
+	req := testutils.CreateHTTPRequest(test)
 
 	res := sendAppRequest(req)
 
 	defer testutils.DeleteUser(&u)
+	defer res.Body.Close()
 
 	assert.Equal(t, test.ExpectedCode, res.StatusCode)
 }
@@ -313,13 +332,14 @@ func TestVerifyAccountSuccess(t *testing.T) {
 		ExpectedCode: fiber.StatusAccepted,
 	}
 
-	req := testutils.CreateHttpRequest(test)
+	req := testutils.CreateHTTPRequest(test)
 
 	res := sendAppRequest(req)
 
 	resBody := testutils.ParseText(&res.Body)
 
 	defer testutils.DeleteUser(&u)
+	defer res.Body.Close()
 
 	assert.Equal(t, test.ExpectedCode, res.StatusCode)
 	assert.Equal(t, resBody, fmt.Sprintf("Successfully verified %s!", email))
@@ -332,11 +352,13 @@ func TestResendAccountVerifyInvalidToken(t *testing.T) {
 		ExpectedCode: fiber.StatusBadRequest,
 	}
 
-	req := testutils.CreateHttpRequest(test)
+	req := testutils.CreateHTTPRequest(test)
 
 	res := sendAppRequest(req)
 
 	resBody := testutils.ParseJSONBodyError(&res.Body)
+
+	defer res.Body.Close()
 
 	assert.Equal(t, test.ExpectedCode, res.StatusCode)
 	assert.Equal(t, resBody.Error, utils.ErrorCode[utils.ResendAccountVerificationInvalidEmail])
@@ -349,9 +371,11 @@ func TestResendAccountVerifyInvalidEmail(t *testing.T) {
 		ExpectedCode: fiber.StatusNotModified,
 	}
 
-	req := testutils.CreateHttpRequest(test)
+	req := testutils.CreateHTTPRequest(test)
 
 	res := sendAppRequest(req)
+
+	defer res.Body.Close()
 
 	assert.Equal(t, test.ExpectedCode, res.StatusCode)
 }
@@ -366,11 +390,12 @@ func TestResendAccountVerifyEmailAlreadyVerified(t *testing.T) {
 		ExpectedCode: fiber.StatusNotModified,
 	}
 
-	req := testutils.CreateHttpRequest(test)
+	req := testutils.CreateHTTPRequest(test)
 
 	res := sendAppRequest(req)
 
 	defer testutils.DeleteUser(&u)
+	defer res.Body.Close()
 
 	assert.Equal(t, test.ExpectedCode, res.StatusCode)
 }
@@ -385,13 +410,14 @@ func TestResendAccountVerifySuccess(t *testing.T) {
 		ExpectedCode: fiber.StatusAccepted,
 	}
 
-	req := testutils.CreateHttpRequest(test)
+	req := testutils.CreateHTTPRequest(test)
 
 	res := sendAppRequest(req)
 
 	resBody := testutils.ParseText(&res.Body)
 
 	defer testutils.DeleteUser(&u)
+	defer res.Body.Close()
 
 	assert.Equal(t, test.ExpectedCode, res.StatusCode)
 	assert.Equal(t, resBody, fmt.Sprintf("Resent a verification email to %s.", email))
@@ -404,11 +430,13 @@ func TestSendResetPasswordInvalidEmail(t *testing.T) {
 		ExpectedCode: fiber.StatusBadRequest,
 	}
 
-	req := testutils.CreateHttpRequest(test)
+	req := testutils.CreateHTTPRequest(test)
 
 	res := sendAppRequest(req)
 
 	resBody := testutils.ParseJSONBodyError(&res.Body)
+
+	defer res.Body.Close()
 
 	assert.Equal(t, test.ExpectedCode, res.StatusCode)
 	assert.Equal(t, resBody.Error, utils.ErrorCode[utils.SendResetPasswordInvalidEmail])
@@ -421,9 +449,11 @@ func TestSendResetPasswordUnregisteredEmail(t *testing.T) {
 		ExpectedCode: fiber.StatusNotModified,
 	}
 
-	req := testutils.CreateHttpRequest(test)
+	req := testutils.CreateHTTPRequest(test)
 
 	res := sendAppRequest(req)
+
+	defer res.Body.Close()
 
 	assert.Equal(t, test.ExpectedCode, res.StatusCode)
 }
@@ -438,13 +468,14 @@ func TestSendResetPasswordSuccess(t *testing.T) {
 		ExpectedCode: fiber.StatusAccepted,
 	}
 
-	req := testutils.CreateHttpRequest(test)
+	req := testutils.CreateHTTPRequest(test)
 
 	res := sendAppRequest(req)
 
 	resBody := testutils.ParseText(&res.Body)
 
 	defer testutils.DeleteUser(&u)
+	defer res.Body.Close()
 
 	assert.Equal(t, test.ExpectedCode, res.StatusCode)
 	assert.Equal(t, resBody, fmt.Sprintf("Sent a password reset email to %s.", email))
@@ -457,11 +488,13 @@ func TestUpdatePasswordEmptyBody(t *testing.T) {
 		ExpectedCode: fiber.StatusBadRequest,
 	}
 
-	req := testutils.CreateHttpRequest(test)
+	req := testutils.CreateHTTPRequest(test)
 
 	res := sendAppRequest(req)
 
 	resBody := testutils.ParseJSONBodyError(&res.Body)
+
+	defer res.Body.Close()
 
 	assert.Equal(t, test.ExpectedCode, res.StatusCode)
 	assert.Equal(t, resBody.Error, utils.ErrorCode[utils.UpdatePasswordInvalidBody])
@@ -479,11 +512,13 @@ func TestUpdatePasswordInvalidBody(t *testing.T) {
 		ExpectedCode: fiber.StatusBadRequest,
 	}
 
-	req := testutils.CreateHttpRequest(test, user)
+	req := testutils.CreateHTTPRequest(test, user)
 
 	res := sendAppRequest(req)
 
 	resBody := testutils.ParseJSONBodyError(&res.Body)
+
+	defer res.Body.Close()
 
 	assert.Equal(t, test.ExpectedCode, res.StatusCode)
 	assert.Equal(t, resBody.Error, utils.ErrorCode[utils.UpdatePasswordInvalidBody])
@@ -502,11 +537,13 @@ func TestUpdatePasswordInvalidToken(t *testing.T) {
 		ExpectedCode: fiber.StatusUnauthorized,
 	}
 
-	req := testutils.CreateHttpRequest(test, user)
+	req := testutils.CreateHTTPRequest(test, user)
 
 	res := sendAppRequest(req)
 
 	resBody := testutils.ParseJSONBodyError(&res.Body)
+
+	defer res.Body.Close()
 
 	assert.Equal(t, test.ExpectedCode, res.StatusCode)
 	assert.Equal(t, resBody.Error, utils.ErrorCode[utils.UpdatePasswordInvalidToken])
@@ -526,13 +563,14 @@ func TestUpdatePasswordSuccess(t *testing.T) {
 		ExpectedCode: fiber.StatusCreated,
 	}
 
-	req := testutils.CreateHttpRequest(test, user)
+	req := testutils.CreateHTTPRequest(test, user)
 
 	res := sendAppRequest(req)
 
 	resBody := testutils.ParseText(&res.Body)
 
 	defer testutils.DeleteUser(&u)
+	defer res.Body.Close()
 
 	assert.Equal(t, test.ExpectedCode, res.StatusCode)
 	assert.Equal(t, resBody, "Your account has been updated with a new password!")
@@ -547,9 +585,11 @@ func GetAccountInfoSuccess(t *testing.T) {
 		ExpectedCode: fiber.StatusOK,
 	}
 
-	req := testutils.CreateAuthHttpRequest(test, &token)
+	req := testutils.CreateAuthHTTPRequest(test, &token)
 
 	res := sendAppRequest(req)
+
+	defer res.Body.Close()
 
 	assert.Equal(t, test.ExpectedCode, res.StatusCode)
 }
@@ -563,9 +603,11 @@ func DeleteAccountSuccess(t *testing.T) {
 		ExpectedCode: fiber.StatusOK,
 	}
 
-	req := testutils.CreateAuthHttpRequest(test, &token)
+	req := testutils.CreateAuthHTTPRequest(test, &token)
 
 	res := sendAppRequest(req)
+
+	defer res.Body.Close()
 
 	assert.Equal(t, test.ExpectedCode, res.StatusCode)
 }

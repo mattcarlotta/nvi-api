@@ -21,11 +21,12 @@ func TestGetAllEnvironmentsSuccess(t *testing.T) {
 		ExpectedCode: fiber.StatusOK,
 	}
 
-	req := testutils.CreateAuthHttpRequest(test, &token)
+	req := testutils.CreateAuthHTTPRequest(test, &token)
 
 	res := sendAppRequest(req)
 
 	defer testutils.DeleteUser(&u)
+	defer res.Body.Close()
 
 	assert.Equal(t, test.ExpectedCode, res.StatusCode)
 }
@@ -39,13 +40,14 @@ func TestGetEnvironmentInvalidID(t *testing.T) {
 		ExpectedCode: fiber.StatusBadRequest,
 	}
 
-	req := testutils.CreateAuthHttpRequest(test, &token)
+	req := testutils.CreateAuthHTTPRequest(test, &token)
 
 	res := sendAppRequest(req)
 
 	resBody := testutils.ParseJSONBodyError(&res.Body)
 
 	defer testutils.DeleteUser(&u)
+	defer res.Body.Close()
 
 	assert.Equal(t, test.ExpectedCode, res.StatusCode)
 	assert.Equal(t, resBody.Error, utils.ErrorCode[utils.GetEnvironmentInvalidID])
@@ -62,13 +64,14 @@ func TestGetEnvironmentNonExistentID(t *testing.T) {
 		ExpectedCode: fiber.StatusNotFound,
 	}
 
-	req := testutils.CreateAuthHttpRequest(test, &token)
+	req := testutils.CreateAuthHTTPRequest(test, &token)
 
 	res := sendAppRequest(req)
 
 	resBody := testutils.ParseJSONBodyError(&res.Body)
 
 	defer testutils.DeleteUser(&u)
+	defer res.Body.Close()
 
 	assert.Equal(t, test.ExpectedCode, res.StatusCode)
 	assert.Equal(t, resBody.Error, utils.ErrorCode[utils.GetEnvironmentNonExistentID])
@@ -84,11 +87,12 @@ func TestGetEnvironmentSuccess(t *testing.T) {
 		ExpectedCode: fiber.StatusOK,
 	}
 
-	req := testutils.CreateAuthHttpRequest(test, &token)
+	req := testutils.CreateAuthHTTPRequest(test, &token)
 
 	res := sendAppRequest(req)
 
 	defer testutils.DeleteUser(&u)
+	defer res.Body.Close()
 
 	assert.Equal(t, test.ExpectedCode, res.StatusCode)
 }
@@ -102,13 +106,14 @@ func TestCurrentEnvironmentInvalidName(t *testing.T) {
 		ExpectedCode: fiber.StatusBadRequest,
 	}
 
-	req := testutils.CreateAuthHttpRequest(test, &token)
+	req := testutils.CreateAuthHTTPRequest(test, &token)
 
 	res := sendAppRequest(req)
 
 	resBody := testutils.ParseJSONBodyError(&res.Body)
 
 	defer testutils.DeleteUser(&u)
+	defer res.Body.Close()
 
 	assert.Equal(t, test.ExpectedCode, res.StatusCode)
 	assert.Equal(t, resBody.Error, utils.ErrorCode[utils.CreateEnvironmentInvalidName])
@@ -124,13 +129,14 @@ func TestCurrentEnvironmentNameTaken(t *testing.T) {
 		ExpectedCode: fiber.StatusConflict,
 	}
 
-	req := testutils.CreateAuthHttpRequest(test, &token)
+	req := testutils.CreateAuthHTTPRequest(test, &token)
 
 	res := sendAppRequest(req)
 
 	resBody := testutils.ParseJSONBodyError(&res.Body)
 
 	defer testutils.DeleteUser(&u)
+	defer res.Body.Close()
 
 	assert.Equal(t, test.ExpectedCode, res.StatusCode)
 	assert.Equal(t, resBody.Error, utils.ErrorCode[utils.CreateEnvironmentNameTaken])
@@ -146,13 +152,14 @@ func TestCurrentEnvironmentSuccess(t *testing.T) {
 		ExpectedCode: fiber.StatusCreated,
 	}
 
-	req := testutils.CreateAuthHttpRequest(test, &token)
+	req := testutils.CreateAuthHTTPRequest(test, &token)
 
 	res := sendAppRequest(req)
 
 	resBody := testutils.ParseText(&res.Body)
 
 	defer testutils.DeleteUser(&u)
+	defer res.Body.Close()
 
 	assert.Equal(t, test.ExpectedCode, res.StatusCode)
 	assert.Equal(t, resBody, fmt.Sprintf("Successfully created a(n) %s environment!", envName))

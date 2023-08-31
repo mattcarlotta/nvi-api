@@ -111,7 +111,7 @@ func CreateEnvironment(envName string, userSessionID string) models.Environment 
 	return environment
 }
 
-func CreateHttpRequest(test *TestResponse, body ...interface{}) *http.Request {
+func CreateHTTPRequest(test *TestResponse, body ...interface{}) *http.Request {
 	bodyBuf := new(bytes.Buffer)
 	if body != nil {
 		if err := json.NewEncoder(bodyBuf).Encode(body[0]); err != nil {
@@ -127,8 +127,8 @@ func CreateHttpRequest(test *TestResponse, body ...interface{}) *http.Request {
 	return req
 }
 
-func CreateAuthHttpRequest(test *TestResponse, token *string, body ...interface{}) *http.Request {
-	req := CreateHttpRequest(test, body)
+func CreateAuthHTTPRequest(test *TestResponse, token *string, body ...interface{}) *http.Request {
+	req := CreateHTTPRequest(test, body)
 	req.Header.Add("Cookie", fmt.Sprintf("SESSION_TOKEN=%s", *token))
 
 	return req

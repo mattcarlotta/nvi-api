@@ -9,6 +9,8 @@ import (
 	"net/http"
 	"net/http/httptest"
 
+	// "github.com/google/uuid"
+	"github.com/google/uuid"
 	"github.com/mattcarlotta/nvi-api/database"
 	"github.com/mattcarlotta/nvi-api/models"
 	"github.com/mattcarlotta/nvi-api/utils"
@@ -83,9 +85,7 @@ func CreateUser(email string, verified bool) (models.User, string) {
 // 	}
 // }
 
-func CreateEnvironment(envName string, userSessionID string) models.Environment {
-	db := database.GetConnection()
-
+func ParseSessionId(userSessionID string) uuid.UUID {
 	token, err := utils.ValidateSessionToken(userSessionID)
 	if err != nil {
 		log.Fatal("unable to parse session token")
@@ -95,6 +95,14 @@ func CreateEnvironment(envName string, userSessionID string) models.Environment 
 	if err != nil {
 		log.Fatal("unable to parse user token id from session")
 	}
+
+	return parsedID
+}
+
+func CreateEnvironment(envName string, userSessionID string) models.Environment {
+	db := database.GetConnection()
+
+	parsedID := ParseSessionId(userSessionID)
 
 	newEnv := models.Environment{Name: envName, UserID: parsedID}
 	if err := db.Create(&newEnv).Error; err != nil {
@@ -111,6 +119,28 @@ func CreateEnvironment(envName string, userSessionID string) models.Environment 
 	return environment
 }
 
+func CreateEnvironmentAndSecret(envName string, secretKey string, secretValue string, userSessionID string) (models.Environment, models.Secret) {
+	newEnv := CreateEnvironment(envName, userSessionID)
+	db := database.GetConnection()
+
+	parsedID := ParseSessionId(userSessionID)
+
+	var environments []models.Environment
+	environments = append(environments, newEnv)
+	secret := models.Secret{Key: secretKey, Value: []byte(secretValue), UserID: parsedID, Environments: environments}
+	if err := db.Create(&secret).Error; err != nil {
+		log.Fatal("unable to create new environment")
+	}
+
+	var newSecret models.Secret
+	if err := db.Where(
+		&models.Secret{Key: secretKey, UserID: parsedID},
+	).First(&newSecret).Error; err != nil {
+		log.Fatal("unable to locate the new environment")
+	}
+
+	return newEnv, newSecret
+}
 func CreateHTTPRequest(test *TestResponse, body ...interface{}) *http.Request {
 	bodyBuf := new(bytes.Buffer)
 	if body != nil {

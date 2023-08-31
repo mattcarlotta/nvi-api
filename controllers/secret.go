@@ -16,18 +16,14 @@ func GetSecretBySecretID(c *fiber.Ctx) error {
 
 	id := c.Params("id")
 	if err := utils.Validate().Var(id, "required,uuid"); err != nil {
-		return c.Status(fiber.StatusBadRequest).JSON(
-			fiber.Map{"error": "You must provide a valid secret id!"},
-		)
+		return c.Status(fiber.StatusBadRequest).JSON(utils.JSONError(utils.GetSecretInvalidID))
 	}
 
 	var secret models.Secret
 	if err := db.Preload("Environments").First(
 		&secret, "id=? AND user_id=?", utils.MustParseUUID(id), userSessionID,
 	).Error; err != nil {
-		return c.Status(fiber.StatusNotFound).JSON(
-			fiber.Map{"error": "Unable to locate a secret with that id!"},
-		)
+		return c.Status(fiber.StatusNotFound).JSON(utils.JSONError(utils.GetSecretNonExistentID))
 	}
 
 	return c.Status(fiber.StatusOK).JSON(secret)
@@ -59,17 +55,11 @@ func GetSecretsByEnvironmentID(c *fiber.Ctx) error {
 	return c.Status(fiber.StatusOK).JSON(secrets)
 }
 
-type ReqDeleteSecret struct {
-	EnvironmentIDs []string `json:"environmentIDs" validate:"uuidarray"`
-	Key            string   `json:"key" validate:"required,gte=2,lte=255"`
-	Value          string   `json:"value" validate:"required,lte=5000"`
-}
-
 func CreateSecret(c *fiber.Ctx) error {
 	db := database.GetConnection()
 	userSessionID := utils.GetSessionID(c)
 
-	data := new(ReqDeleteSecret)
+	data := new(models.ReqCreateSecret)
 	if err := c.BodyParser(data); err != nil {
 		return c.Status(fiber.StatusBadRequest).JSON(
 			fiber.Map{"error": "You must provide valid environments and a secret key with a value!"},
@@ -161,18 +151,11 @@ func DeleteSecret(c *fiber.Ctx) error {
 	return c.Status(fiber.StatusCreated).SendString(fmt.Sprintf("Successfully deleted the %s secret!", secret.Key))
 }
 
-type ReqUpdateSecret struct {
-	ID             string   `json:"id" validate:"required,uuid"`
-	EnvironmentIDs []string `json:"environmentIDs" validate:"uuidarray"`
-	Key            string   `json:"key" validate:"required,gte=2,lte=255"`
-	Value          string   `json:"value" validate:"required,lte=5000"`
-}
-
 func UpdateSecret(c *fiber.Ctx) error {
 	db := database.GetConnection()
 	userSessionID := utils.GetSessionID(c)
 
-	data := new(ReqUpdateSecret)
+	data := new(models.ReqUpdateSecret)
 	if err := c.BodyParser(data); err != nil {
 		return c.Status(fiber.StatusBadRequest).JSON(
 			fiber.Map{"error": "You must provide valid environments and a secret key name with content!"},

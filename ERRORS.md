@@ -225,3 +225,24 @@ be used instead
 - Content: `application/json`
 - Body: `id, updatedName`
 - Explanation: the request params contains an `id` that doesn't match a user created environment
+
+## E020
+
+- Error Name: `GetSecretInvalidID`
+- Controller: `secret`
+- Path: `/secret/:id`
+- Method: `GET`
+- Status: `400`
+- Params: `id`
+- Explanation: the request body doesn't pass one or more of the following field validation rules:
+  - id: `required,uuid`
+
+## E020
+
+- Error Name: `GetSecretNonExistentID`
+- Controller: `secret`
+- Path: `/secret/:id`
+- Method: `GET`
+- Status: `404`
+- Params: `id`
+- Explanation: the request params contains an `id` that doesn't match a user created secret

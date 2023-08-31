@@ -1,11 +1,7 @@
 package routes
 
 import (
-	// "bytes"
-	// "encoding/json"
 	"fmt"
-	"log"
-	"net/http/httptest"
 	"testing"
 
 	"github.com/gofiber/fiber/v2"
@@ -25,18 +21,13 @@ func TestGetAllEnvironmentsSuccess(t *testing.T) {
 		ExpectedCode: fiber.StatusOK,
 	}
 
-	req := httptest.NewRequest(test.Method, test.Route, nil)
-	req.Header.Add("Content-Type", "text/plain;charset=utf-8")
-	req.Header.Add("Cookie", fmt.Sprintf("SESSION_TOKEN=%s", token))
+	req := testutils.CreateAuthHttpRequest(test, &token)
 
-	resp, err := app.Test(req, -1)
-	if err != nil {
-		log.Fatal("failed to make request to register user controller")
-	}
+	res := sendAppRequest(req)
 
 	defer testutils.DeleteUser(&u)
 
-	assert.Equal(t, test.ExpectedCode, resp.StatusCode)
+	assert.Equal(t, test.ExpectedCode, res.StatusCode)
 }
 
 func TestGetEnvironmentInvalidID(t *testing.T) {
@@ -48,20 +39,15 @@ func TestGetEnvironmentInvalidID(t *testing.T) {
 		ExpectedCode: fiber.StatusBadRequest,
 	}
 
-	req := httptest.NewRequest(test.Method, test.Route, nil)
-	req.Header.Add("Content-Type", "text/plain;charset=utf-8")
-	req.Header.Add("Cookie", fmt.Sprintf("SESSION_TOKEN=%s", token))
+	req := testutils.CreateAuthHttpRequest(test, &token)
 
-	resp, err := app.Test(req, -1)
-	if err != nil {
-		log.Fatal("failed to make request to register user controller")
-	}
+	res := sendAppRequest(req)
 
-	resBody := testutils.ParseJSONErrorBody(&resp.Body)
+	resBody := testutils.ParseJSONBodyError(&res.Body)
 
 	defer testutils.DeleteUser(&u)
 
-	assert.Equal(t, test.ExpectedCode, resp.StatusCode)
+	assert.Equal(t, test.ExpectedCode, res.StatusCode)
 	assert.Equal(t, resBody.Error, utils.ErrorCode[utils.GetEnvironmentInvalidID])
 }
 
@@ -76,20 +62,15 @@ func TestGetEnvironmentNonExistentID(t *testing.T) {
 		ExpectedCode: fiber.StatusNotFound,
 	}
 
-	req := httptest.NewRequest(test.Method, test.Route, nil)
-	req.Header.Add("Content-Type", "text/plain;charset=utf-8")
-	req.Header.Add("Cookie", fmt.Sprintf("SESSION_TOKEN=%s", token))
+	req := testutils.CreateAuthHttpRequest(test, &token)
 
-	resp, err := app.Test(req, -1)
-	if err != nil {
-		log.Fatal("failed to make request to register user controller")
-	}
+	res := sendAppRequest(req)
 
-	resBody := testutils.ParseJSONErrorBody(&resp.Body)
+	resBody := testutils.ParseJSONBodyError(&res.Body)
 
 	defer testutils.DeleteUser(&u)
 
-	assert.Equal(t, test.ExpectedCode, resp.StatusCode)
+	assert.Equal(t, test.ExpectedCode, res.StatusCode)
 	assert.Equal(t, resBody.Error, utils.ErrorCode[utils.GetEnvironmentNonExistentID])
 }
 
@@ -103,18 +84,13 @@ func TestGetEnvironmentSuccess(t *testing.T) {
 		ExpectedCode: fiber.StatusOK,
 	}
 
-	req := httptest.NewRequest(test.Method, test.Route, nil)
-	req.Header.Add("Content-Type", "text/plain;charset=utf-8")
-	req.Header.Add("Cookie", fmt.Sprintf("SESSION_TOKEN=%s", token))
+	req := testutils.CreateAuthHttpRequest(test, &token)
 
-	resp, err := app.Test(req, -1)
-	if err != nil {
-		log.Fatal("failed to make request to register user controller")
-	}
+	res := sendAppRequest(req)
 
 	defer testutils.DeleteUser(&u)
 
-	assert.Equal(t, test.ExpectedCode, resp.StatusCode)
+	assert.Equal(t, test.ExpectedCode, res.StatusCode)
 }
 
 func TestCurrentEnvironmentInvalidName(t *testing.T) {
@@ -126,20 +102,15 @@ func TestCurrentEnvironmentInvalidName(t *testing.T) {
 		ExpectedCode: fiber.StatusBadRequest,
 	}
 
-	req := httptest.NewRequest(test.Method, test.Route, nil)
-	req.Header.Add("Content-Type", "text/plain;charset=utf-8")
-	req.Header.Add("Cookie", fmt.Sprintf("SESSION_TOKEN=%s", token))
+	req := testutils.CreateAuthHttpRequest(test, &token)
 
-	resp, err := app.Test(req, -1)
-	if err != nil {
-		log.Fatal("failed to make request to register user controller")
-	}
+	res := sendAppRequest(req)
 
-	resBody := testutils.ParseJSONErrorBody(&resp.Body)
+	resBody := testutils.ParseJSONBodyError(&res.Body)
 
 	defer testutils.DeleteUser(&u)
 
-	assert.Equal(t, test.ExpectedCode, resp.StatusCode)
+	assert.Equal(t, test.ExpectedCode, res.StatusCode)
 	assert.Equal(t, resBody.Error, utils.ErrorCode[utils.CreateEnvironmentInvalidName])
 }
 
@@ -153,20 +124,15 @@ func TestCurrentEnvironmentNameTaken(t *testing.T) {
 		ExpectedCode: fiber.StatusConflict,
 	}
 
-	req := httptest.NewRequest(test.Method, test.Route, nil)
-	req.Header.Add("Content-Type", "text/plain;charset=utf-8")
-	req.Header.Add("Cookie", fmt.Sprintf("SESSION_TOKEN=%s", token))
+	req := testutils.CreateAuthHttpRequest(test, &token)
 
-	resp, err := app.Test(req, -1)
-	if err != nil {
-		log.Fatal("failed to make request to register user controller")
-	}
+	res := sendAppRequest(req)
 
-	resBody := testutils.ParseJSONErrorBody(&resp.Body)
+	resBody := testutils.ParseJSONBodyError(&res.Body)
 
 	defer testutils.DeleteUser(&u)
 
-	assert.Equal(t, test.ExpectedCode, resp.StatusCode)
+	assert.Equal(t, test.ExpectedCode, res.StatusCode)
 	assert.Equal(t, resBody.Error, utils.ErrorCode[utils.CreateEnvironmentNameTaken])
 }
 
@@ -180,19 +146,14 @@ func TestCurrentEnvironmentSuccess(t *testing.T) {
 		ExpectedCode: fiber.StatusCreated,
 	}
 
-	req := httptest.NewRequest(test.Method, test.Route, nil)
-	req.Header.Add("Content-Type", "text/plain;charset=utf-8")
-	req.Header.Add("Cookie", fmt.Sprintf("SESSION_TOKEN=%s", token))
+	req := testutils.CreateAuthHttpRequest(test, &token)
 
-	resp, err := app.Test(req, -1)
-	if err != nil {
-		log.Fatal("failed to make request to register user controller")
-	}
+	res := sendAppRequest(req)
 
-	resBody := testutils.ParseText(&resp.Body)
+	resBody := testutils.ParseText(&res.Body)
 
 	defer testutils.DeleteUser(&u)
 
-	assert.Equal(t, test.ExpectedCode, resp.StatusCode)
+	assert.Equal(t, test.ExpectedCode, res.StatusCode)
 	assert.Equal(t, resBody, fmt.Sprintf("Successfully created a(n) %s environment!", envName))
 }

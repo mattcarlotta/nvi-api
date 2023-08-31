@@ -1,9 +1,13 @@
 package testutils
 
 import (
+	"bytes"
 	"encoding/json"
+	"fmt"
 	"io"
 	"log"
+	"net/http"
+	"net/http/httptest"
 
 	"github.com/mattcarlotta/nvi-api/database"
 	"github.com/mattcarlotta/nvi-api/models"
@@ -107,6 +111,29 @@ func CreateEnvironment(envName string, userSessionID string) models.Environment 
 	return environment
 }
 
+func CreateHttpRequest(test *TestResponse, body ...interface{}) *http.Request {
+	bodyBuf := new(bytes.Buffer)
+	if body != nil {
+		if err := json.NewEncoder(bodyBuf).Encode(body[0]); err != nil {
+			log.Fatal(err)
+		}
+	} else {
+		bodyBuf.Write(nil)
+	}
+
+	req := httptest.NewRequest(test.Method, test.Route, bodyBuf)
+	req.Header.Add("Content-Type", "application/json")
+
+	return req
+}
+
+func CreateAuthHttpRequest(test *TestResponse, token *string, body ...interface{}) *http.Request {
+	req := CreateHttpRequest(test, body)
+	req.Header.Add("Cookie", fmt.Sprintf("SESSION_TOKEN=%s", *token))
+
+	return req
+}
+
 // func ParseJSONSuccessBody(body *io.ReadCloser) utils.ResponseError {
 // 	var res utils.ResponseError
 // 	responseBodyBytes, _ := io.ReadAll(*body)
@@ -115,7 +142,7 @@ func CreateEnvironment(envName string, userSessionID string) models.Environment 
 // 	return res
 // }
 
-func ParseJSONErrorBody(body *io.ReadCloser) utils.ResponseError {
+func ParseJSONBodyError(body *io.ReadCloser) utils.ResponseError {
 	var errResponse utils.ResponseError
 	responseBodyBytes, _ := io.ReadAll(*body)
 	_ = json.Unmarshal(responseBodyBytes, &errResponse)

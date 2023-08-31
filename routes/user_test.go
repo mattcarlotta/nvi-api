@@ -1,11 +1,8 @@
 package routes
 
 import (
-	"bytes"
-	"encoding/json"
 	"fmt"
 	"log"
-	"net/http/httptest"
 	"testing"
 
 	"github.com/gofiber/fiber/v2"
@@ -22,17 +19,13 @@ func TestRegisterUserEmptyBody(t *testing.T) {
 		ExpectedCode: fiber.StatusBadRequest,
 	}
 
-	req := httptest.NewRequest(test.Method, test.Route, nil)
-	req.Header.Add("Content-Type", "application/json")
+	req := testutils.CreateHttpRequest(test)
 
-	resp, err := app.Test(req, -1)
-	if err != nil {
-		log.Fatal("failed to make request to register user controller")
-	}
+	res := sendAppRequest(req)
 
-	resBody := testutils.ParseJSONErrorBody(&resp.Body)
+	resBody := testutils.ParseJSONBodyError(&res.Body)
 
-	assert.Equal(t, test.ExpectedCode, resp.StatusCode)
+	assert.Equal(t, test.ExpectedCode, res.StatusCode)
 	assert.Equal(t, resBody.Error, utils.ErrorCode[utils.RegisterInvalidBody])
 }
 
@@ -50,18 +43,13 @@ func TestRegisterUserInvalidBody(t *testing.T) {
 		ExpectedCode: fiber.StatusBadRequest,
 	}
 
-	reqBody, _ := json.Marshal(user)
-	req := httptest.NewRequest(test.Method, test.Route, bytes.NewBufferString(string(reqBody)))
-	req.Header.Add("Content-Type", "application/json")
+	req := testutils.CreateHttpRequest(test, user)
 
-	resp, err := app.Test(req, -1)
-	if err != nil {
-		log.Fatal("failed to make request to register user controller")
-	}
+	res := sendAppRequest(req)
 
-	resBody := testutils.ParseJSONErrorBody(&resp.Body)
+	resBody := testutils.ParseJSONBodyError(&res.Body)
 
-	assert.Equal(t, test.ExpectedCode, resp.StatusCode)
+	assert.Equal(t, test.ExpectedCode, res.StatusCode)
 	assert.Equal(t, resBody.Error, utils.ErrorCode[utils.RegisterInvalidBody])
 }
 
@@ -81,20 +69,15 @@ func TestRegisterEmailTaken(t *testing.T) {
 		ExpectedCode: fiber.StatusOK,
 	}
 
-	reqBody, _ := json.Marshal(user)
-	req := httptest.NewRequest(test.Method, test.Route, bytes.NewBufferString(string(reqBody)))
-	req.Header.Add("Content-Type", "application/json")
+	req := testutils.CreateHttpRequest(test, user)
 
-	resp, err := app.Test(req, -1)
-	if err != nil {
-		log.Fatal("failed to make request to register user controller")
-	}
+	res := sendAppRequest(req)
 
-	resBody := testutils.ParseJSONErrorBody(&resp.Body)
+	resBody := testutils.ParseJSONBodyError(&res.Body)
 
 	defer testutils.DeleteUser(&u)
 
-	assert.Equal(t, test.ExpectedCode, resp.StatusCode)
+	assert.Equal(t, test.ExpectedCode, res.StatusCode)
 	assert.Equal(t, resBody.Error, utils.ErrorCode[utils.RegisterEmailTaken])
 }
 
@@ -111,20 +94,15 @@ func TestRegisterUserSuccess(t *testing.T) {
 		ExpectedCode: fiber.StatusCreated,
 	}
 
-	reqBody, _ := json.Marshal(user)
-	req := httptest.NewRequest(test.Method, test.Route, bytes.NewBufferString(string(reqBody)))
-	req.Header.Add("Content-Type", "application/json")
+	req := testutils.CreateHttpRequest(test, user)
 
-	resp, err := app.Test(req, -1)
-	if err != nil {
-		log.Fatal("failed to make request to register user controller")
-	}
+	res := sendAppRequest(req)
 
-	resBody := testutils.ParseText(&resp.Body)
+	resBody := testutils.ParseText(&res.Body)
 
 	defer testutils.RemoveUserByEmail(user.Email)
 
-	assert.Equal(t, test.ExpectedCode, resp.StatusCode)
+	assert.Equal(t, test.ExpectedCode, res.StatusCode)
 	assert.Equal(t, resBody, fmt.Sprintf(
 		"Welcome, %s! Please check your %s inbox for steps to verify your account.", user.Name, user.Email,
 	))
@@ -137,17 +115,13 @@ func TestLoginUserEmptyBody(t *testing.T) {
 		ExpectedCode: fiber.StatusBadRequest,
 	}
 
-	req := httptest.NewRequest(test.Method, test.Route, nil)
-	req.Header.Add("Content-Type", "application/json")
+	req := testutils.CreateHttpRequest(test)
 
-	resp, err := app.Test(req, -1)
-	if err != nil {
-		log.Fatal("failed to make request to user login controller")
-	}
+	res := sendAppRequest(req)
 
-	resBody := testutils.ParseJSONErrorBody(&resp.Body)
+	resBody := testutils.ParseJSONBodyError(&res.Body)
 
-	assert.Equal(t, test.ExpectedCode, resp.StatusCode)
+	assert.Equal(t, test.ExpectedCode, res.StatusCode)
 	assert.Equal(t, resBody.Error, utils.ErrorCode[utils.LoginInvalidBody])
 }
 
@@ -164,18 +138,13 @@ func TestLoginUserInvalidBody(t *testing.T) {
 		ExpectedCode: fiber.StatusBadRequest,
 	}
 
-	reqBody, _ := json.Marshal(user)
-	req := httptest.NewRequest(test.Method, test.Route, bytes.NewBufferString(string(reqBody)))
-	req.Header.Add("Content-Type", "application/json")
+	req := testutils.CreateHttpRequest(test, user)
 
-	resp, err := app.Test(req, -1)
-	if err != nil {
-		log.Fatal("failed to make request to login user controller")
-	}
+	res := sendAppRequest(req)
 
-	resBody := testutils.ParseJSONErrorBody(&resp.Body)
+	resBody := testutils.ParseJSONBodyError(&res.Body)
 
-	assert.Equal(t, test.ExpectedCode, resp.StatusCode)
+	assert.Equal(t, test.ExpectedCode, res.StatusCode)
 	assert.Equal(t, resBody.Error, utils.ErrorCode[utils.LoginInvalidBody])
 }
 
@@ -191,18 +160,13 @@ func TestLoginUnregisteredEmail(t *testing.T) {
 		ExpectedCode: fiber.StatusOK,
 	}
 
-	reqBody, _ := json.Marshal(user)
-	req := httptest.NewRequest(test.Method, test.Route, bytes.NewBufferString(string(reqBody)))
-	req.Header.Add("Content-Type", "application/json")
+	req := testutils.CreateHttpRequest(test, user)
 
-	resp, err := app.Test(req, -1)
-	if err != nil {
-		log.Fatal("failed to make request to login user controller")
-	}
+	res := sendAppRequest(req)
 
-	resBody := testutils.ParseJSONErrorBody(&resp.Body)
+	resBody := testutils.ParseJSONBodyError(&res.Body)
 
-	assert.Equal(t, test.ExpectedCode, resp.StatusCode)
+	assert.Equal(t, test.ExpectedCode, res.StatusCode)
 	assert.Equal(t, resBody.Error, utils.ErrorCode[utils.LoginUnregisteredEmail])
 }
 
@@ -222,20 +186,15 @@ func TestLoginInvalidPassword(t *testing.T) {
 		ExpectedCode: fiber.StatusOK,
 	}
 
-	reqBody, _ := json.Marshal(user)
-	req := httptest.NewRequest(test.Method, test.Route, bytes.NewBufferString(string(reqBody)))
-	req.Header.Add("Content-Type", "application/json")
+	req := testutils.CreateHttpRequest(test, user)
 
-	resp, err := app.Test(req, -1)
-	if err != nil {
-		log.Fatal("failed to make request to login user controller")
-	}
+	res := sendAppRequest(req)
 
-	resBody := testutils.ParseJSONErrorBody(&resp.Body)
+	resBody := testutils.ParseJSONBodyError(&res.Body)
 
 	defer testutils.DeleteUser(&u)
 
-	assert.Equal(t, test.ExpectedCode, resp.StatusCode)
+	assert.Equal(t, test.ExpectedCode, res.StatusCode)
 	assert.Equal(t, resBody.Error, utils.ErrorCode[utils.LoginInvalidPassword])
 }
 
@@ -254,20 +213,15 @@ func TestLoginAccountNotVerified(t *testing.T) {
 		ExpectedCode: fiber.StatusUnauthorized,
 	}
 
-	reqBody, _ := json.Marshal(user)
-	req := httptest.NewRequest(test.Method, test.Route, bytes.NewBufferString(string(reqBody)))
-	req.Header.Add("Content-Type", "application/json")
+	req := testutils.CreateHttpRequest(test, user)
 
-	resp, err := app.Test(req, -1)
-	if err != nil {
-		log.Fatal("failed to make request to login user controller")
-	}
+	res := sendAppRequest(req)
 
-	resBody := testutils.ParseJSONErrorBody(&resp.Body)
+	resBody := testutils.ParseJSONBodyError(&res.Body)
 
 	defer testutils.DeleteUser(&u)
 
-	assert.Equal(t, test.ExpectedCode, resp.StatusCode)
+	assert.Equal(t, test.ExpectedCode, res.StatusCode)
 	assert.Equal(t, resBody.Error, utils.ErrorCode[utils.LoginAccountNotVerified])
 }
 
@@ -286,19 +240,14 @@ func TestLoginSuccess(t *testing.T) {
 		ExpectedCode: fiber.StatusOK,
 	}
 
-	reqBody, _ := json.Marshal(user)
-	req := httptest.NewRequest(test.Method, test.Route, bytes.NewBufferString(string(reqBody)))
-	req.Header.Add("Content-Type", "application/json")
+	req := testutils.CreateHttpRequest(test, user)
 
-	resp, err := app.Test(req, -1)
-	if err != nil {
-		log.Fatal("failed to make request to login user controller")
-	}
+	res := sendAppRequest(req)
 
 	testutils.DeleteUser(&u)
 
-	assert.Equal(t, test.ExpectedCode, resp.StatusCode)
-	assert.NotEmpty(t, resp.Header.Get("Set-Cookie"))
+	assert.Equal(t, test.ExpectedCode, res.StatusCode)
+	assert.NotEmpty(t, res.Header.Get("Set-Cookie"))
 }
 
 func TestVerifyAccountInvalidToken(t *testing.T) {
@@ -308,17 +257,13 @@ func TestVerifyAccountInvalidToken(t *testing.T) {
 		ExpectedCode: fiber.StatusUnauthorized,
 	}
 
-	req := httptest.NewRequest(test.Method, test.Route, nil)
-	req.Header.Add("Content-Type", "text/plain; charset=utf-8")
+	req := testutils.CreateHttpRequest(test)
 
-	resp, err := app.Test(req, -1)
-	if err != nil {
-		log.Fatal("failed to make request to verify account user controller")
-	}
+	res := sendAppRequest(req)
 
-	resBody := testutils.ParseJSONErrorBody(&resp.Body)
+	resBody := testutils.ParseJSONBodyError(&res.Body)
 
-	assert.Equal(t, test.ExpectedCode, resp.StatusCode)
+	assert.Equal(t, test.ExpectedCode, res.StatusCode)
 	assert.Equal(t, resBody.Error, utils.ErrorCode[utils.VerifyAccountInvalidToken])
 }
 
@@ -333,15 +278,11 @@ func TestVerifyAccountInvalidEmailToken(t *testing.T) {
 		ExpectedCode: fiber.StatusUnprocessableEntity,
 	}
 
-	req := httptest.NewRequest(test.Method, test.Route, nil)
-	req.Header.Add("Content-Type", "text/plain; charset=utf-8")
+	req := testutils.CreateHttpRequest(test)
 
-	resp, err := app.Test(req, -1)
-	if err != nil {
-		log.Fatal("failed to make request to verify account user controller")
-	}
+	res := sendAppRequest(req)
 
-	assert.Equal(t, test.ExpectedCode, resp.StatusCode)
+	assert.Equal(t, test.ExpectedCode, res.StatusCode)
 }
 
 func TestVerifyAccountEmailAlreadyVerified(t *testing.T) {
@@ -353,17 +294,13 @@ func TestVerifyAccountEmailAlreadyVerified(t *testing.T) {
 		ExpectedCode: fiber.StatusNotModified,
 	}
 
-	req := httptest.NewRequest(test.Method, test.Route, nil)
-	req.Header.Add("Content-Type", "text/plain; charset=utf-8")
+	req := testutils.CreateHttpRequest(test)
 
-	resp, err := app.Test(req, -1)
-	if err != nil {
-		log.Fatal("failed to make request to verify account user controller")
-	}
+	res := sendAppRequest(req)
 
 	defer testutils.DeleteUser(&u)
 
-	assert.Equal(t, test.ExpectedCode, resp.StatusCode)
+	assert.Equal(t, test.ExpectedCode, res.StatusCode)
 }
 
 func TestVerifyAccountSuccess(t *testing.T) {
@@ -376,19 +313,15 @@ func TestVerifyAccountSuccess(t *testing.T) {
 		ExpectedCode: fiber.StatusAccepted,
 	}
 
-	req := httptest.NewRequest(test.Method, test.Route, nil)
-	req.Header.Add("Content-Type", "text/plain; charset=utf-8")
+	req := testutils.CreateHttpRequest(test)
 
-	resp, err := app.Test(req, -1)
-	if err != nil {
-		log.Fatal("failed to make request to verify account user controller")
-	}
+	res := sendAppRequest(req)
 
-	resBody := testutils.ParseText(&resp.Body)
+	resBody := testutils.ParseText(&res.Body)
 
 	defer testutils.DeleteUser(&u)
 
-	assert.Equal(t, test.ExpectedCode, resp.StatusCode)
+	assert.Equal(t, test.ExpectedCode, res.StatusCode)
 	assert.Equal(t, resBody, fmt.Sprintf("Successfully verified %s!", email))
 }
 
@@ -399,17 +332,13 @@ func TestResendAccountVerifyInvalidToken(t *testing.T) {
 		ExpectedCode: fiber.StatusBadRequest,
 	}
 
-	req := httptest.NewRequest(test.Method, test.Route, nil)
-	req.Header.Add("Content-Type", "text/plain; charset=utf-8")
+	req := testutils.CreateHttpRequest(test)
 
-	resp, err := app.Test(req, -1)
-	if err != nil {
-		log.Fatal("failed to make request to reverify account user controller")
-	}
+	res := sendAppRequest(req)
 
-	resBody := testutils.ParseJSONErrorBody(&resp.Body)
+	resBody := testutils.ParseJSONBodyError(&res.Body)
 
-	assert.Equal(t, test.ExpectedCode, resp.StatusCode)
+	assert.Equal(t, test.ExpectedCode, res.StatusCode)
 	assert.Equal(t, resBody.Error, utils.ErrorCode[utils.ResendAccountVerificationInvalidEmail])
 }
 
@@ -420,15 +349,11 @@ func TestResendAccountVerifyInvalidEmail(t *testing.T) {
 		ExpectedCode: fiber.StatusNotModified,
 	}
 
-	req := httptest.NewRequest(test.Method, test.Route, nil)
-	req.Header.Add("Content-Type", "text/plain; charset=utf-8")
+	req := testutils.CreateHttpRequest(test)
 
-	resp, err := app.Test(req, -1)
-	if err != nil {
-		log.Fatal("failed to make request to reverify account user controller")
-	}
+	res := sendAppRequest(req)
 
-	assert.Equal(t, test.ExpectedCode, resp.StatusCode)
+	assert.Equal(t, test.ExpectedCode, res.StatusCode)
 }
 
 func TestResendAccountVerifyEmailAlreadyVerified(t *testing.T) {
@@ -441,17 +366,13 @@ func TestResendAccountVerifyEmailAlreadyVerified(t *testing.T) {
 		ExpectedCode: fiber.StatusNotModified,
 	}
 
-	req := httptest.NewRequest(test.Method, test.Route, nil)
-	req.Header.Add("Content-Type", "text/plain; charset=utf-8")
+	req := testutils.CreateHttpRequest(test)
 
-	resp, err := app.Test(req, -1)
-	if err != nil {
-		log.Fatal("failed to make request to reverify account user controller")
-	}
+	res := sendAppRequest(req)
 
 	defer testutils.DeleteUser(&u)
 
-	assert.Equal(t, test.ExpectedCode, resp.StatusCode)
+	assert.Equal(t, test.ExpectedCode, res.StatusCode)
 }
 
 func TestResendAccountVerifySuccess(t *testing.T) {
@@ -464,19 +385,15 @@ func TestResendAccountVerifySuccess(t *testing.T) {
 		ExpectedCode: fiber.StatusAccepted,
 	}
 
-	req := httptest.NewRequest(test.Method, test.Route, nil)
-	req.Header.Add("Content-Type", "text/plain; charset=utf-8")
+	req := testutils.CreateHttpRequest(test)
 
-	resp, err := app.Test(req, -1)
-	if err != nil {
-		log.Fatal("failed to make request to reverify account user controller")
-	}
+	res := sendAppRequest(req)
 
-	resBody := testutils.ParseText(&resp.Body)
+	resBody := testutils.ParseText(&res.Body)
 
 	defer testutils.DeleteUser(&u)
 
-	assert.Equal(t, test.ExpectedCode, resp.StatusCode)
+	assert.Equal(t, test.ExpectedCode, res.StatusCode)
 	assert.Equal(t, resBody, fmt.Sprintf("Resent a verification email to %s.", email))
 }
 
@@ -487,17 +404,13 @@ func TestSendResetPasswordInvalidEmail(t *testing.T) {
 		ExpectedCode: fiber.StatusBadRequest,
 	}
 
-	req := httptest.NewRequest(test.Method, test.Route, nil)
-	req.Header.Add("Content-Type", "text/plain; charset=utf-8")
+	req := testutils.CreateHttpRequest(test)
 
-	resp, err := app.Test(req, -1)
-	if err != nil {
-		log.Fatal("failed to make request to send reset password user controller")
-	}
+	res := sendAppRequest(req)
 
-	resBody := testutils.ParseJSONErrorBody(&resp.Body)
+	resBody := testutils.ParseJSONBodyError(&res.Body)
 
-	assert.Equal(t, test.ExpectedCode, resp.StatusCode)
+	assert.Equal(t, test.ExpectedCode, res.StatusCode)
 	assert.Equal(t, resBody.Error, utils.ErrorCode[utils.SendResetPasswordInvalidEmail])
 }
 
@@ -508,15 +421,11 @@ func TestSendResetPasswordUnregisteredEmail(t *testing.T) {
 		ExpectedCode: fiber.StatusNotModified,
 	}
 
-	req := httptest.NewRequest(test.Method, test.Route, nil)
-	req.Header.Add("Content-Type", "text/plain; charset=utf-8")
+	req := testutils.CreateHttpRequest(test)
 
-	resp, err := app.Test(req, -1)
-	if err != nil {
-		log.Fatal("failed to make request to send reset password user controller")
-	}
+	res := sendAppRequest(req)
 
-	assert.Equal(t, test.ExpectedCode, resp.StatusCode)
+	assert.Equal(t, test.ExpectedCode, res.StatusCode)
 }
 
 func TestSendResetPasswordSuccess(t *testing.T) {
@@ -529,19 +438,15 @@ func TestSendResetPasswordSuccess(t *testing.T) {
 		ExpectedCode: fiber.StatusAccepted,
 	}
 
-	req := httptest.NewRequest(test.Method, test.Route, nil)
-	req.Header.Add("Content-Type", "text/plain; charset=utf-8")
+	req := testutils.CreateHttpRequest(test)
 
-	resp, err := app.Test(req, -1)
-	if err != nil {
-		log.Fatal("failed to make request to send reset password user controller")
-	}
+	res := sendAppRequest(req)
 
-	resBody := testutils.ParseText(&resp.Body)
+	resBody := testutils.ParseText(&res.Body)
 
 	defer testutils.DeleteUser(&u)
 
-	assert.Equal(t, test.ExpectedCode, resp.StatusCode)
+	assert.Equal(t, test.ExpectedCode, res.StatusCode)
 	assert.Equal(t, resBody, fmt.Sprintf("Sent a password reset email to %s.", email))
 }
 
@@ -552,17 +457,13 @@ func TestUpdatePasswordEmptyBody(t *testing.T) {
 		ExpectedCode: fiber.StatusBadRequest,
 	}
 
-	req := httptest.NewRequest(test.Method, test.Route, nil)
-	req.Header.Add("Content-Type", "application/json")
+	req := testutils.CreateHttpRequest(test)
 
-	resp, err := app.Test(req, -1)
-	if err != nil {
-		log.Fatal("failed to make request to update password user controller")
-	}
+	res := sendAppRequest(req)
 
-	resBody := testutils.ParseJSONErrorBody(&resp.Body)
+	resBody := testutils.ParseJSONBodyError(&res.Body)
 
-	assert.Equal(t, test.ExpectedCode, resp.StatusCode)
+	assert.Equal(t, test.ExpectedCode, res.StatusCode)
 	assert.Equal(t, resBody.Error, utils.ErrorCode[utils.UpdatePasswordInvalidBody])
 }
 
@@ -578,25 +479,21 @@ func TestUpdatePasswordInvalidBody(t *testing.T) {
 		ExpectedCode: fiber.StatusBadRequest,
 	}
 
-	reqBody, _ := json.Marshal(user)
-	req := httptest.NewRequest(test.Method, test.Route, bytes.NewBufferString(string(reqBody)))
-	req.Header.Add("Content-Type", "application/json")
+	req := testutils.CreateHttpRequest(test, user)
 
-	resp, err := app.Test(req, -1)
-	if err != nil {
-		log.Fatal("failed to make request to update password user controller")
-	}
+	res := sendAppRequest(req)
 
-	resBody := testutils.ParseJSONErrorBody(&resp.Body)
+	resBody := testutils.ParseJSONBodyError(&res.Body)
 
-	assert.Equal(t, test.ExpectedCode, resp.StatusCode)
+	assert.Equal(t, test.ExpectedCode, res.StatusCode)
 	assert.Equal(t, resBody.Error, utils.ErrorCode[utils.UpdatePasswordInvalidBody])
 }
 
 func TestUpdatePasswordInvalidToken(t *testing.T) {
 	user := &models.ReqUpdateUser{
 		Password: testutils.StrPassword,
-		Token:    "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.SAItwXkQ_rZnRZ52ZdmCAlkZUheO9cClR6EPhcd854E", // invalid token
+		// invalid token
+		Token: "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.SAItwXkQ_rZnRZ52ZdmCAlkZUheO9cClR6EPhcd854E",
 	}
 
 	test := &testutils.TestResponse{
@@ -605,18 +502,13 @@ func TestUpdatePasswordInvalidToken(t *testing.T) {
 		ExpectedCode: fiber.StatusUnauthorized,
 	}
 
-	reqBody, _ := json.Marshal(user)
-	req := httptest.NewRequest(test.Method, test.Route, bytes.NewBufferString(string(reqBody)))
-	req.Header.Add("Content-Type", "application/json")
+	req := testutils.CreateHttpRequest(test, user)
 
-	resp, err := app.Test(req, -1)
-	if err != nil {
-		log.Fatal("failed to make request to update password user controller")
-	}
+	res := sendAppRequest(req)
 
-	resBody := testutils.ParseJSONErrorBody(&resp.Body)
+	resBody := testutils.ParseJSONBodyError(&res.Body)
 
-	assert.Equal(t, test.ExpectedCode, resp.StatusCode)
+	assert.Equal(t, test.ExpectedCode, res.StatusCode)
 	assert.Equal(t, resBody.Error, utils.ErrorCode[utils.UpdatePasswordInvalidToken])
 }
 
@@ -634,20 +526,15 @@ func TestUpdatePasswordSuccess(t *testing.T) {
 		ExpectedCode: fiber.StatusCreated,
 	}
 
-	reqBody, _ := json.Marshal(user)
-	req := httptest.NewRequest(test.Method, test.Route, bytes.NewBufferString(string(reqBody)))
-	req.Header.Add("Content-Type", "application/json")
+	req := testutils.CreateHttpRequest(test, user)
 
-	resp, err := app.Test(req, -1)
-	if err != nil {
-		log.Fatal("failed to make request to update password user controller")
-	}
+	res := sendAppRequest(req)
 
-	resBody := testutils.ParseText(&resp.Body)
+	resBody := testutils.ParseText(&res.Body)
 
 	defer testutils.DeleteUser(&u)
 
-	assert.Equal(t, test.ExpectedCode, resp.StatusCode)
+	assert.Equal(t, test.ExpectedCode, res.StatusCode)
 	assert.Equal(t, resBody, "Your account has been updated with a new password!")
 }
 
@@ -660,16 +547,11 @@ func GetAccountInfoSuccess(t *testing.T) {
 		ExpectedCode: fiber.StatusOK,
 	}
 
-	req := httptest.NewRequest(test.Method, test.Route, nil)
-	req.Header.Add("Content-Type", "text/plain; charset=utf-8")
-	req.Header.Add("Cookie", fmt.Sprintf("SESSION_TOKEN=%s", token))
+	req := testutils.CreateAuthHttpRequest(test, &token)
 
-	resp, err := app.Test(req, -1)
-	if err != nil {
-		log.Fatal("failed to make request to get account info user controller")
-	}
+	res := sendAppRequest(req)
 
-	assert.Equal(t, test.ExpectedCode, resp.StatusCode)
+	assert.Equal(t, test.ExpectedCode, res.StatusCode)
 }
 
 func DeleteAccountSuccess(t *testing.T) {
@@ -681,14 +563,9 @@ func DeleteAccountSuccess(t *testing.T) {
 		ExpectedCode: fiber.StatusOK,
 	}
 
-	req := httptest.NewRequest(test.Method, test.Route, nil)
-	req.Header.Add("Content-Type", "text/plain; charset=utf-8")
-	req.Header.Add("Cookie", fmt.Sprintf("SESSION_TOKEN=%s", token))
+	req := testutils.CreateAuthHttpRequest(test, &token)
 
-	resp, err := app.Test(req, -1)
-	if err != nil {
-		log.Fatal("failed to make request to get account info user controller")
-	}
+	res := sendAppRequest(req)
 
-	assert.Equal(t, test.ExpectedCode, resp.StatusCode)
+	assert.Equal(t, test.ExpectedCode, res.StatusCode)
 }

@@ -237,7 +237,7 @@ be used instead
 - Explanation: the request body doesn't pass one or more of the following field validation rules:
   - id: `required,uuid`
 
-## E020
+## E021
 
 - Error Name: `GetSecretNonExistentID`
 - Controller: `secret`
@@ -246,3 +246,24 @@ be used instead
 - Status: `404`
 - Params: `id`
 - Explanation: the request params contains an `id` that doesn't match a user created secret
+
+## E022
+
+- Error Name: `GetSecretsByEnvInvalidID`
+- Controller: `secret`
+- Path: `/secrets/:id`
+- Method: `GET`
+- Status: `400`
+- Params: `id`
+- Explanation: the request body doesn't pass one or more of the following field validation rules:
+  - id: `required,uuid`
+
+## E023
+
+- Error Name: `GetSecretsByEnvNonExistentID`
+- Controller: `secret`
+- Path: `/secrets/:id`
+- Method: `GET`
+- Status: `404`
+- Params: `id`
+- Explanation: the request params contains an `id` that doesn't match a user created environment

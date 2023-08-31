@@ -35,21 +35,18 @@ func GetSecretsByEnvironmentID(c *fiber.Ctx) error {
 
 	id := c.Params("id")
 	if err := utils.Validate().Var(id, "required,uuid"); err != nil {
-		return c.Status(fiber.StatusBadRequest).JSON(
-			fiber.Map{"error": "You must provide a valid environment id!"},
-		)
+		return c.Status(fiber.StatusBadRequest).JSON(utils.JSONError(utils.GetSecretsByEnvInvalidID))
 	}
 
 	parsedEnvID := utils.MustParseUUID(id)
 	var secrets []models.SecretResult
 	if err := db.Raw(
 		utils.FindSecretsByEnvIDQuery, userSessionID, utils.GenerateJSONIDString(parsedEnvID),
-	).Scan(&secrets).Error; err != nil {
-		fmt.Printf("Failed to load secrets with id %s, reason: %s", parsedEnvID, err.Error())
-
-		return c.Status(fiber.StatusInternalServerError).JSON(
-			fiber.Map{"error": "Failed to locate any secrets with that id."},
-		)
+	).Scan(&secrets).Error; err != nil || len(secrets) == 0 {
+		if err != nil {
+			return c.Status(fiber.StatusInternalServerError).JSON(utils.UnknownJSONError(err))
+		}
+		return c.Status(fiber.StatusNotFound).JSON(utils.JSONError(utils.GetSecretsByEnvNonExistentID))
 	}
 
 	return c.Status(fiber.StatusOK).JSON(secrets)

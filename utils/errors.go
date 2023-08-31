@@ -31,6 +31,8 @@ const (
 	UpdateEnvironmentNonExistentID
 	GetSecretInvalidID
 	GetSecretNonExistentID
+	GetSecretsByEnvInvalidID
+	GetSecretsByEnvNonExistentID
 )
 
 var ErrorCode = map[ErrorResponseCode]string{
@@ -56,6 +58,8 @@ var ErrorCode = map[ErrorResponseCode]string{
 	UpdateEnvironmentNonExistentID:        "E019",
 	GetSecretInvalidID:                    "E020",
 	GetSecretNonExistentID:                "E021",
+	GetSecretsByEnvInvalidID:              "E022",
+	GetSecretsByEnvNonExistentID:          "E023",
 }
 
 type ResponseError struct {

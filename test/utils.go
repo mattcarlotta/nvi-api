@@ -128,7 +128,7 @@ func CreateHTTPRequest(test *TestResponse, body ...interface{}) *http.Request {
 }
 
 func CreateAuthHTTPRequest(test *TestResponse, token *string, body ...interface{}) *http.Request {
-	req := CreateHTTPRequest(test, body)
+	req := CreateHTTPRequest(test, body...)
 	req.Header.Add("Cookie", fmt.Sprintf("SESSION_TOKEN=%s", *token))
 
 	return req

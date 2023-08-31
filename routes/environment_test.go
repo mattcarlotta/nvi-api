@@ -6,7 +6,7 @@ import (
 
 	"github.com/gofiber/fiber/v2"
 	"github.com/google/uuid"
-	// "github.com/mattcarlotta/nvi-api/models"
+	"github.com/mattcarlotta/nvi-api/models"
 	"github.com/mattcarlotta/nvi-api/test"
 	"github.com/mattcarlotta/nvi-api/utils"
 	"github.com/stretchr/testify/assert"
@@ -56,10 +56,8 @@ func TestGetEnvironmentInvalidID(t *testing.T) {
 func TestGetEnvironmentNonExistentID(t *testing.T) {
 	u, token := testutils.CreateUser("get_env_non_existent_id@example.com", true)
 
-	envUUID := uuid.New()
-
 	test := &testutils.TestResponse{
-		Route:        fmt.Sprintf("/environment/%s", envUUID.String()),
+		Route:        fmt.Sprintf("/environment/%s", uuid.NewString()),
 		Method:       fiber.MethodGet,
 		ExpectedCode: fiber.StatusNotFound,
 	}
@@ -163,4 +161,149 @@ func TestCurrentEnvironmentSuccess(t *testing.T) {
 
 	assert.Equal(t, test.ExpectedCode, res.StatusCode)
 	assert.Equal(t, resBody, fmt.Sprintf("Successfully created a(n) %s environment!", envName))
+}
+
+func TestDeleteEnvironmentInvalidID(t *testing.T) {
+	u, token := testutils.CreateUser("delete_env_invalid_id@example.com", true)
+
+	test := &testutils.TestResponse{
+		Route:        "/delete/environment/not_a_uuid",
+		Method:       fiber.MethodDelete,
+		ExpectedCode: fiber.StatusBadRequest,
+	}
+
+	req := testutils.CreateAuthHTTPRequest(test, &token)
+
+	res := sendAppRequest(req)
+
+	resBody := testutils.ParseJSONBodyError(&res.Body)
+
+	defer testutils.DeleteUser(&u)
+	defer res.Body.Close()
+
+	assert.Equal(t, test.ExpectedCode, res.StatusCode)
+	assert.Equal(t, resBody.Error, utils.ErrorCode[utils.DeleteEnvironmentInvalidID])
+}
+
+func TestDeleteEnvironmentNonExistentID(t *testing.T) {
+	u, token := testutils.CreateUser("delete_env_non_existent_id@example.com", true)
+
+	test := &testutils.TestResponse{
+		Route:        fmt.Sprintf("/delete/environment/%s", uuid.NewString()),
+		Method:       fiber.MethodDelete,
+		ExpectedCode: fiber.StatusNotFound,
+	}
+
+	req := testutils.CreateAuthHTTPRequest(test, &token)
+
+	res := sendAppRequest(req)
+
+	resBody := testutils.ParseJSONBodyError(&res.Body)
+
+	defer testutils.DeleteUser(&u)
+	defer res.Body.Close()
+
+	assert.Equal(t, test.ExpectedCode, res.StatusCode)
+	assert.Equal(t, resBody.Error, utils.ErrorCode[utils.DeleteEnvironmentNonExistentID])
+}
+
+func TestDeleteEnvironmentSuccess(t *testing.T) {
+	u, token := testutils.CreateUser("delete_new_env@example.com", true)
+	e := testutils.CreateEnvironment("delete_environment_name", token)
+
+	test := &testutils.TestResponse{
+		Route:        fmt.Sprintf("/delete/environment/%s", e.ID.String()),
+		Method:       fiber.MethodDelete,
+		ExpectedCode: fiber.StatusOK,
+	}
+
+	req := testutils.CreateAuthHTTPRequest(test, &token)
+
+	res := sendAppRequest(req)
+
+	resBody := testutils.ParseText(&res.Body)
+
+	defer testutils.DeleteUser(&u)
+	defer res.Body.Close()
+
+	assert.Equal(t, test.ExpectedCode, res.StatusCode)
+	assert.Equal(t, resBody, fmt.Sprintf("Successfully deleted the %s environment!", e.Name))
+}
+
+func TestUpdateEnvironmentInvalidID(t *testing.T) {
+	u, token := testutils.CreateUser("update_env_invalid_id@example.com", true)
+
+	test := &testutils.TestResponse{
+		Route:        "/update/environment",
+		Method:       fiber.MethodPut,
+		ExpectedCode: fiber.StatusBadRequest,
+	}
+
+	req := testutils.CreateAuthHTTPRequest(test, &token)
+
+	res := sendAppRequest(req)
+
+	resBody := testutils.ParseJSONBodyError(&res.Body)
+
+	defer testutils.DeleteUser(&u)
+	defer res.Body.Close()
+
+	assert.Equal(t, test.ExpectedCode, res.StatusCode)
+	assert.Equal(t, resBody.Error, utils.ErrorCode[utils.UpdateEnvironmentInvalidBody])
+}
+
+func TestUpdateEnvironmentNonExistentID(t *testing.T) {
+	u, token := testutils.CreateUser("update_env_non_existent_id@example.com", true)
+
+	env := &models.ReqUpdateEnv{
+		ID:          uuid.NewString(),
+		UpdatedName: "uuid_does_not_exist",
+	}
+
+	test := &testutils.TestResponse{
+		Route:        "/update/environment",
+		Method:       fiber.MethodPut,
+		ExpectedCode: fiber.StatusNotFound,
+	}
+
+	req := testutils.CreateAuthHTTPRequest(test, &token, env)
+
+	res := sendAppRequest(req)
+
+	resBody := testutils.ParseJSONBodyError(&res.Body)
+
+	defer testutils.DeleteUser(&u)
+	defer res.Body.Close()
+
+	assert.Equal(t, test.ExpectedCode, res.StatusCode)
+	assert.Equal(t, resBody.Error, utils.ErrorCode[utils.UpdateEnvironmentNonExistentID])
+}
+
+func TestUpdateEnvironmentSuccess(t *testing.T) {
+	u, token := testutils.CreateUser("update_env_success@example.com", true)
+	e := testutils.CreateEnvironment("update_env_success", token)
+
+	updatedName := "updated_env_name"
+	env := &models.ReqUpdateEnv{
+		ID:          e.ID.String(),
+		UpdatedName: updatedName,
+	}
+
+	test := &testutils.TestResponse{
+		Route:        "/update/environment",
+		Method:       fiber.MethodPut,
+		ExpectedCode: fiber.StatusOK,
+	}
+
+	req := testutils.CreateAuthHTTPRequest(test, &token, env)
+
+	res := sendAppRequest(req)
+
+	resBody := testutils.ParseText(&res.Body)
+
+	defer testutils.DeleteUser(&u)
+	defer res.Body.Close()
+
+	assert.Equal(t, test.ExpectedCode, res.StatusCode)
+	assert.Equal(t, resBody, fmt.Sprintf("Successfully updated the environment name to %s!", updatedName))
 }

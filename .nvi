@@ -26,4 +26,4 @@ required = ["API_HOST", "CLIENT_HOST", "COOKIE_KEY", "DB_HOST", "DB_NAME", "DB_P
 debug = false
 files = ["test.env"]
 exec = "go test ./... -count=1"
-required = ["API_HOST", "CLIENT_HOST", "COOKIE_KEY", "DB_HOST", "DB_NAME", "DB_PASSWORD", "DB_PORT", "DB_USER", "JWT_SECRET_KEY", "PORT"]
+required = ["API_HOST", "CLIENT_HOST", "COOKIE_KEY", "DB_HOST", "DB_NAME", "DB_PASSWORD", "DB_PORT", "DB_USER", "IN_TESTING", "JWT_SECRET_KEY", "PORT"]

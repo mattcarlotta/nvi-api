@@ -15,7 +15,7 @@ var app *fiber.App
 func sendAppRequest(req *http.Request) *http.Response {
 	res, err := app.Test(req, -1)
 	if err != nil {
-		log.Fatal("failed to make request to register user controller")
+		log.Fatal("failed to make request to that controller")
 	}
 
 	return res

@@ -24,7 +24,7 @@ func CreateConnection() *gorm.DB {
 	)
 
 	logType := logger.Info
-	if os.Getenv("IN_PRODUCTION") == "true" {
+	if os.Getenv("IN_PRODUCTION") == "true" || os.Getenv("IN_TESTING") == "true" {
 		logType = logger.Silent
 	}
 

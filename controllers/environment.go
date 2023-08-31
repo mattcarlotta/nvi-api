@@ -69,9 +69,7 @@ func DeleteEnvironment(c *fiber.Ctx) error {
 
 	id := c.Params("id")
 	if err := utils.Validate().Var(id, "required,uuid"); err != nil {
-		return c.Status(fiber.StatusBadRequest).JSON(
-			fiber.Map{"error": "You must provide a valid environment id!"},
-		)
+		return c.Status(fiber.StatusBadRequest).JSON(utils.JSONError(utils.DeleteEnvironmentInvalidID))
 	}
 
 	return db.Transaction(func(tx *gorm.DB) error {
@@ -81,9 +79,7 @@ func DeleteEnvironment(c *fiber.Ctx) error {
 		if err := tx.Where(
 			&models.Environment{ID: parsedID, UserID: userSessionID},
 		).First(&environment).Error; err != nil {
-			return c.Status(fiber.StatusOK).JSON(
-				fiber.Map{"error": "The provided environment doesn't appear to exist!"},
-			)
+			return c.Status(fiber.StatusNotFound).JSON(utils.JSONError(utils.DeleteEnvironmentNonExistentID))
 		}
 
 		var secrets []models.Secret
@@ -91,7 +87,7 @@ func DeleteEnvironment(c *fiber.Ctx) error {
 			&secrets, "user_id=?", userSessionID,
 		).Error; err != nil || len(secrets) > 0 {
 			if err != nil {
-				return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{"error": err.Error()})
+				return c.Status(fiber.StatusInternalServerError).JSON(utils.UnknownJSONError(err))
 			}
 
 			for _, secret := range secrets {
@@ -104,10 +100,10 @@ func DeleteEnvironment(c *fiber.Ctx) error {
 		}
 
 		if err := tx.Delete(&environment).Error; err != nil {
-			return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{"error": err.Error()})
+			return c.Status(fiber.StatusInternalServerError).JSON(utils.UnknownJSONError(err))
 		}
 
-		return c.Status(fiber.StatusCreated).SendString(
+		return c.Status(fiber.StatusOK).SendString(
 			fmt.Sprintf("Successfully deleted the %s environment!", environment.Name),
 		)
 	})
@@ -120,31 +116,27 @@ func UpdateEnvironment(c *fiber.Ctx) error {
 
 	data := new(models.ReqUpdateEnv)
 	if err := c.BodyParser(data); err != nil {
-		return c.Status(fiber.StatusBadRequest).JSON(
-			fiber.Map{"error": "You must provide a valid environment id and updated environment name!"},
-		)
+		fmt.Printf("\nError: %v", err)
+		return c.Status(fiber.StatusBadRequest).JSON(utils.JSONError(utils.UpdateEnvironmentInvalidBody))
 	}
 
 	if err := utils.Validate().Struct(data); err != nil {
-		return c.Status(fiber.StatusBadRequest).JSON(
-			fiber.Map{"error": "You must provide a valid environment id and updated environment name!"},
-		)
+		fmt.Printf("\nError: %v", err)
+		return c.Status(fiber.StatusBadRequest).JSON(utils.JSONError(utils.UpdateEnvironmentInvalidBody))
 	}
 
 	var environment models.Environment
 	if err := db.Where(
 		&models.Environment{ID: utils.MustParseUUID(data.ID), UserID: userSessionID},
 	).First(&environment).Error; err != nil {
-		return c.Status(fiber.StatusOK).JSON(
-			fiber.Map{"error": "The provided environment doesn't appear to exist."},
-		)
+		return c.Status(fiber.StatusNotFound).JSON(utils.JSONError(utils.UpdateEnvironmentNonExistentID))
 	}
 
 	if err := db.Model(&environment).Update("name", &data.UpdatedName).Error; err != nil {
-		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{"error": err.Error()})
+		return c.Status(fiber.StatusInternalServerError).JSON(utils.UnknownJSONError(err))
 	}
 
-	return c.Status(fiber.StatusCreated).SendString(
+	return c.Status(fiber.StatusOK).SendString(
 		fmt.Sprintf("Successfully updated the environment name to %s!", data.UpdatedName),
 	)
 }

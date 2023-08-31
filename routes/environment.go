@@ -12,5 +12,5 @@ func EnvironmentRoutes(app *fiber.App) {
 	environment.Get("/environments", middlewares.RequiresCookieSession, controllers.GetAllEnvironments)
 	environment.Post("/create/environment/:name", middlewares.RequiresCookieSession, controllers.CreateEnvironment)
 	environment.Delete("/delete/environment/:id", middlewares.RequiresCookieSession, controllers.DeleteEnvironment)
-	environment.Patch("/update/environment", middlewares.RequiresCookieSession, controllers.UpdateEnvironment)
+	environment.Put("/update/environment", middlewares.RequiresCookieSession, controllers.UpdateEnvironment)
 }

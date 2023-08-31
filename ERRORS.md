@@ -181,3 +181,47 @@ token may need to be regenerated
 - Explanation: the request params contains an environment `name` that already in use by the user; another name should 
 be used instead
 
+## E016
+
+- Error Name: `DeleteEnvironmentInvalidID`
+- Controller: `environment`
+- Path: `/delete/environment/:id`
+- Method: `DELETE`
+- Status: `400`
+- Params: `id`
+- Explanation: the request params doesn't pass one or more of the following field validation rules:
+  - id: `required,uuid`
+
+## E017
+
+- Error Name: `DeleteEnvironmentNonExistentID`
+- Controller: `environment`
+- Path: `/delete/environment/:id`
+- Method: `DELETE`
+- Status: `404`
+- Params: `id`
+- Explanation: the request params contains an `id` that doesn't match a user created environment
+
+## E018
+
+- Error Name: `UpdateEnvironmentInvalidBody`
+- Controller: `environment`
+- Path: `/update/environment`
+- Method: `PUT`
+- Status: `400`
+- Content: `application/json`
+- Body: `id, updatedName`
+- Explanation: the request body doesn't pass one or more of the following field validation rules:
+  - id: `required,uuid`
+  - updatedName: `required,envname,lte=255` (`envname` is a custom validation)
+
+## E019
+
+- Error Name: `UpdateEnvironmentNonExistentID`
+- Controller: `user`
+- Path: `/update/environment`
+- Method: `PUT`
+- Status: `404`
+- Content: `application/json`
+- Body: `id, updatedName`
+- Explanation: the request params contains an `id` that doesn't match a user created environment

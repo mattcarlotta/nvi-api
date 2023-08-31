@@ -3,6 +3,7 @@ package utils
 import (
 	"fmt"
 	"log"
+	"os"
 )
 
 type ErrorResponseCode int
@@ -20,10 +21,14 @@ const (
 	SendResetPasswordInvalidEmail
 	UpdatePasswordInvalidBody
 	UpdatePasswordInvalidToken
-	CreateEnvironmentInvalidName
-	CreateEnvironmentNameTaken
 	GetEnvironmentInvalidID
 	GetEnvironmentNonExistentID
+	CreateEnvironmentInvalidName
+	CreateEnvironmentNameTaken
+	DeleteEnvironmentInvalidID
+	DeleteEnvironmentNonExistentID
+	UpdateEnvironmentInvalidBody
+	UpdateEnvironmentNonExistentID
 )
 
 var ErrorCode = map[ErrorResponseCode]string{
@@ -43,6 +48,10 @@ var ErrorCode = map[ErrorResponseCode]string{
 	GetEnvironmentNonExistentID:           "E013",
 	CreateEnvironmentInvalidName:          "E014",
 	CreateEnvironmentNameTaken:            "E015",
+	DeleteEnvironmentInvalidID:            "E016",
+	DeleteEnvironmentNonExistentID:        "E017",
+	UpdateEnvironmentInvalidBody:          "E018",
+	UpdateEnvironmentNonExistentID:        "E019",
 }
 
 type ResponseError struct {
@@ -51,7 +60,9 @@ type ResponseError struct {
 }
 
 func JSONError(code ErrorResponseCode) ResponseError {
-	log.Printf("Error: %s", ErrorCode[code])
+	if os.Getenv("IN_TESTING") != "true" {
+		log.Printf("Error: %s", ErrorCode[code])
+	}
 	return ResponseError{
 		Resource: fmt.Sprintf("https://github.com/mattcarlotta/nvi-api/blob/main/ERRORS.md#%s", ErrorCode[code]),
 		Error:    ErrorCode[code],
@@ -59,7 +70,9 @@ func JSONError(code ErrorResponseCode) ResponseError {
 }
 
 func UnknownJSONError(err error) ResponseError {
-	log.Printf("An unknown error occured: %s", err.Error())
+	if os.Getenv("IN_TESTING") != "true" {
+		log.Printf("An unknown error occured: %s", err.Error())
+	}
 	return ResponseError{
 		Resource: fmt.Sprintf("https://github.com/mattcarlotta/nvi-api/blob/main/ERRORS.md#%s", ErrorCode[Unknown]),
 		Error:    err.Error(),

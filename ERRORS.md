@@ -178,8 +178,8 @@ token may need to be regenerated
 - Method: `POST`
 - Status: `409`
 - Params: `name`
-- Explanation: the request params contains an environment `name` that already in use by the user; another name should 
-be used instead
+- Explanation: the request params contains an environment `name` that is already in use by the user; another 
+name should be used instead
 
 ## E016
 
@@ -224,7 +224,7 @@ be used instead
 - Status: `404`
 - Content: `application/json`
 - Body: `id, updatedName`
-- Explanation: the request params contains an `id` that doesn't match a user created environment
+- Explanation: the request body contains an `id` that doesn't match a user created environment
 
 ## E020
 
@@ -255,7 +255,7 @@ be used instead
 - Method: `GET`
 - Status: `400`
 - Params: `id`
-- Explanation: the request body doesn't pass one or more of the following field validation rules:
+- Explanation: the request params doesn't pass one or more of the following field validation rules:
   - id: `required,uuid`
 
 ## E023
@@ -309,7 +309,7 @@ be used instead
 - Method: `DELETE`
 - Status: `400`
 - Params: `id`
-- Explanation: the request body doesn't pass one or more of the following field validation rules:
+- Explanation: the request params doesn't pass one or more of the following field validation rules:
   - id: `required,uuid`
 
 ## E028

@@ -38,6 +38,10 @@ const (
 	CreateSecretKeyAlreadyExists
 	DeleteSecretInvalidID
 	DeleteSecretNonExistentID
+	UpdateSecretInvalidBody
+	UpdateSecretInvalidID
+	UpdateSecretNonExistentEnv
+	UpdateSecretKeyAlreadyExists
 )
 
 var ErrorCode = map[ErrorResponseCode]string{
@@ -70,6 +74,10 @@ var ErrorCode = map[ErrorResponseCode]string{
 	CreateSecretKeyAlreadyExists:          "E026",
 	DeleteSecretInvalidID:                 "E027",
 	DeleteSecretNonExistentID:             "E028",
+	UpdateSecretInvalidBody:               "E029",
+	UpdateSecretInvalidID:                 "E030",
+	UpdateSecretNonExistentEnv:            "E031",
+	UpdateSecretKeyAlreadyExists:          "E032",
 }
 
 type ResponseError struct {

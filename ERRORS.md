@@ -293,13 +293,13 @@ be used instead
 
 ## E026
 
-- Error Name: `CreateSecretNonExistentEnv`
+- Error Name: `CreateSecretKeyAlreadyExists`
 - Controller: `secret`
 - Path: `/create/secret`
 - Method: `POST`
 - Status: `409`
 - Body: `environmentIDs, key, value`
-- Explanation: the request body `key` value matches a pre-existing key value within a user created environments
+- Explanation: the request body `key` value matches a pre-existing key value within one or more user created environments
 
 ## E027
 
@@ -321,3 +321,47 @@ be used instead
 - Status: `404`
 - Params: `id`
 - Explanation: the request params contains an `id` that doesn't match a user created environment
+
+## E029
+
+- Error Name: `UpdateSecretInvalidBody`
+- Controller: `secret`
+- Path: `/update/secret`
+- Method: `PUT`
+- Status: `400`
+- Body: `id, environmentIDs, key, value`
+- Explanation: the request body doesn't pass one or more of the following field validation rules:
+  - id: `required,uuid`
+  - environmentIDs: `uuidarray` (`uuidarray` is a custom validation)
+  - key: `required,gte=2,lte=255`
+  - value: `required,lte=5000`
+
+## E030
+
+- Error Name: `UpdateSecretInvalidID`
+- Controller: `secret`
+- Path: `/update/secret`
+- Method: `PUT`
+- Status: `404`
+- Body: `id, environmentIDs, key, value`
+- Explanation: the request body contains an `id` that doesn't match a user created secret
+
+## E031
+
+- Error Name: `UpdateSecretNonExistentEnv`
+- Controller: `secret`
+- Path: `/update/secret`
+- Method: `PUT`
+- Status: `404`
+- Body: `id, environmentIDs, key, value`
+- Explanation: the request body `environmentIDs` value doesn't match any user created environments
+
+## E032
+
+- Error Name: `UpdateSecretKeyAlreadyExists`
+- Controller: `secret`
+- Path: `/update/secret`
+- Method: `PUT`
+- Status: `409`
+- Body: `id, environmentIDs, key, value`
+- Explanation: the request body `key` value matches a pre-existing key value within one or more user created environments

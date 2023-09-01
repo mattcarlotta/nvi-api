@@ -145,17 +145,11 @@ func UpdateSecret(c *fiber.Ctx) error {
 
 	data := new(models.ReqUpdateSecret)
 	if err := c.BodyParser(data); err != nil {
-		return c.Status(fiber.StatusBadRequest).JSON(
-			fiber.Map{"error": "You must provide valid environments and a secret key name with content!"},
-		)
+		return c.Status(fiber.StatusBadRequest).JSON(utils.JSONError(utils.UpdateSecretInvalidBody))
 	}
 
 	if err := utils.Validate().Struct(data); err != nil {
-		return c.Status(fiber.StatusBadRequest).JSON(
-			fiber.Map{
-				"error": "You must provide a valid secret id, one or more environment ids and a secret key name with content!",
-			},
-		)
+		return c.Status(fiber.StatusBadRequest).JSON(utils.JSONError(utils.UpdateSecretInvalidBody))
 	}
 
 	return db.Transaction(func(tx *gorm.DB) error {
@@ -163,9 +157,7 @@ func UpdateSecret(c *fiber.Ctx) error {
 
 		var secret models.Secret
 		if err := tx.Where(&models.Secret{ID: parsedID, UserID: userSessionID}).First(&secret).Error; err != nil {
-			return c.Status(fiber.StatusBadRequest).JSON(
-				fiber.Map{"error": "The provided secret doesn't appear to exist!"},
-			)
+			return c.Status(fiber.StatusNotFound).JSON(utils.JSONError(utils.UpdateSecretInvalidID))
 		}
 
 		environmentIDs, err := utils.ParseUUIDs(data.EnvironmentIDs)
@@ -177,9 +169,7 @@ func UpdateSecret(c *fiber.Ctx) error {
 		if err := tx.Find(
 			&environments, "id IN ? AND user_id=?", environmentIDs, userSessionID,
 		).Error; err != nil || len(environments) == 0 {
-			return c.Status(fiber.StatusBadRequest).JSON(
-				fiber.Map{"error": "The provided environment doesn't appear to exist!"},
-			)
+			return c.Status(fiber.StatusNotFound).JSON(utils.JSONError(utils.UpdateSecretNonExistentEnv))
 		}
 
 		var secrets []models.Secret
@@ -196,11 +186,7 @@ func UpdateSecret(c *fiber.Ctx) error {
 
 			duplicates := models.GetDupKeyinEnvs(&secrets)
 			if len(duplicates) > 0 {
-				return c.Status(fiber.StatusConflict).JSON(
-					fiber.Map{"error": fmt.Sprintf(
-						"The key '%s' already exists for the following selected environments: %s.", data.Key, duplicates),
-					},
-				)
+				return c.Status(fiber.StatusConflict).JSON(utils.JSONError(utils.UpdateSecretKeyAlreadyExists))
 			}
 
 		}

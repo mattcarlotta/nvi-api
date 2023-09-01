@@ -267,3 +267,57 @@ be used instead
 - Status: `404`
 - Params: `id`
 - Explanation: the request params contains an `id` that doesn't match a user created environment
+
+## E024
+
+- Error Name: `CreateSecretInvalidBody`
+- Controller: `secret`
+- Path: `/create/secret`
+- Method: `POST`
+- Status: `400`
+- Body: `environmentIDs, key, value`
+- Explanation: the request body doesn't pass one or more of the following field validation rules:
+  - environmentIDs: `uuidarray` (`uuidarray` is a custom validation)
+  - key: `required,gte=2,lte=255`
+  - value: `required,lte=5000`
+
+## E025
+
+- Error Name: `CreateSecretNonExistentEnv`
+- Controller: `secret`
+- Path: `/create/secret`
+- Method: `POST`
+- Status: `404`
+- Body: `environmentIDs, key, value`
+- Explanation: the request body `environmentIDs` value doesn't match any user created environments
+
+## E026
+
+- Error Name: `CreateSecretNonExistentEnv`
+- Controller: `secret`
+- Path: `/create/secret`
+- Method: `POST`
+- Status: `409`
+- Body: `environmentIDs, key, value`
+- Explanation: the request body `key` value matches a pre-existing key value within a user created environments
+
+## E027
+
+- Error Name: `DeleteSecretInvalidID`
+- Controller: `secret`
+- Path: `/delete/secret/:id`
+- Method: `DELETE`
+- Status: `400`
+- Params: `id`
+- Explanation: the request body doesn't pass one or more of the following field validation rules:
+  - id: `required,uuid`
+
+## E028
+
+- Error Name: `DeleteSecretNonExistentID`
+- Controller: `secret`
+- Path: `/delete/secret/:id`
+- Method: `DELETE`
+- Status: `404`
+- Params: `id`
+- Explanation: the request params contains an `id` that doesn't match a user created environment

@@ -103,7 +103,7 @@ func TestGetEnvironmentSuccess(t *testing.T) {
 	assert.Equal(t, test.ExpectedCode, res.StatusCode)
 }
 
-func TestCurrentEnvironmentInvalidName(t *testing.T) {
+func TestCreateEnvironmentInvalidName(t *testing.T) {
 	u, token := testutils.CreateUser("create_env_empty@example.com", true)
 
 	test := &testutils.TestResponse{
@@ -127,7 +127,7 @@ func TestCurrentEnvironmentInvalidName(t *testing.T) {
 	assert.Equal(t, resBody.Error, utils.ErrorCode[utils.CreateEnvironmentInvalidName])
 }
 
-func TestCurrentEnvironmentNameTaken(t *testing.T) {
+func TestCreateEnvironmentNameTaken(t *testing.T) {
 	u, token := testutils.CreateUser("create_env_taken@example.com", true)
 	testutils.CreateEnvironment("taken_environment_name", token)
 
@@ -152,7 +152,7 @@ func TestCurrentEnvironmentNameTaken(t *testing.T) {
 	assert.Equal(t, resBody.Error, utils.ErrorCode[utils.CreateEnvironmentNameTaken])
 }
 
-func TestCurrentEnvironmentSuccess(t *testing.T) {
+func TestCreateEnvironmentSuccess(t *testing.T) {
 	u, token := testutils.CreateUser("create_new_env@example.com", true)
 
 	envName := "this_is_a_new_env"

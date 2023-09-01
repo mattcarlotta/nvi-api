@@ -62,17 +62,17 @@ func CreateUser(email string, verified bool) (models.User, string) {
 	}
 
 	if err := db.Create(newUser).Error; err != nil {
-		log.Fatal("unable to create a user")
+		log.Fatalf("unable to create a user: %v", err)
 	}
 
 	var existingUser models.User
 	if err := db.Where(&models.User{Email: email}).First(&existingUser).Error; err != nil {
-		log.Fatal("unable to locate created user")
+		log.Fatalf("unable to locate created user: %v", err)
 	}
 
 	token, _, err = existingUser.GenerateSessionToken()
 	if err != nil {
-		log.Fatal("Unable to generate a user session token")
+		log.Fatalf("unable to generate a user session token: %v", err)
 	}
 
 	return existingUser, token
@@ -88,7 +88,7 @@ func CreateUser(email string, verified bool) (models.User, string) {
 func ParseSessionId(userSessionID string) uuid.UUID {
 	token, err := utils.ValidateSessionToken(userSessionID)
 	if err != nil {
-		log.Fatal("unable to parse session token")
+		log.Fatalf("unable to parse session token: %v", err)
 	}
 
 	parsedID, err := utils.ParseUUID(token.UserID)
@@ -106,14 +106,14 @@ func CreateEnvironment(envName string, userSessionID string) models.Environment 
 
 	newEnv := models.Environment{Name: envName, UserID: parsedID}
 	if err := db.Create(&newEnv).Error; err != nil {
-		log.Fatal("unable to create the new environment")
+		log.Fatalf("unable to create the new environment: %v", err)
 	}
 
 	var environment models.Environment
 	if err := db.Where(
 		&models.Environment{Name: newEnv.Name, UserID: parsedID},
 	).First(&environment).Error; err != nil {
-		log.Fatal("unable to locate the new environment")
+		log.Fatalf("unable to locate the new environment: %v", err)
 	}
 
 	return environment
@@ -125,18 +125,17 @@ func CreateEnvironmentAndSecret(envName string, secretKey string, secretValue st
 
 	parsedID := ParseSessionId(userSessionID)
 
-	var environments []models.Environment
-	environments = append(environments, newEnv)
+	var environments = []models.Environment{newEnv}
 	secret := models.Secret{Key: secretKey, Value: []byte(secretValue), UserID: parsedID, Environments: environments}
 	if err := db.Create(&secret).Error; err != nil {
-		log.Fatal("unable to create new environment")
+		log.Fatalf("unable to create new environment: %v", err)
 	}
 
 	var newSecret models.Secret
 	if err := db.Where(
 		&models.Secret{Key: secretKey, UserID: parsedID},
 	).First(&newSecret).Error; err != nil {
-		log.Fatal("unable to locate the new environment")
+		log.Fatalf("unable to locate the new environment: %v", err)
 	}
 
 	return newEnv, newSecret

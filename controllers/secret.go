@@ -2,6 +2,7 @@ package controllers
 
 import (
 	"fmt"
+	"log"
 
 	"github.com/gofiber/fiber/v2"
 	"github.com/mattcarlotta/nvi-api/database"
@@ -58,29 +59,26 @@ func CreateSecret(c *fiber.Ctx) error {
 
 	data := new(models.ReqCreateSecret)
 	if err := c.BodyParser(data); err != nil {
-		return c.Status(fiber.StatusBadRequest).JSON(
-			fiber.Map{"error": "You must provide valid environments and a secret key with a value!"},
-		)
+		log.Printf("Failing at JSON parsing: %v", err)
+		return c.Status(fiber.StatusBadRequest).JSON(utils.JSONError(utils.CreateSecretInvalidBody))
 	}
 
 	if err := utils.Validate().Struct(data); err != nil {
-		return c.Status(fiber.StatusBadRequest).JSON(
-			fiber.Map{"error": "You must provide valid environments and a secret key name with content!"},
-		)
+		log.Printf("Failing at JSON validation: %v", err)
+		return c.Status(fiber.StatusBadRequest).JSON(utils.JSONError(utils.CreateSecretInvalidBody))
 	}
 
 	environmentIDs, err := utils.ParseUUIDs(data.EnvironmentIDs)
 	if err != nil {
-		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{"error": err.Error()})
+		log.Printf("Failing at UUID parsing: %v", err)
+		return c.Status(fiber.StatusInternalServerError).JSON(utils.UnknownJSONError(err))
 	}
 
 	var environments []models.Environment
 	if err := db.Find(
 		&environments, "id IN ? AND user_id=?", environmentIDs, userSessionID,
 	).Error; err != nil || len(environments) == 0 {
-		return c.Status(fiber.StatusNotFound).JSON(
-			fiber.Map{"error": "The provided environment ids don't appear to exist!"},
-		)
+		return c.Status(fiber.StatusNotFound).JSON(utils.JSONError(utils.CreateSecretNonExistentEnv))
 	}
 
 	// var secrets []models.SecretResult
@@ -103,19 +101,16 @@ func CreateSecret(c *fiber.Ctx) error {
 	if err := db.Preload("Environments", "ID in ?", environmentIDs).Find(
 		&secrets, "key=? AND user_id=?", data.Key, userSessionID,
 	).Error; err == nil {
-		envNames := models.GetDupKeyinEnvs(&secrets)
-		if len(envNames) > 0 {
-			return c.Status(fiber.StatusConflict).JSON(
-				fiber.Map{"error": fmt.Sprintf(
-					"The key '%s' already exists for the following selected environments: %s", data.Key, envNames),
-				},
-			)
+		duplicates := models.GetDupKeyinEnvs(&secrets)
+		if len(duplicates) > 0 {
+			return c.Status(fiber.StatusConflict).JSON(utils.JSONError(utils.CreateSecretKeyAlreadyExists))
 		}
 	}
 
 	newSecret := models.Secret{Key: data.Key, Value: []byte(data.Value), UserID: userSessionID, Environments: environments}
 	if err := db.Create(&newSecret).Error; err != nil {
-		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{"error": err.Error()})
+		log.Printf("Failing at creating Secret: %v", err)
+		return c.Status(fiber.StatusInternalServerError).JSON(utils.UnknownJSONError(err))
 	}
 
 	return c.Status(fiber.StatusCreated).SendString(fmt.Sprintf("Successfully created %s!", data.Key))
@@ -127,22 +122,18 @@ func DeleteSecret(c *fiber.Ctx) error {
 
 	id := c.Params("id")
 	if err := utils.Validate().Var(id, "required,uuid"); err != nil {
-		return c.Status(fiber.StatusBadRequest).JSON(
-			fiber.Map{"error": "You must provide a valid secret id!"},
-		)
+		return c.Status(fiber.StatusBadRequest).JSON(utils.JSONError(utils.DeleteSecretInvalidID))
 	}
 
 	var secret models.Secret
 	if err := db.Where(
 		&models.Environment{ID: utils.MustParseUUID(id), UserID: userSessionID},
 	).First(&secret).Error; err != nil {
-		return c.Status(fiber.StatusOK).JSON(
-			fiber.Map{"error": "The provided secret doesn't appear to exist!"},
-		)
+		return c.Status(fiber.StatusNotFound).JSON(utils.JSONError(utils.DeleteSecretNonExistentID))
 	}
 
 	if err := db.Delete(&secret).Error; err != nil {
-		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{"error": err.Error()})
+		return c.Status(fiber.StatusInternalServerError).JSON(utils.UnknownJSONError(err))
 	}
 
 	return c.Status(fiber.StatusCreated).SendString(fmt.Sprintf("Successfully deleted the %s secret!", secret.Key))
@@ -179,7 +170,7 @@ func UpdateSecret(c *fiber.Ctx) error {
 
 		environmentIDs, err := utils.ParseUUIDs(data.EnvironmentIDs)
 		if err != nil {
-			return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{"error": err.Error()})
+			return c.Status(fiber.StatusInternalServerError).JSON(utils.UnknownJSONError(err))
 		}
 
 		var environments []models.Environment
@@ -198,16 +189,16 @@ func UpdateSecret(c *fiber.Ctx) error {
 			"id", parsedID,
 		).Find(
 			&secrets, "key=? AND user_id=?", data.Key, userSessionID,
-		).Error; err != nil || len(secrets) != 0 {
+		).Error; err != nil || len(secrets) > 0 {
 			if err != nil {
-				return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{"error": err.Error()})
+				return c.Status(fiber.StatusInternalServerError).JSON(utils.UnknownJSONError(err))
 			}
 
-			envNames := models.GetDupKeyinEnvs(&secrets)
-			if len(envNames) > 0 {
+			duplicates := models.GetDupKeyinEnvs(&secrets)
+			if len(duplicates) > 0 {
 				return c.Status(fiber.StatusConflict).JSON(
 					fiber.Map{"error": fmt.Sprintf(
-						"The key '%s' already exists for the following selected environments: %s.", data.Key, envNames),
+						"The key '%s' already exists for the following selected environments: %s.", data.Key, duplicates),
 					},
 				)
 			}
@@ -216,15 +207,15 @@ func UpdateSecret(c *fiber.Ctx) error {
 
 		newValue, err := utils.CreateEncryptedText([]byte(data.Key))
 		if err != nil {
-			return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{"error": err.Error()})
+			return c.Status(fiber.StatusInternalServerError).JSON(utils.UnknownJSONError(err))
 		}
 
 		if err = tx.Model(&secret).Association("Environments").Replace(environments); err != nil {
-			return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{"error": err.Error()})
+			return c.Status(fiber.StatusInternalServerError).JSON(utils.UnknownJSONError(err))
 		}
 
 		if err = tx.Model(&secret).Updates(&models.Secret{Key: data.Key, Value: newValue}).Error; err != nil {
-			return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{"error": err.Error()})
+			return c.Status(fiber.StatusInternalServerError).JSON(utils.UnknownJSONError(err))
 		}
 
 		return c.Status(fiber.StatusCreated).SendString(fmt.Sprintf("Successfully updated the %s secret!", data.Key))

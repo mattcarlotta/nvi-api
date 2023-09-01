@@ -33,6 +33,11 @@ const (
 	GetSecretNonExistentID
 	GetSecretsByEnvInvalidID
 	GetSecretsByEnvNonExistentID
+	CreateSecretInvalidBody
+	CreateSecretNonExistentEnv
+	CreateSecretKeyAlreadyExists
+	DeleteSecretInvalidID
+	DeleteSecretNonExistentID
 )
 
 var ErrorCode = map[ErrorResponseCode]string{
@@ -60,6 +65,11 @@ var ErrorCode = map[ErrorResponseCode]string{
 	GetSecretNonExistentID:                "E021",
 	GetSecretsByEnvInvalidID:              "E022",
 	GetSecretsByEnvNonExistentID:          "E023",
+	CreateSecretInvalidBody:               "E024",
+	CreateSecretNonExistentEnv:            "E025",
+	CreateSecretKeyAlreadyExists:          "E026",
+	DeleteSecretInvalidID:                 "E027",
+	DeleteSecretNonExistentID:             "E028",
 }
 
 type ResponseError struct {

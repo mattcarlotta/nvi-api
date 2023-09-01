@@ -140,6 +140,7 @@ func CreateEnvironmentAndSecret(envName string, secretKey string, secretValue st
 
 	return newEnv, newSecret
 }
+
 func CreateHTTPRequest(test *TestResponse, body ...interface{}) *http.Request {
 	bodyBuf := new(bytes.Buffer)
 	if body != nil {

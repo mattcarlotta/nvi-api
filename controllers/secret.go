@@ -2,7 +2,6 @@ package controllers
 
 import (
 	"fmt"
-	"log"
 
 	"github.com/gofiber/fiber/v2"
 	"github.com/mattcarlotta/nvi-api/database"
@@ -59,18 +58,15 @@ func CreateSecret(c *fiber.Ctx) error {
 
 	data := new(models.ReqCreateSecret)
 	if err := c.BodyParser(data); err != nil {
-		log.Printf("Failing at JSON parsing: %v", err)
 		return c.Status(fiber.StatusBadRequest).JSON(utils.JSONError(utils.CreateSecretInvalidBody))
 	}
 
 	if err := utils.Validate().Struct(data); err != nil {
-		log.Printf("Failing at JSON validation: %v", err)
 		return c.Status(fiber.StatusBadRequest).JSON(utils.JSONError(utils.CreateSecretInvalidBody))
 	}
 
 	environmentIDs, err := utils.ParseUUIDs(data.EnvironmentIDs)
 	if err != nil {
-		log.Printf("Failing at UUID parsing: %v", err)
 		return c.Status(fiber.StatusInternalServerError).JSON(utils.UnknownJSONError(err))
 	}
 
@@ -109,7 +105,6 @@ func CreateSecret(c *fiber.Ctx) error {
 
 	newSecret := models.Secret{Key: data.Key, Value: []byte(data.Value), UserID: userSessionID, Environments: environments}
 	if err := db.Create(&newSecret).Error; err != nil {
-		log.Printf("Failing at creating Secret: %v", err)
 		return c.Status(fiber.StatusInternalServerError).JSON(utils.UnknownJSONError(err))
 	}
 
@@ -179,7 +174,7 @@ func UpdateSecret(c *fiber.Ctx) error {
 			"id", parsedID,
 		).Find(
 			&secrets, "key=? AND user_id=?", data.Key, userSessionID,
-		).Error; err != nil || len(secrets) > 0 {
+		).Error; err != nil || len(secrets) != 0 {
 			if err != nil {
 				return c.Status(fiber.StatusInternalServerError).JSON(utils.UnknownJSONError(err))
 			}
@@ -204,6 +199,6 @@ func UpdateSecret(c *fiber.Ctx) error {
 			return c.Status(fiber.StatusInternalServerError).JSON(utils.UnknownJSONError(err))
 		}
 
-		return c.Status(fiber.StatusCreated).SendString(fmt.Sprintf("Successfully updated the %s secret!", data.Key))
+		return c.Status(fiber.StatusOK).SendString(fmt.Sprintf("Successfully updated the %s secret!", data.Key))
 	})
 }

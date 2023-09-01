@@ -373,3 +373,189 @@ func TestDeleteSecretSuccess(t *testing.T) {
 	assert.Equal(t, test.ExpectedCode, res.StatusCode)
 	assert.Equal(t, resBody, fmt.Sprintf("Successfully deleted the %s secret!", s.Key))
 }
+
+func TestUpdateSecretEmptyBody(t *testing.T) {
+	u, token := testutils.CreateUser("update_secret_empty@example.com", true)
+
+	test := &testutils.TestResponse{
+		Route:        "/update/secret",
+		Method:       fiber.MethodPut,
+		ExpectedCode: fiber.StatusBadRequest,
+	}
+
+	req := testutils.CreateAuthHTTPRequest(test, &token)
+
+	res := sendAppRequest(req)
+
+	resBody := testutils.ParseJSONBodyError(&res.Body)
+
+	defer func() {
+		testutils.DeleteUser(&u)
+		res.Body.Close()
+	}()
+
+	assert.Equal(t, test.ExpectedCode, res.StatusCode)
+	assert.Equal(t, resBody.Error, utils.ErrorCode[utils.UpdateSecretInvalidBody])
+}
+
+func TestUpdateSecretInvalidBody(t *testing.T) {
+	u, token := testutils.CreateUser("update_secret_invalid@example.com", true)
+
+	secret := &models.ReqUpdateSecret{
+		ID: uuid.NewString(),
+		// invalid environment ids
+		EnvironmentIDs: []string{},
+		Key:            "UPDATE_KEY",
+		Value:          "update",
+	}
+
+	test := &testutils.TestResponse{
+		Route:        "/update/secret",
+		Method:       fiber.MethodPut,
+		ExpectedCode: fiber.StatusBadRequest,
+	}
+
+	req := testutils.CreateAuthHTTPRequest(test, &token, secret)
+
+	res := sendAppRequest(req)
+
+	resBody := testutils.ParseJSONBodyError(&res.Body)
+
+	defer func() {
+		testutils.DeleteUser(&u)
+		res.Body.Close()
+	}()
+
+	assert.Equal(t, test.ExpectedCode, res.StatusCode)
+	assert.Equal(t, resBody.Error, utils.ErrorCode[utils.UpdateSecretInvalidBody])
+}
+
+func TestUpdateSecretNonExistentID(t *testing.T) {
+	u, token := testutils.CreateUser("update_secret_non_existent_id@example.com", true)
+
+	secret := &models.ReqUpdateSecret{
+		// non-existent secret uuid
+		ID:             uuid.NewString(),
+		EnvironmentIDs: []string{uuid.NewString()},
+		Key:            "UPDATE_KEY",
+		Value:          "update",
+	}
+
+	test := &testutils.TestResponse{
+		Route:        "/update/secret",
+		Method:       fiber.MethodPut,
+		ExpectedCode: fiber.StatusNotFound,
+	}
+
+	req := testutils.CreateAuthHTTPRequest(test, &token, secret)
+
+	res := sendAppRequest(req)
+
+	resBody := testutils.ParseJSONBodyError(&res.Body)
+
+	defer func() {
+		testutils.DeleteUser(&u)
+		res.Body.Close()
+	}()
+
+	assert.Equal(t, test.ExpectedCode, res.StatusCode)
+	assert.Equal(t, resBody.Error, utils.ErrorCode[utils.UpdateSecretInvalidID])
+}
+
+func TestUpdateSecretNonExistentEnv(t *testing.T) {
+	u, token := testutils.CreateUser("update_secret_non_existent_env@example.com", true)
+	_, s := testutils.CreateEnvironmentAndSecret("update_secret_non_existent_env", "UPDATE_SECRET", "abc123", token)
+
+	secret := &models.ReqUpdateSecret{
+		ID: s.ID.String(),
+		// non-existent env uuid
+		EnvironmentIDs: []string{uuid.NewString()},
+		Key:            "UPDATE_KEY",
+		Value:          "update",
+	}
+
+	test := &testutils.TestResponse{
+		Route:        "/update/secret",
+		Method:       fiber.MethodPut,
+		ExpectedCode: fiber.StatusNotFound,
+	}
+
+	req := testutils.CreateAuthHTTPRequest(test, &token, secret)
+
+	res := sendAppRequest(req)
+
+	resBody := testutils.ParseJSONBodyError(&res.Body)
+
+	defer func() {
+		testutils.DeleteUser(&u)
+		res.Body.Close()
+	}()
+
+	assert.Equal(t, test.ExpectedCode, res.StatusCode)
+	assert.Equal(t, resBody.Error, utils.ErrorCode[utils.UpdateSecretNonExistentEnv])
+}
+
+func TestUpdateSecretKeyAlreadyExists(t *testing.T) {
+	u, token := testutils.CreateUser("update_secret_already_exists@example.com", true)
+	e, _ := testutils.CreateEnvironmentAndSecret("env_1", "TAKEN_KEY", "abc123", token)
+	_, s := testutils.CreateEnvironmentAndSecret("env_2", "NEW_KEY", "abc123", token)
+
+	secret := &models.ReqUpdateSecret{
+		ID:             s.ID.String(),
+		EnvironmentIDs: []string{e.ID.String()},
+		Key:            "TAKEN_KEY",
+		Value:          "def456",
+	}
+
+	test := &testutils.TestResponse{
+		Route:        "/update/secret",
+		Method:       fiber.MethodPut,
+		ExpectedCode: fiber.StatusConflict,
+	}
+
+	req := testutils.CreateAuthHTTPRequest(test, &token, secret)
+
+	res := sendAppRequest(req)
+
+	resBody := testutils.ParseJSONBodyError(&res.Body)
+
+	defer func() {
+		testutils.DeleteUser(&u)
+		res.Body.Close()
+	}()
+
+	assert.Equal(t, test.ExpectedCode, res.StatusCode)
+	assert.Equal(t, resBody.Error, utils.ErrorCode[utils.UpdateSecretKeyAlreadyExists])
+}
+
+func TestUpdateSecretSuccess(t *testing.T) {
+	u, token := testutils.CreateUser("update_secret_success@example.com", true)
+	e, s := testutils.CreateEnvironmentAndSecret("update_secret_success", "UPDATE_KEY", "abc123", token)
+
+	secret := &models.ReqUpdateSecret{
+		ID:             s.ID.String(),
+		EnvironmentIDs: []string{e.ID.String()},
+		Key:            "UPDATED_KEY",
+		Value:          "def456",
+	}
+
+	test := &testutils.TestResponse{
+		Route:        "/update/secret",
+		Method:       fiber.MethodPut,
+		ExpectedCode: fiber.StatusOK,
+	}
+
+	req := testutils.CreateAuthHTTPRequest(test, &token, secret)
+
+	res := sendAppRequest(req)
+
+	resBody := testutils.ParseText(&res.Body)
+
+	defer func() {
+		testutils.DeleteUser(&u)
+		res.Body.Close()
+	}()
+
+	assert.Equal(t, test.ExpectedCode, res.StatusCode)
+	assert.Equal(t, resBody, fmt.Sprintf("Successfully updated the %s secret!", secret.Key))
+}

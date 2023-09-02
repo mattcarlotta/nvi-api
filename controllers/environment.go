@@ -116,12 +116,10 @@ func UpdateEnvironment(c *fiber.Ctx) error {
 
 	data := new(models.ReqUpdateEnv)
 	if err := c.BodyParser(data); err != nil {
-		fmt.Printf("\nError: %v", err)
 		return c.Status(fiber.StatusBadRequest).JSON(utils.JSONError(utils.UpdateEnvironmentInvalidBody))
 	}
 
 	if err := utils.Validate().Struct(data); err != nil {
-		fmt.Printf("\nError: %v", err)
 		return c.Status(fiber.StatusBadRequest).JSON(utils.JSONError(utils.UpdateEnvironmentInvalidBody))
 	}
 

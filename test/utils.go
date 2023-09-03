@@ -142,16 +142,16 @@ func CreateEnvironmentAndSecret(envName string, secretKey string, secretValue st
 }
 
 func CreateHTTPRequest(test *TestResponse, body ...interface{}) *http.Request {
-	bodyBuf := new(bytes.Buffer)
+	var bodyBuf bytes.Buffer
 	if body != nil {
-		if err := json.NewEncoder(bodyBuf).Encode(body[0]); err != nil {
+		if err := json.NewEncoder(&bodyBuf).Encode(body[0]); err != nil {
 			log.Fatal(err)
 		}
 	} else {
 		bodyBuf.Write(nil)
 	}
 
-	req := httptest.NewRequest(test.Method, test.Route, bodyBuf)
+	req := httptest.NewRequest(test.Method, test.Route, &bodyBuf)
 	req.Header.Add("Content-Type", "application/json")
 
 	return req

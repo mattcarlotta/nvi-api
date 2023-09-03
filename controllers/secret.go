@@ -56,8 +56,8 @@ func CreateSecret(c *fiber.Ctx) error {
 	db := database.GetConnection()
 	userSessionID := utils.GetSessionID(c)
 
-	data := new(models.ReqCreateSecret)
-	if err := c.BodyParser(data); err != nil {
+	var data models.ReqCreateSecret
+	if err := c.BodyParser(&data); err != nil {
 		return c.Status(fiber.StatusBadRequest).JSON(utils.JSONError(utils.CreateSecretInvalidBody))
 	}
 
@@ -138,8 +138,8 @@ func UpdateSecret(c *fiber.Ctx) error {
 	db := database.GetConnection()
 	userSessionID := utils.GetSessionID(c)
 
-	data := new(models.ReqUpdateSecret)
-	if err := c.BodyParser(data); err != nil {
+	var data models.ReqUpdateSecret
+	if err := c.BodyParser(&data); err != nil {
 		return c.Status(fiber.StatusBadRequest).JSON(utils.JSONError(utils.UpdateSecretInvalidBody))
 	}
 

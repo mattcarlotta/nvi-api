@@ -14,8 +14,8 @@ import (
 func Register(c *fiber.Ctx) error {
 	db := database.GetConnection()
 
-	data := new(models.ReqRegisterUser)
-	if err := c.BodyParser(data); err != nil {
+	var data models.ReqRegisterUser
+	if err := c.BodyParser(&data); err != nil {
 		return c.Status(fiber.StatusBadRequest).JSON(utils.JSONError(utils.RegisterInvalidBody))
 	}
 
@@ -55,8 +55,8 @@ func Register(c *fiber.Ctx) error {
 func Login(c *fiber.Ctx) error {
 	db := database.GetConnection()
 
-	data := new(models.ReqLoginUser)
-	if err := c.BodyParser(data); err != nil {
+	var data models.ReqLoginUser
+	if err := c.BodyParser(&data); err != nil {
 		return c.Status(fiber.StatusBadRequest).JSON(utils.JSONError(utils.LoginInvalidBody))
 	}
 
@@ -184,8 +184,8 @@ func SendResetPasswordEmail(c *fiber.Ctx) error {
 func UpdatePassword(c *fiber.Ctx) error {
 	db := database.GetConnection()
 
-	data := new(models.ReqUpdateUser)
-	if err := c.BodyParser(data); err != nil {
+	var data models.ReqUpdateUser
+	if err := c.BodyParser(&data); err != nil {
 		return c.Status(fiber.StatusBadRequest).JSON(utils.JSONError(utils.UpdatePasswordInvalidBody))
 	}
 

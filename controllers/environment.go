@@ -114,8 +114,8 @@ func UpdateEnvironment(c *fiber.Ctx) error {
 	db := database.GetConnection()
 	userSessionID := utils.GetSessionID(c)
 
-	data := new(models.ReqUpdateEnv)
-	if err := c.BodyParser(data); err != nil {
+	var data models.ReqUpdateEnv
+	if err := c.BodyParser(&data); err != nil {
 		return c.Status(fiber.StatusBadRequest).JSON(utils.JSONError(utils.UpdateEnvironmentInvalidBody))
 	}
 

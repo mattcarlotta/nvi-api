@@ -24,5 +24,6 @@ type ReqCreateEnv struct {
 
 type ReqUpdateEnv struct {
 	ID          string `json:"id" validate:"required,uuid"`
+	ProjectID   string `json:"projectID" validate:"uuid"`
 	UpdatedName string `json:"updatedName" validate:"required,name,lte=255"`
 }

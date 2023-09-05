@@ -52,7 +52,7 @@ func CreateUser(email string, verified bool) (models.User, string) {
 	}
 
 	tokenByte := []byte(token)
-	newUser := &models.User{
+	newUser := models.User{
 		Name:     "Name",
 		Email:    email,
 		Password: Password,
@@ -60,21 +60,16 @@ func CreateUser(email string, verified bool) (models.User, string) {
 		Verified: verified,
 	}
 
-	if err := db.Create(newUser).Error; err != nil {
+	if err := db.Create(&newUser).Error; err != nil {
 		log.Fatalf("unable to create a user: %v", err)
 	}
 
-	var existingUser models.User
-	if err := db.Where(&models.User{Email: email}).First(&existingUser).Error; err != nil {
-		log.Fatalf("unable to locate created user: %v", err)
-	}
-
-	token, _, err = existingUser.GenerateSessionToken()
+	token, _, err = newUser.GenerateSessionToken()
 	if err != nil {
 		log.Fatalf("unable to generate a user session token: %v", err)
 	}
 
-	return existingUser, token
+	return newUser, token
 }
 
 // func DeleteEnvironment(existingEnvironment *models.Environment) {
@@ -108,14 +103,7 @@ func CreateProject(name string, userSessionID string) models.Project {
 		log.Fatalf("unable to create a new project %s: %v", name, err)
 	}
 
-	var project models.Project
-	if err := db.Where(
-		&models.Project{Name: name, UserID: parsedID},
-	).First(&project).Error; err != nil {
-		log.Fatalf("unable to locate project %s: %v", name, err)
-	}
-
-	return project
+	return newProject
 
 }
 
@@ -129,14 +117,7 @@ func CreateEnvironment(envName string, projectID uuid.UUID, userSessionID string
 		log.Fatalf("unable to create the new environment: %v", err)
 	}
 
-	var environment models.Environment
-	if err := db.Where(
-		&models.Environment{Name: newEnv.Name, ProjectID: projectID, UserID: parsedUserSessionID},
-	).First(&environment).Error; err != nil {
-		log.Fatalf("unable to locate the new environment: %v", err)
-	}
-
-	return environment
+	return newEnv
 }
 
 func CreateEnvironmentAndSecret(envName string, projectID uuid.UUID, secretKey string, secretValue string, userSessionID string) (models.Environment, models.Secret) {
@@ -145,20 +126,13 @@ func CreateEnvironmentAndSecret(envName string, projectID uuid.UUID, secretKey s
 
 	parsedID := ParseSessionId(userSessionID)
 
-	var environments = []models.Environment{newEnv}
+	environments := []models.Environment{newEnv}
 	secret := models.Secret{Key: secretKey, Value: []byte(secretValue), UserID: parsedID, Environments: environments}
 	if err := db.Create(&secret).Error; err != nil {
 		log.Fatalf("unable to create new environment: %v", err)
 	}
 
-	var newSecret models.Secret
-	if err := db.Where(
-		&models.Secret{Key: secretKey, UserID: parsedID},
-	).First(&newSecret).Error; err != nil {
-		log.Fatalf("unable to locate the new environment: %v", err)
-	}
-
-	return newEnv, newSecret
+	return newEnv, secret
 }
 
 func CreateProjectAndEnvironmentAndSecret(projectName string, envName string, secretKey string, secretValue string, userSessionID string) (models.Project, models.Environment, models.Secret) {

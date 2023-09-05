@@ -131,7 +131,6 @@ func DeleteEnvironment(c *fiber.Ctx) error {
 			fmt.Sprintf("Successfully deleted the %s environment!", environment.Name),
 		)
 	})
-
 }
 
 func UpdateEnvironment(c *fiber.Ctx) error {
@@ -147,18 +146,43 @@ func UpdateEnvironment(c *fiber.Ctx) error {
 		return c.Status(fiber.StatusBadRequest).JSON(utils.JSONError(utils.UpdateEnvironmentInvalidBody))
 	}
 
-	var environment models.Environment
-	if err := db.Where(
-		&models.Environment{ID: utils.MustParseUUID(data.ID), UserID: userSessionID},
-	).First(&environment).Error; err != nil {
-		return c.Status(fiber.StatusNotFound).JSON(utils.JSONError(utils.UpdateEnvironmentNonExistentID))
-	}
+	return db.Transaction(func(tx *gorm.DB) error {
+		projectID := utils.MustParseUUID(data.ProjectID)
 
-	if err := db.Model(&environment).Update("name", &data.UpdatedName).Error; err != nil {
-		return c.Status(fiber.StatusInternalServerError).JSON(utils.UnknownJSONError(err))
-	}
+		var project models.Project
+		if err := tx.Where(
+			&models.Project{ID: projectID, UserID: userSessionID},
+		).First(&project).Error; err != nil {
+			return c.Status(fiber.StatusNotFound).JSON(utils.JSONError(utils.UpdateEnvironmentInvalidProjectID))
+		}
 
-	return c.Status(fiber.StatusOK).SendString(
-		fmt.Sprintf("Successfully updated the environment name to %s!", data.UpdatedName),
-	)
+		envID := utils.MustParseUUID(data.ID)
+
+		if err := tx.Not(
+			"id", envID,
+		).Where(
+			&models.Environment{
+				Name:      data.UpdatedName,
+				ProjectID: project.ID,
+				UserID:    userSessionID,
+			},
+		).First(&models.Environment{}).Error; err == nil {
+			return c.Status(fiber.StatusConflict).JSON(utils.JSONError(utils.UpdateEnvironmentNameTaken))
+		}
+
+		var environment models.Environment
+		if err := tx.Where(
+			&models.Environment{ID: envID, ProjectID: projectID, UserID: userSessionID},
+		).First(&environment).Error; err != nil {
+			return c.Status(fiber.StatusNotFound).JSON(utils.JSONError(utils.UpdateEnvironmentNonExistentID))
+		}
+
+		if err := tx.Model(&environment).Update("name", &data.UpdatedName).Error; err != nil {
+			return c.Status(fiber.StatusInternalServerError).JSON(utils.UnknownJSONError(err))
+		}
+
+		return c.Status(fiber.StatusOK).SendString(
+			fmt.Sprintf("Successfully updated the environment name to %s!", data.UpdatedName),
+		)
+	})
 }

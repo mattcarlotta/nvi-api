@@ -29,6 +29,7 @@ func TestMain(m *testing.M) {
 	UserRoutes(app)
 	EnvironmentRoutes(app)
 	SecretRoutes(app)
+	ProjectRoutes(app)
 
 	os.Exit(m.Run())
 }

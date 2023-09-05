@@ -363,8 +363,8 @@ func TestDeleteEnvironmentSuccess(t *testing.T) {
 	assert.Equal(t, resBody, fmt.Sprintf("Successfully deleted the %s environment!", e.Name))
 }
 
-func TestUpdateEnvironmentInvalidID(t *testing.T) {
-	u, token := testutils.CreateUser("update_env_invalid_id@example.com", true)
+func TestUpdateEnvironmentInvalidBody(t *testing.T) {
+	u, token := testutils.CreateUser("update_env_invalid_body@example.com", true)
 
 	test := &testutils.TestResponse{
 		Route:        "/update/environment",
@@ -387,11 +387,45 @@ func TestUpdateEnvironmentInvalidID(t *testing.T) {
 	assert.Equal(t, resBody.Error, utils.ErrorCode[utils.UpdateEnvironmentInvalidBody])
 }
 
+func TestUpdateEnvironmentInvalidProjectID(t *testing.T) {
+	u, token := testutils.CreateUser("update_env_invalid_project_id@example.com", true)
+	p := testutils.CreateProject("update_env_invalid_project_id", token)
+	e := testutils.CreateEnvironment("update_env_invalid_project_id", p.ID, token)
+
+	env := &models.ReqUpdateEnv{
+		ID:          e.ID.String(),
+		ProjectID:   uuid.NewString(),
+		UpdatedName: "project_id_does_not_exist",
+	}
+
+	test := &testutils.TestResponse{
+		Route:        "/update/environment",
+		Method:       fiber.MethodPut,
+		ExpectedCode: fiber.StatusNotFound,
+	}
+
+	req := testutils.CreateAuthHTTPRequest(test, &token, env)
+
+	res := sendAppRequest(req)
+
+	resBody := testutils.ParseJSONBodyError(&res.Body)
+
+	defer func() {
+		testutils.DeleteUser(&u)
+		res.Body.Close()
+	}()
+
+	assert.Equal(t, test.ExpectedCode, res.StatusCode)
+	assert.Equal(t, resBody.Error, utils.ErrorCode[utils.UpdateEnvironmentInvalidProjectID])
+}
+
 func TestUpdateEnvironmentNonExistentID(t *testing.T) {
 	u, token := testutils.CreateUser("update_env_non_existent_id@example.com", true)
+	p := testutils.CreateProject("update_env_non_existent_id", token)
 
 	env := &models.ReqUpdateEnv{
 		ID:          uuid.NewString(),
+		ProjectID:   p.ID.String(),
 		UpdatedName: "uuid_does_not_exist",
 	}
 
@@ -416,14 +450,48 @@ func TestUpdateEnvironmentNonExistentID(t *testing.T) {
 	assert.Equal(t, resBody.Error, utils.ErrorCode[utils.UpdateEnvironmentNonExistentID])
 }
 
+func TestUpdateEnvironmentNameTaken(t *testing.T) {
+	u, token := testutils.CreateUser("update_env_name_taken@example.com", true)
+	p := testutils.CreateProject("update_env_name_taken", token)
+	e1 := testutils.CreateEnvironment("update_env_name_taken", p.ID, token)
+	e2 := testutils.CreateEnvironment("update_env_name_unused", p.ID, token)
+
+	env := &models.ReqUpdateEnv{
+		ID:          e2.ID.String(),
+		ProjectID:   p.ID.String(),
+		UpdatedName: e1.Name,
+	}
+
+	test := &testutils.TestResponse{
+		Route:        "/update/environment",
+		Method:       fiber.MethodPut,
+		ExpectedCode: fiber.StatusConflict,
+	}
+
+	req := testutils.CreateAuthHTTPRequest(test, &token, env)
+
+	res := sendAppRequest(req)
+
+	resBody := testutils.ParseJSONBodyError(&res.Body)
+
+	defer func() {
+		testutils.DeleteUser(&u)
+		res.Body.Close()
+	}()
+
+	assert.Equal(t, test.ExpectedCode, res.StatusCode)
+	assert.Equal(t, resBody.Error, utils.ErrorCode[utils.UpdateEnvironmentNameTaken])
+}
+
 func TestUpdateEnvironmentSuccess(t *testing.T) {
 	u, token := testutils.CreateUser("update_env_success@example.com", true)
-	p := testutils.CreateProject("update_env_success_project", token)
+	p := testutils.CreateProject("update_env_success", token)
 	e := testutils.CreateEnvironment("update_env_success", p.ID, token)
 
 	updatedName := "updated_env_name"
 	env := &models.ReqUpdateEnv{
 		ID:          e.ID.String(),
+		ProjectID:   p.ID.String(),
 		UpdatedName: updatedName,
 	}
 

@@ -23,6 +23,7 @@ func main() {
 	routes.UserRoutes(app)
 	routes.EnvironmentRoutes(app)
 	routes.SecretRoutes(app)
+	routes.ProjectRoutes(app)
 
 	log.Fatal(app.Listen(utils.GetEnv("PORT")))
 }

@@ -8,8 +8,8 @@ import (
 
 type Project struct {
 	ID        uuid.UUID `gorm:"type:uuid;default:uuid_generate_v4();primary_key" json:"id"`
-	Name      string    `gorm:"type:varchar(255);uniqueIndex;not null" json:"name"`
-	UserID    uuid.UUID `gorm:"type:uuid" json:"userID"`
+	Name      string    `gorm:"type:varchar(255);index:idx_project;not null" json:"name"`
+	UserID    uuid.UUID `gorm:"type:uuid;index:idx_project" json:"userID"`
 	User      User      `gorm:"foreignKey:UserID;references:ID;constraint:OnUpdate:CASCADE,OnDelete:CASCADE;" json:"-"`
 	CreatedAt time.Time `json:"createdAt"`
 	UpdatedAt time.Time `json:"updatedAt"`
@@ -17,4 +17,9 @@ type Project struct {
 
 type ReqProject struct {
 	Name string `json:"name" validate:"required,name,lte=255"`
+}
+
+type ReqUpdateProject struct {
+	ID          string `json:"id" validate:"required,uuid"`
+	UpdatedName string `json:"name" validate:"required,name,lte=255"`
 }

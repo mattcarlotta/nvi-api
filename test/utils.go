@@ -9,7 +9,6 @@ import (
 	"net/http"
 	"net/http/httptest"
 
-	// "github.com/google/uuid"
 	"github.com/google/uuid"
 	"github.com/mattcarlotta/nvi-api/database"
 	"github.com/mattcarlotta/nvi-api/models"
@@ -99,19 +98,47 @@ func ParseSessionId(userSessionID string) uuid.UUID {
 	return parsedID
 }
 
-func CreateEnvironment(envName string, userSessionID string) models.Environment {
+func CreateProject(name string, userSessionID string) models.Project {
 	db := database.GetConnection()
 
 	parsedID := ParseSessionId(userSessionID)
 
-	newEnv := models.Environment{Name: envName, UserID: parsedID}
+	if err := db.First(
+		&models.Project{Name: name, UserID: parsedID},
+	).Error; err != nil {
+		log.Fatalf("unable to locate the new project: %v", err)
+	}
+
+	newProject := models.Project{Name: name, UserID: parsedID}
+	if err := db.Create(&newProject).Error; err != nil {
+		log.Fatalf("unable to create the project %s: %v", name, err)
+	}
+
+	var project models.Project
+	if err := db.Where(
+		&models.Project{Name: name, UserID: parsedID},
+	).First(&project).Error; err != nil {
+		log.Fatalf("unable to locate the new environment: %v", err)
+	}
+
+	return project
+
+}
+
+func CreateEnvironment(envName string, projectID string, userSessionID string) models.Environment {
+	db := database.GetConnection()
+
+	parsedProjectID := ParseSessionId(projectID)
+	parsedUserSessionID := ParseSessionId(userSessionID)
+
+	newEnv := models.Environment{Name: envName, ProjectID: parsedProjectID, UserID: parsedUserSessionID}
 	if err := db.Create(&newEnv).Error; err != nil {
 		log.Fatalf("unable to create the new environment: %v", err)
 	}
 
 	var environment models.Environment
 	if err := db.Where(
-		&models.Environment{Name: newEnv.Name, UserID: parsedID},
+		&models.Environment{Name: newEnv.Name, ProjectID: parsedProjectID, UserID: parsedUserSessionID},
 	).First(&environment).Error; err != nil {
 		log.Fatalf("unable to locate the new environment: %v", err)
 	}
@@ -119,8 +146,8 @@ func CreateEnvironment(envName string, userSessionID string) models.Environment 
 	return environment
 }
 
-func CreateEnvironmentAndSecret(envName string, secretKey string, secretValue string, userSessionID string) (models.Environment, models.Secret) {
-	newEnv := CreateEnvironment(envName, userSessionID)
+func CreateEnvironmentAndSecret(projectID string, envName string, secretKey string, secretValue string, userSessionID string) (models.Environment, models.Secret) {
+	newEnv := CreateEnvironment(envName, projectID, userSessionID)
 	db := database.GetConnection()
 
 	parsedID := ParseSessionId(userSessionID)
@@ -139,6 +166,13 @@ func CreateEnvironmentAndSecret(envName string, secretKey string, secretValue st
 	}
 
 	return newEnv, newSecret
+}
+
+func CreateProjectAndEnvironmentAndSecret(projectName string, envName string, secretKey string, secretValue string, userSessionID string) (models.Project, models.Environment, models.Secret) {
+	newProject := CreateProject(projectName, userSessionID)
+	newEnv, newSecret := CreateEnvironmentAndSecret(newProject.ID.String(), envName, secretKey, secretValue, userSessionID)
+
+	return newProject, newEnv, newSecret
 }
 
 func CreateHTTPRequest(test *TestResponse, body ...interface{}) *http.Request {

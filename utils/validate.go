@@ -33,10 +33,10 @@ func validateUUIDArray(fl validator.FieldLevel) bool {
 	return true
 }
 
-var environmentNameRegex = regexp.MustCompile("^[a-zA-Z0-9_]+$")
+var nameRegex = regexp.MustCompile("^[a-zA-Z0-9_]+$")
 
-func validateEnvironmentName(fl validator.FieldLevel) bool {
-	return environmentNameRegex.MatchString(fl.Field().String())
+func validateName(fl validator.FieldLevel) bool {
+	return nameRegex.MatchString(fl.Field().String())
 }
 
 func Validate() *validator.Validate {
@@ -45,8 +45,8 @@ func Validate() *validator.Validate {
 		if err := validate.RegisterValidation("uuidarray", validateUUIDArray); err != nil {
 			log.Fatalf("Unable to register uuidarray validator: %s", err.Error())
 		}
-		if err := validate.RegisterValidation("envname", validateEnvironmentName); err != nil {
-			log.Fatalf("Unable to register envname validator: %s", err.Error())
+		if err := validate.RegisterValidation("name", validateName); err != nil {
+			log.Fatalf("Unable to register name validator: %s", err.Error())
 		}
 		return validate
 	}

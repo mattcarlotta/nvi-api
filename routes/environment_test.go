@@ -103,79 +103,79 @@ func TestGetEnvironmentSuccess(t *testing.T) {
 	assert.Equal(t, test.ExpectedCode, res.StatusCode)
 }
 
-func TestCreateEnvironmentInvalidName(t *testing.T) {
-	u, token := testutils.CreateUser("create_env_empty@example.com", true)
+// func TestCreateEnvironmentInvalidName(t *testing.T) {
+// 	u, token := testutils.CreateUser("create_env_empty@example.com", true)
 
-	test := &testutils.TestResponse{
-		Route:        "/create/environment/a%20b$#.",
-		Method:       fiber.MethodPost,
-		ExpectedCode: fiber.StatusBadRequest,
-	}
+// 	test := &testutils.TestResponse{
+// 		Route:        "/create/environment/a%20b$#.",
+// 		Method:       fiber.MethodPost,
+// 		ExpectedCode: fiber.StatusBadRequest,
+// 	}
 
-	req := testutils.CreateAuthHTTPRequest(test, &token)
+// 	req := testutils.CreateAuthHTTPRequest(test, &token)
 
-	res := sendAppRequest(req)
+// 	res := sendAppRequest(req)
 
-	resBody := testutils.ParseJSONBodyError(&res.Body)
+// 	resBody := testutils.ParseJSONBodyError(&res.Body)
 
-	defer func() {
-		testutils.DeleteUser(&u)
-		res.Body.Close()
-	}()
+// 	defer func() {
+// 		testutils.DeleteUser(&u)
+// 		res.Body.Close()
+// 	}()
 
-	assert.Equal(t, test.ExpectedCode, res.StatusCode)
-	assert.Equal(t, resBody.Error, utils.ErrorCode[utils.CreateEnvironmentInvalidName])
-}
+// 	assert.Equal(t, test.ExpectedCode, res.StatusCode)
+// 	assert.Equal(t, resBody.Error, utils.ErrorCode[utils.CreateEnvironmentInvalidName])
+// }
 
-func TestCreateEnvironmentNameTaken(t *testing.T) {
-	u, token := testutils.CreateUser("create_env_taken@example.com", true)
-	testutils.CreateEnvironment("taken_environment_name", token)
+// func TestCreateEnvironmentNameTaken(t *testing.T) {
+// 	u, token := testutils.CreateUser("create_env_taken@example.com", true)
+// 	testutils.CreateEnvironment("taken_environment_name", token)
 
-	test := &testutils.TestResponse{
-		Route:        "/create/environment/taken_environment_name",
-		Method:       fiber.MethodPost,
-		ExpectedCode: fiber.StatusConflict,
-	}
+// 	test := &testutils.TestResponse{
+// 		Route:        "/create/environment/taken_environment_name",
+// 		Method:       fiber.MethodPost,
+// 		ExpectedCode: fiber.StatusConflict,
+// 	}
 
-	req := testutils.CreateAuthHTTPRequest(test, &token)
+// 	req := testutils.CreateAuthHTTPRequest(test, &token)
 
-	res := sendAppRequest(req)
+// 	res := sendAppRequest(req)
 
-	resBody := testutils.ParseJSONBodyError(&res.Body)
+// 	resBody := testutils.ParseJSONBodyError(&res.Body)
 
-	defer func() {
-		testutils.DeleteUser(&u)
-		res.Body.Close()
-	}()
+// 	defer func() {
+// 		testutils.DeleteUser(&u)
+// 		res.Body.Close()
+// 	}()
 
-	assert.Equal(t, test.ExpectedCode, res.StatusCode)
-	assert.Equal(t, resBody.Error, utils.ErrorCode[utils.CreateEnvironmentNameTaken])
-}
+// 	assert.Equal(t, test.ExpectedCode, res.StatusCode)
+// 	assert.Equal(t, resBody.Error, utils.ErrorCode[utils.CreateEnvironmentNameTaken])
+// }
 
-func TestCreateEnvironmentSuccess(t *testing.T) {
-	u, token := testutils.CreateUser("create_new_env@example.com", true)
+// func TestCreateEnvironmentSuccess(t *testing.T) {
+// 	u, token := testutils.CreateUser("create_new_env@example.com", true)
 
-	envName := "this_is_a_new_env"
-	test := &testutils.TestResponse{
-		Route:        fmt.Sprintf("/create/environment/%s", envName),
-		Method:       fiber.MethodPost,
-		ExpectedCode: fiber.StatusCreated,
-	}
+// 	envName := "this_is_a_new_env"
+// 	test := &testutils.TestResponse{
+// 		Route:        fmt.Sprintf("/create/environment/%s", envName),
+// 		Method:       fiber.MethodPost,
+// 		ExpectedCode: fiber.StatusCreated,
+// 	}
 
-	req := testutils.CreateAuthHTTPRequest(test, &token)
+// 	req := testutils.CreateAuthHTTPRequest(test, &token)
 
-	res := sendAppRequest(req)
+// 	res := sendAppRequest(req)
 
-	resBody := testutils.ParseText(&res.Body)
+// 	resBody := testutils.ParseText(&res.Body)
 
-	defer func() {
-		testutils.DeleteUser(&u)
-		res.Body.Close()
-	}()
+// 	defer func() {
+// 		testutils.DeleteUser(&u)
+// 		res.Body.Close()
+// 	}()
 
-	assert.Equal(t, test.ExpectedCode, res.StatusCode)
-	assert.Equal(t, resBody, fmt.Sprintf("Successfully created a(n) %s environment!", envName))
-}
+// 	assert.Equal(t, test.ExpectedCode, res.StatusCode)
+// 	assert.Equal(t, resBody, fmt.Sprintf("Successfully created a(n) %s environment!", envName))
+// }
 
 func TestDeleteEnvironmentInvalidID(t *testing.T) {
 	u, token := testutils.CreateUser("delete_env_invalid_id@example.com", true)

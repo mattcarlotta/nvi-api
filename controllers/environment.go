@@ -43,24 +43,29 @@ func CreateEnvironment(c *fiber.Ctx) error {
 	db := database.GetConnection()
 	userSessionID := utils.GetSessionID(c)
 
-	envName := c.Params("name")
-	if err := utils.Validate().Var(envName, "required,envname,lte=255"); err != nil {
-		return c.Status(fiber.StatusBadRequest).JSON(utils.JSONError(utils.CreateEnvironmentInvalidName))
+	var data models.ReqCreateEnv
+	if err := c.BodyParser(&data); err != nil {
+		return c.Status(fiber.StatusBadRequest).JSON(utils.JSONError(utils.CreateEnvironmentInvalidBody))
 	}
 
-	newEnv := models.Environment{Name: envName, UserID: userSessionID}
+	var project models.Project
+	if err := db.Where(&models.Project{ID: utils.MustParseUUID(data.ProjectID)}).First(&project).Error; err == nil {
+		return c.Status(fiber.StatusNotFound).JSON(utils.JSONError(utils.CreateEnvironmentInvalidProjectID))
+	}
+
+	newEnv := models.Environment{Name: data.Name, ProjectID: project.ID, UserID: userSessionID}
 	var environment models.Environment
 	if err := db.Where(&newEnv).First(&environment).Error; err == nil {
 		return c.Status(fiber.StatusConflict).JSON(utils.JSONError(utils.CreateEnvironmentNameTaken))
 	}
 
-	// TODO(carlotta): add a limit to how many environments can be created per account
+	// TODO(carlotta): add a limit to how many environments can be created per project and account
 
 	if err := db.Create(&newEnv).Error; err != nil {
 		return c.Status(fiber.StatusInternalServerError).JSON(utils.UnknownJSONError(err))
 	}
 
-	return c.Status(fiber.StatusCreated).SendString(fmt.Sprintf("Successfully created a(n) %s environment!", envName))
+	return c.Status(fiber.StatusCreated).SendString(fmt.Sprintf("Successfully created a(n) %s environment!", data.Name))
 }
 
 func DeleteEnvironment(c *fiber.Ctx) error {

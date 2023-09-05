@@ -8,6 +8,8 @@ import (
 
 type Environment struct {
 	ID        uuid.UUID `gorm:"type:uuid;default:uuid_generate_v4();primary_key" json:"id"`
+	ProjectID uuid.UUID `gorm:"type:uuid" json:"projectID"`
+	Project   Project   `gorm:"foreignKey:ProjectID;references:ID;constraint:OnUpdate:CASCADE,OnDelete:CASCADE;" json:"-"`
 	UserID    uuid.UUID `gorm:"type:uuid" json:"userID"`
 	User      User      `gorm:"foreignKey:UserID;references:ID;constraint:OnUpdate:CASCADE,OnDelete:CASCADE;" json:"-"`
 	Name      string    `gorm:"type:varchar(255);uniqueIndex;not null" json:"name"`
@@ -15,7 +17,12 @@ type Environment struct {
 	UpdatedAt time.Time `json:"updatedAt"`
 }
 
+type ReqCreateEnv struct {
+	Name      string `json:"updatedName" validate:"required,name,lte=255"`
+	ProjectID string `json:"projectID" validate:"uuid"`
+}
+
 type ReqUpdateEnv struct {
 	ID          string `json:"id" validate:"required,uuid"`
-	UpdatedName string `json:"updatedName" validate:"required,envname,lte=255"`
+	UpdatedName string `json:"updatedName" validate:"required,name,lte=255"`
 }

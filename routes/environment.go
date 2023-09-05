@@ -10,7 +10,7 @@ func EnvironmentRoutes(app *fiber.App) {
 	environment := app.Group("/")
 	environment.Get("/environment/:id", middlewares.RequiresCookieSession, controllers.GetEnvironmentByID)
 	environment.Get("/environments", middlewares.RequiresCookieSession, controllers.GetAllEnvironments)
-	environment.Post("/create/environment/:name", middlewares.RequiresCookieSession, controllers.CreateEnvironment)
+	environment.Post("/create/environment", middlewares.RequiresCookieSession, controllers.CreateEnvironment)
 	environment.Delete("/delete/environment/:id", middlewares.RequiresCookieSession, controllers.DeleteEnvironment)
 	environment.Put("/update/environment", middlewares.RequiresCookieSession, controllers.UpdateEnvironment)
 }

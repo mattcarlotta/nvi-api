@@ -62,7 +62,7 @@ func TestGetSecretNonExistentID(t *testing.T) {
 
 func TestGetSecretSuccess(t *testing.T) {
 	u, token := testutils.CreateUser("get_secret_non_existent_id@example.com", true)
-	_, s := testutils.CreateEnvironmentAndSecret("get_secret_env_success", "GET_SECRET_KEY", "env_value", token)
+	_, _, s := testutils.CreateProjectAndEnvironmentAndSecret("get_secret_project", "get_secret_env_success", "GET_SECRET_KEY", "env_value", token)
 
 	test := &testutils.TestResponse{
 		Route:        fmt.Sprintf("/secret/%s", s.ID.String()),
@@ -132,7 +132,7 @@ func TestGetSecretsByEnvironmentNonExistentID(t *testing.T) {
 
 func TestGetSecretsByEnvironmentSuccess(t *testing.T) {
 	u, token := testutils.CreateUser("get_secrets_by_env_success@example.com", true)
-	e, _ := testutils.CreateEnvironmentAndSecret("get_secrets_by_env_success", "GET_SECRET_ENV_KEY", "env_value", token)
+	_, e, _ := testutils.CreateProjectAndEnvironmentAndSecret("get_secrets_by_env_project", "get_secrets_by_env_success", "GET_SECRET_ENV_KEY", "env_value", token)
 
 	test := &testutils.TestResponse{
 		Route:        fmt.Sprintf("/secrets/%s", e.ID.String()),
@@ -178,7 +178,6 @@ func TestCreateSecretEmptyBody(t *testing.T) {
 
 func TestCreateSecretInvalidBody(t *testing.T) {
 	u, token := testutils.CreateUser("secret_invalid_body@example.com", true)
-	testutils.CreateEnvironment("create_env_invalid_body", token)
 
 	secret := &models.ReqCreateSecret{
 		EnvironmentIDs: []string{"not_valid_uuid"},
@@ -209,7 +208,6 @@ func TestCreateSecretInvalidBody(t *testing.T) {
 
 func TestCreateSecretNonExistentID(t *testing.T) {
 	u, token := testutils.CreateUser("secret_non_existent_id@example.com", true)
-	testutils.CreateEnvironment("create_secret_env_non_existent_id", token)
 
 	secret := &models.ReqCreateSecret{
 		EnvironmentIDs: []string{uuid.NewString()},
@@ -240,7 +238,7 @@ func TestCreateSecretNonExistentID(t *testing.T) {
 
 func TestCreateSecretKeyAlreadyExists(t *testing.T) {
 	u, token := testutils.CreateUser("secret_already_exists@example.com", true)
-	e, _ := testutils.CreateEnvironmentAndSecret("secret_exists", "SECRET_EXISTS", "abc123", token)
+	_, e, _ := testutils.CreateProjectAndEnvironmentAndSecret("secret_exists_project", "secret_exists", "SECRET_EXISTS", "abc123", token)
 
 	secret := &models.ReqCreateSecret{
 		EnvironmentIDs: []string{e.ID.String()},
@@ -271,7 +269,8 @@ func TestCreateSecretKeyAlreadyExists(t *testing.T) {
 
 func TestCreateSecretSuccess(t *testing.T) {
 	u, token := testutils.CreateUser("create_secret_success@example.com", true)
-	e := testutils.CreateEnvironment("secret_success", token)
+	p := testutils.CreateProject("secret_success_project", token)
+	e := testutils.CreateEnvironment("secret_success", p.ID.String(), token)
 
 	key := "SECRET_TO_SUCCESS"
 	secret := &models.ReqCreateSecret{
@@ -351,7 +350,7 @@ func TestDeleteSecretNonExistentID(t *testing.T) {
 
 func TestDeleteSecretSuccess(t *testing.T) {
 	u, token := testutils.CreateUser("delete_secret_success@example.com", true)
-	_, s := testutils.CreateEnvironmentAndSecret("delete_secret_success", "DELETE_SECRET", "abc123", token)
+	_, _, s := testutils.CreateProjectAndEnvironmentAndSecret("delete_secret_success_project", "delete_secret_success", "DELETE_SECRET", "abc123", token)
 
 	test := &testutils.TestResponse{
 		Route:        fmt.Sprintf("/delete/secret/%s", s.ID.String()),
@@ -464,7 +463,7 @@ func TestUpdateSecretNonExistentID(t *testing.T) {
 
 func TestUpdateSecretNonExistentEnv(t *testing.T) {
 	u, token := testutils.CreateUser("update_secret_non_existent_env@example.com", true)
-	_, s := testutils.CreateEnvironmentAndSecret("update_secret_non_existent_env", "UPDATE_SECRET", "abc123", token)
+	_, _, s := testutils.CreateProjectAndEnvironmentAndSecret("update_secret_non_existent_project", "update_secret_non_existent_env", "UPDATE_SECRET", "abc123", token)
 
 	secret := &models.ReqUpdateSecret{
 		ID: s.ID.String(),
@@ -497,8 +496,9 @@ func TestUpdateSecretNonExistentEnv(t *testing.T) {
 
 func TestUpdateSecretKeyAlreadyExists(t *testing.T) {
 	u, token := testutils.CreateUser("update_secret_already_exists@example.com", true)
-	e, _ := testutils.CreateEnvironmentAndSecret("env_1", "TAKEN_KEY", "abc123", token)
-	_, s := testutils.CreateEnvironmentAndSecret("env_2", "NEW_KEY", "abc123", token)
+	p := testutils.CreateProject("update_secret_already_exists_project", token)
+	e, _ := testutils.CreateEnvironmentAndSecret(p.ID.String(), "env_1", "TAKEN_KEY", "abc123", token)
+	_, s := testutils.CreateEnvironmentAndSecret(p.ID.String(), "env_2", "NEW_KEY", "abc123", token)
 
 	secret := &models.ReqUpdateSecret{
 		ID:             s.ID.String(),
@@ -530,7 +530,7 @@ func TestUpdateSecretKeyAlreadyExists(t *testing.T) {
 
 func TestUpdateSecretSuccess(t *testing.T) {
 	u, token := testutils.CreateUser("update_secret_success@example.com", true)
-	e, s := testutils.CreateEnvironmentAndSecret("update_secret_success", "UPDATE_KEY", "abc123", token)
+	_, e, s := testutils.CreateProjectAndEnvironmentAndSecret("update_secret_success_project", "update_secret_success", "UPDATE_KEY", "abc123", token)
 
 	secret := &models.ReqUpdateSecret{
 		ID:             s.ID.String(),

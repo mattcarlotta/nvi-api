@@ -73,6 +73,7 @@ type SecretResult struct {
 }
 
 type ReqCreateSecret struct {
+	ProjectID      string   `json:"projectID" validate:"required,uuid"`
 	EnvironmentIDs []string `json:"environmentIDs" validate:"uuidarray"`
 	Key            string   `json:"key" validate:"required,gte=2,lte=255"`
 	Value          string   `json:"value" validate:"required,lte=5000"`

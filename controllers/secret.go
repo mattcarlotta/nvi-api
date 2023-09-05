@@ -65,6 +65,15 @@ func CreateSecret(c *fiber.Ctx) error {
 		return c.Status(fiber.StatusBadRequest).JSON(utils.JSONError(utils.CreateSecretInvalidBody))
 	}
 
+	projectID := utils.MustParseUUID(data.ProjectID)
+
+	var project models.Project
+	if err := db.Where(
+		"id=? AND user_id=?", projectID, userSessionID,
+	).First(&project).Error; err != nil {
+		return c.Status(fiber.StatusNotFound).JSON(utils.JSONError(utils.CreateSecretNonExistentProject))
+	}
+
 	environmentIDs, err := utils.ParseUUIDs(data.EnvironmentIDs)
 	if err != nil {
 		return c.Status(fiber.StatusInternalServerError).JSON(utils.UnknownJSONError(err))
@@ -72,7 +81,7 @@ func CreateSecret(c *fiber.Ctx) error {
 
 	var environments []models.Environment
 	if err := db.Find(
-		&environments, "id IN ? AND user_id=?", environmentIDs, userSessionID,
+		&environments, "id IN ? AND project_id=? AND user_id=?", environmentIDs, projectID, userSessionID,
 	).Error; err != nil || len(environments) == 0 {
 		return c.Status(fiber.StatusNotFound).JSON(utils.JSONError(utils.CreateSecretNonExistentEnv))
 	}
@@ -94,7 +103,7 @@ func CreateSecret(c *fiber.Ctx) error {
 	// }
 
 	var secrets []models.Secret
-	if err := db.Preload("Environments", "ID in ?", environmentIDs).Find(
+	if err := db.Preload("Environments", "id in ? AND project_id=?", environmentIDs, projectID).Find(
 		&secrets, "key=? AND user_id=?", data.Key, userSessionID,
 	).Error; err == nil {
 		duplicates := models.GetDupKeyinEnvs(&secrets)

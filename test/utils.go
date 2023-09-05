@@ -103,42 +103,35 @@ func CreateProject(name string, userSessionID string) models.Project {
 
 	parsedID := ParseSessionId(userSessionID)
 
-	if err := db.First(
-		&models.Project{Name: name, UserID: parsedID},
-	).Error; err != nil {
-		log.Fatalf("unable to locate the new project: %v", err)
-	}
-
 	newProject := models.Project{Name: name, UserID: parsedID}
 	if err := db.Create(&newProject).Error; err != nil {
-		log.Fatalf("unable to create the project %s: %v", name, err)
+		log.Fatalf("unable to create a new project %s: %v", name, err)
 	}
 
 	var project models.Project
 	if err := db.Where(
 		&models.Project{Name: name, UserID: parsedID},
 	).First(&project).Error; err != nil {
-		log.Fatalf("unable to locate the new environment: %v", err)
+		log.Fatalf("unable to locate project %s: %v", name, err)
 	}
 
 	return project
 
 }
 
-func CreateEnvironment(envName string, projectID string, userSessionID string) models.Environment {
+func CreateEnvironment(envName string, projectID uuid.UUID, userSessionID string) models.Environment {
 	db := database.GetConnection()
 
-	parsedProjectID := ParseSessionId(projectID)
 	parsedUserSessionID := ParseSessionId(userSessionID)
 
-	newEnv := models.Environment{Name: envName, ProjectID: parsedProjectID, UserID: parsedUserSessionID}
+	newEnv := models.Environment{Name: envName, ProjectID: projectID, UserID: parsedUserSessionID}
 	if err := db.Create(&newEnv).Error; err != nil {
 		log.Fatalf("unable to create the new environment: %v", err)
 	}
 
 	var environment models.Environment
 	if err := db.Where(
-		&models.Environment{Name: newEnv.Name, ProjectID: parsedProjectID, UserID: parsedUserSessionID},
+		&models.Environment{Name: newEnv.Name, ProjectID: projectID, UserID: parsedUserSessionID},
 	).First(&environment).Error; err != nil {
 		log.Fatalf("unable to locate the new environment: %v", err)
 	}
@@ -146,7 +139,7 @@ func CreateEnvironment(envName string, projectID string, userSessionID string) m
 	return environment
 }
 
-func CreateEnvironmentAndSecret(projectID string, envName string, secretKey string, secretValue string, userSessionID string) (models.Environment, models.Secret) {
+func CreateEnvironmentAndSecret(envName string, projectID uuid.UUID, secretKey string, secretValue string, userSessionID string) (models.Environment, models.Secret) {
 	newEnv := CreateEnvironment(envName, projectID, userSessionID)
 	db := database.GetConnection()
 
@@ -170,7 +163,7 @@ func CreateEnvironmentAndSecret(projectID string, envName string, secretKey stri
 
 func CreateProjectAndEnvironmentAndSecret(projectName string, envName string, secretKey string, secretValue string, userSessionID string) (models.Project, models.Environment, models.Secret) {
 	newProject := CreateProject(projectName, userSessionID)
-	newEnv, newSecret := CreateEnvironmentAndSecret(newProject.ID.String(), envName, secretKey, secretValue, userSessionID)
+	newEnv, newSecret := CreateEnvironmentAndSecret(envName, newProject.ID, secretKey, secretValue, userSessionID)
 
 	return newProject, newEnv, newSecret
 }

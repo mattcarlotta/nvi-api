@@ -22,7 +22,9 @@ const (
 	UpdatePasswordInvalidBody
 	UpdatePasswordInvalidToken
 	GetEnvironmentInvalidID
+	GetEnvironmentInvalidName
 	GetEnvironmentNonExistentID
+	GetEnvironmentNonExistentName
 	CreateEnvironmentInvalidBody
 	CreateEnvironmentInvalidProjectID
 	CreateEnvironmentNameTaken
@@ -61,27 +63,29 @@ var ErrorCode = map[ErrorResponseCode]string{
 	UpdatePasswordInvalidToken:            "E011",
 	GetEnvironmentInvalidID:               "E012",
 	GetEnvironmentNonExistentID:           "E013",
-	CreateEnvironmentInvalidBody:          "E014",
-	CreateEnvironmentInvalidProjectID:     "E015",
-	CreateEnvironmentNameTaken:            "E016",
-	DeleteEnvironmentInvalidID:            "E017",
-	DeleteEnvironmentNonExistentID:        "E018",
-	UpdateEnvironmentInvalidBody:          "E019",
-	UpdateEnvironmentNonExistentID:        "E020",
-	GetSecretInvalidID:                    "E021",
-	GetSecretNonExistentID:                "E022",
-	GetSecretsByEnvInvalidID:              "E023",
-	GetSecretsByEnvNonExistentID:          "E024",
-	CreateSecretInvalidBody:               "E025",
-	CreateSecretNonExistentProject:        "E026",
-	CreateSecretNonExistentEnv:            "E027",
-	CreateSecretKeyAlreadyExists:          "E028",
-	DeleteSecretInvalidID:                 "E029",
-	DeleteSecretNonExistentID:             "E030",
-	UpdateSecretInvalidBody:               "E031",
-	UpdateSecretInvalidID:                 "E032",
-	UpdateSecretNonExistentEnv:            "E033",
-	UpdateSecretKeyAlreadyExists:          "E034",
+	GetEnvironmentInvalidName:             "E014",
+	GetEnvironmentNonExistentName:         "E015",
+	CreateEnvironmentInvalidBody:          "E016",
+	CreateEnvironmentInvalidProjectID:     "E017",
+	CreateEnvironmentNameTaken:            "E018",
+	DeleteEnvironmentInvalidID:            "E019",
+	DeleteEnvironmentNonExistentID:        "E020",
+	UpdateEnvironmentInvalidBody:          "E021",
+	UpdateEnvironmentNonExistentID:        "E022",
+	GetSecretInvalidID:                    "E023",
+	GetSecretNonExistentID:                "E024",
+	GetSecretsByEnvInvalidID:              "E025",
+	GetSecretsByEnvNonExistentID:          "E026",
+	CreateSecretInvalidBody:               "E027",
+	CreateSecretNonExistentProject:        "E028",
+	CreateSecretNonExistentEnv:            "E029",
+	CreateSecretKeyAlreadyExists:          "E030",
+	DeleteSecretInvalidID:                 "E031",
+	DeleteSecretNonExistentID:             "E032",
+	UpdateSecretInvalidBody:               "E033",
+	UpdateSecretInvalidID:                 "E034",
+	UpdateSecretNonExistentEnv:            "E035",
+	UpdateSecretKeyAlreadyExists:          "E036",
 }
 
 type ResponseError struct {

@@ -142,7 +142,7 @@ token may need to be regenerated
 
 - Error Name: `GetEnvironmentInvalidToken`
 - Controller: `environment`
-- Path: `/environment/:id`
+- Path: `/environment/id/:id`
 - Method: `GET`
 - Status: `400`
 - Params: `id`
@@ -153,13 +153,34 @@ token may need to be regenerated
 
 - Error Name: `GetEnvironmentNonExistentID`
 - Controller: `environment`
-- Path: `/environment/:id`
+- Path: `/environment/id/:id`
 - Method: `GET`
 - Status: `404`
 - Params: `id`
 - Explanation: the request params contains an `id` that doesn't match a user created environment
 
 ## E014
+
+- Error Name: `GetEnvironmentInvalidName`
+- Controller: `environment`
+- Path: `/environment/name/:name`
+- Method: `GET`
+- Status: `400`
+- Params: `name`
+- Explanation: the request params doesn't pass one or more of the following field validation rules:
+  - name: `required,name,lte=255` (`name` is a custom validation)
+
+## E015
+
+- Error Name: `GetEnvironmentNonExistentName`
+- Controller: `environment`
+- Path: `/environment/name/:name`
+- Method: `GET`
+- Status: `404`
+- Params: `name`
+- Explanation: the request params contains an `name` that doesn't match a user created environment
+
+## E016
 
 - Error Name: `CreateEnvironmentInvalidBody`
 - Controller: `environment`
@@ -171,7 +192,7 @@ token may need to be regenerated
   - name: `required,name,lte=255` (`name` is a custom validation)
   - projectID: `required,uuid`
 
-## E015
+## E017
 
 - Error Name: `CreateEnvironmentInvalidProjectID`
 - Controller: `environment`
@@ -181,7 +202,7 @@ token may need to be regenerated
 - Body: `name, projectID`
 - Explanation: the request body contains a `projectID` that doesn't match a user created project
 
-## E016
+## E018
 
 - Error Name: `CreateEnvironmentNameTaken`
 - Controller: `environment`
@@ -192,7 +213,7 @@ token may need to be regenerated
 - Explanation: the request params contains an environment `name` that is already in use by the user; another 
 name should be used instead
 
-## E017
+## E019
 
 - Error Name: `DeleteEnvironmentInvalidID`
 - Controller: `environment`
@@ -203,7 +224,7 @@ name should be used instead
 - Explanation: the request params doesn't pass one or more of the following field validation rules:
   - id: `required,uuid`
 
-## E018
+## E020
 
 - Error Name: `DeleteEnvironmentNonExistentID`
 - Controller: `environment`
@@ -213,7 +234,7 @@ name should be used instead
 - Params: `id`
 - Explanation: the request params contains an `id` that doesn't match a user created environment
 
-## E019
+## E021
 
 - Error Name: `UpdateEnvironmentInvalidBody`
 - Controller: `environment`
@@ -226,7 +247,7 @@ name should be used instead
   - id: `required,uuid`
   - updatedName: `required,name,lte=255` (`name` is a custom validation)
 
-## E020
+## E022
 
 - Error Name: `UpdateEnvironmentNonExistentID`
 - Controller: `user`
@@ -237,7 +258,7 @@ name should be used instead
 - Body: `id, updatedName`
 - Explanation: the request body contains an `id` that doesn't match a user created environment
 
-## E021
+## E023
 
 - Error Name: `GetSecretInvalidID`
 - Controller: `secret`
@@ -248,7 +269,7 @@ name should be used instead
 - Explanation: the request body doesn't pass one or more of the following field validation rules:
   - id: `required,uuid`
 
-## E022
+## E024
 
 - Error Name: `GetSecretNonExistentID`
 - Controller: `secret`
@@ -258,7 +279,7 @@ name should be used instead
 - Params: `id`
 - Explanation: the request params contains an `id` that doesn't match a user created secret
 
-## E023
+## E025
 
 - Error Name: `GetSecretsByEnvInvalidID`
 - Controller: `secret`
@@ -269,7 +290,7 @@ name should be used instead
 - Explanation: the request params doesn't pass one or more of the following field validation rules:
   - id: `required,uuid`
 
-## E024
+## E026
 
 - Error Name: `GetSecretsByEnvNonExistentID`
 - Controller: `secret`
@@ -279,7 +300,7 @@ name should be used instead
 - Params: `id`
 - Explanation: the request params contains an `id` that doesn't match a user created environment
 
-## E025
+## E027
 
 - Error Name: `CreateSecretInvalidBody`
 - Controller: `secret`
@@ -293,7 +314,7 @@ name should be used instead
   - projectID: `required,uuid`
   - value: `required,lte=5000`
 
-## E026
+## E028
 
 - Error Name: `CreateSecretNonExistentProject`
 - Controller: `secret`
@@ -303,7 +324,7 @@ name should be used instead
 - Body: `environmentIDs, key, projectID, value`
 - Explanation: the request body `projectID` value doesn't match any user created projects
 
-## E026
+## E029
 
 - Error Name: `CreateSecretNonExistentEnv`
 - Controller: `secret`
@@ -313,7 +334,7 @@ name should be used instead
 - Body: `environmentIDs, key, projectID, value`
 - Explanation: the request body `environmentIDs` value doesn't match any user created environments
 
-## E027
+## E030
 
 - Error Name: `CreateSecretKeyAlreadyExists`
 - Controller: `secret`
@@ -323,7 +344,7 @@ name should be used instead
 - Body: `environmentIDs, key, projectID, value`
 - Explanation: the request body `key` value matches a pre-existing key value within one or more user created environments
 
-## E028
+## E031
 
 - Error Name: `DeleteSecretInvalidID`
 - Controller: `secret`
@@ -334,7 +355,7 @@ name should be used instead
 - Explanation: the request params doesn't pass one or more of the following field validation rules:
   - id: `required,uuid`
 
-## E029
+## E032
 
 - Error Name: `DeleteSecretNonExistentID`
 - Controller: `secret`
@@ -344,7 +365,7 @@ name should be used instead
 - Params: `id`
 - Explanation: the request params contains an `id` that doesn't match a user created environment
 
-## E030
+## E033
 
 - Error Name: `UpdateSecretInvalidBody`
 - Controller: `secret`
@@ -358,7 +379,7 @@ name should be used instead
   - key: `required,gte=2,lte=255`
   - value: `required,lte=5000`
 
-## E031
+## E034
 
 - Error Name: `UpdateSecretInvalidID`
 - Controller: `secret`
@@ -368,7 +389,7 @@ name should be used instead
 - Body: `id, environmentIDs, key, value`
 - Explanation: the request body contains an `id` that doesn't match a user created secret
 
-## E032
+## E035
 
 - Error Name: `UpdateSecretNonExistentEnv`
 - Controller: `secret`
@@ -378,7 +399,7 @@ name should be used instead
 - Body: `id, environmentIDs, key, value`
 - Explanation: the request body `environmentIDs` value doesn't match any user created environments
 
-## E033
+## E036
 
 - Error Name: `UpdateSecretKeyAlreadyExists`
 - Controller: `secret`

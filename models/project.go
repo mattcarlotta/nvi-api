@@ -16,5 +16,5 @@ type Project struct {
 }
 
 type ReqProject struct {
-	Name string `json:"name" validate:"required,name,gte=2,lte=255"`
+	Name string `json:"name" validate:"required,name,lte=255"`
 }

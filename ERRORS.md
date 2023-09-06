@@ -197,7 +197,7 @@ token may need to be regenerated
 - Error Name: `CreateEnvironmentInvalidProjectID`
 - Controller: `environment`
 - Path: `/create/environment`
-- Method: `GET`
+- Method: `POST`
 - Status: `404`
 - Body: `name, projectID`
 - Explanation: the request body contains a `projectID` that doesn't match a user created project

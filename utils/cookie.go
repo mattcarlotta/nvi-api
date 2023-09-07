@@ -13,7 +13,7 @@ func SetSessionCookie(c *fiber.Ctx, value string, expires time.Time) {
 		Value:    value,
 		Expires:  expires,
 		Path:     "/",
-		HTTPOnly: true,
+		HTTPOnly: false,
 		Secure:   os.Getenv("IN_PRODUCTION") == "true",
 		SameSite: "Lax",
 	}

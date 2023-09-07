@@ -1,7 +1,6 @@
 package middlewares
 
 import (
-	"strings"
 	"time"
 
 	"github.com/gofiber/fiber/v2"
@@ -38,13 +37,7 @@ func Setup(app *fiber.App) {
 }
 
 func RequiresCookieSession(c *fiber.Ctx) error {
-	encSessionTokenValue := strings.TrimPrefix(c.Get("Authorization"), "Bearer ")
-	sessionValue, err := encryptcookie.DecryptCookie(encSessionTokenValue, utils.GetEnv("COOKIE_KEY"))
-	if err != nil || len(sessionValue) == 0 {
-		sessionValue = c.Cookies("SESSION_TOKEN")
-	}
-
-	token, err := utils.ValidateSessionToken(sessionValue)
+	token, err := utils.ValidateSessionToken(c.Cookies("SESSION_TOKEN"))
 	if err != nil {
 		utils.SetSessionCookie(c, "", time.Unix(0, 0))
 		return c.Status(fiber.StatusUnauthorized).JSON(fiber.Map{"error": err.Error()})

@@ -45,6 +45,7 @@ func RequiresCookieSession(c *fiber.Ctx) error {
 
 	parsedID, err := utils.ParseUUID(token.UserID)
 	if err != nil {
+		utils.SetSessionCookie(c, "", time.Unix(0, 0))
 		return c.Status(fiber.StatusUnauthorized).JSON(fiber.Map{"error": "Not a valid token."})
 	}
 

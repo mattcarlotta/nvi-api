@@ -65,7 +65,7 @@ Click here for [field validation rules](https://github.com/go-playground/validat
 - Controller: `user`
 - Path: `/login`
 - Method: `POST`
-- Status: `200`
+- Status: `401`
 - Content: `application/json`
 - Body: `email, password`
 - Explanation: the request body contains an invalid `password` field for the provided `email` field

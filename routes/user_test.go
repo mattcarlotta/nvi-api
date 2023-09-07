@@ -199,7 +199,7 @@ func TestLoginInvalidPassword(t *testing.T) {
 	test := &testutils.TestResponse{
 		Route:        "/login",
 		Method:       fiber.MethodPost,
-		ExpectedCode: fiber.StatusOK,
+		ExpectedCode: fiber.StatusUnauthorized,
 	}
 
 	req := testutils.CreateHTTPRequest(test, user)

@@ -57,6 +57,7 @@ func Login(c *fiber.Ctx) error {
 
 	var data models.ReqLoginUser
 	if err := c.BodyParser(&data); err != nil {
+		fmt.Printf("\n BODY ERROR: %v", err)
 		return c.Status(fiber.StatusBadRequest).JSON(utils.JSONError(utils.LoginInvalidBody))
 	}
 
@@ -70,7 +71,7 @@ func Login(c *fiber.Ctx) error {
 	}
 
 	if !existingUser.MatchPassword(data.Password) {
-		return c.Status(fiber.StatusOK).JSON(utils.JSONError(utils.LoginInvalidPassword))
+		return c.Status(fiber.StatusUnauthorized).JSON(utils.JSONError(utils.LoginInvalidPassword))
 	}
 
 	if !existingUser.Verified {

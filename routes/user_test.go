@@ -118,6 +118,24 @@ func TestRegisterUserSuccess(t *testing.T) {
 	))
 }
 
+func TestLoggedinSuccess(t *testing.T) {
+	_, token := testutils.CreateUser("loggedin_account@example.com", true)
+
+	test := &testutils.TestResponse{
+		Route:        "/loggedin",
+		Method:       fiber.MethodGet,
+		ExpectedCode: fiber.StatusOK,
+	}
+
+	req := testutils.CreateAuthHTTPRequest(test, &token)
+
+	res := sendAppRequest(req)
+
+	defer res.Body.Close()
+
+	assert.Equal(t, test.ExpectedCode, res.StatusCode)
+}
+
 func TestLoginUserEmptyBody(t *testing.T) {
 	test := &testutils.TestResponse{
 		Route:        "/login",

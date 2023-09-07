@@ -52,12 +52,26 @@ func Register(c *fiber.Ctx) error {
 	)
 }
 
+func Loggedin(c *fiber.Ctx) error {
+	db := database.GetConnection()
+	userSessionID := utils.GetSessionID(c)
+
+	var loggedInUser models.User
+	if err := db.Where(&models.User{ID: userSessionID}).Omit("password").First(&loggedInUser).Error; err != nil {
+		newError := errors.New(
+			"encountered an unexpected error. Unable to locate the associated account from the current session",
+		)
+		return c.Status(fiber.StatusInternalServerError).JSON(utils.UnknownJSONError(newError))
+	}
+
+	return c.Status(fiber.StatusOK).JSON(loggedInUser)
+}
+
 func Login(c *fiber.Ctx) error {
 	db := database.GetConnection()
 
 	var data models.ReqLoginUser
 	if err := c.BodyParser(&data); err != nil {
-		fmt.Printf("\n BODY ERROR: %v", err)
 		return c.Status(fiber.StatusBadRequest).JSON(utils.JSONError(utils.LoginInvalidBody))
 	}
 
@@ -125,7 +139,7 @@ func ResendAccountVerification(c *fiber.Ctx) error {
 	db := database.GetConnection()
 
 	email := c.Query("email")
-	if err := utils.Validate().Var(email, "required,email,lte=100"); err != nil {
+	if err := utils.Validate().Var(email, "required,email,lte=255"); err != nil {
 		return c.Status(fiber.StatusBadRequest).JSON(utils.JSONError(utils.ResendAccountVerificationInvalidEmail))
 	}
 
@@ -158,7 +172,7 @@ func SendResetPasswordEmail(c *fiber.Ctx) error {
 	db := database.GetConnection()
 
 	email := c.Query("email")
-	if err := utils.Validate().Var(email, "required,email,lte=100"); err != nil {
+	if err := utils.Validate().Var(email, "required,email,lte=255"); err != nil {
 		return c.Status(fiber.StatusBadRequest).JSON(utils.JSONError(utils.SendResetPasswordInvalidEmail))
 	}
 

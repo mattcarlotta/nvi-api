@@ -19,7 +19,7 @@ Click here for [field validation rules](https://github.com/go-playground/validat
 - Body: `name, email, password`
 - Explanation: the request body doesn't pass one or more of the following field validation rules:
     - name: `required,gte=2,lte=255`
-    - email: `required,email,lte=100`
+    - email: `required,email,lte=255`
     - password: `required,gte=5,lte=36`
 
 ## E002
@@ -44,7 +44,7 @@ Click here for [field validation rules](https://github.com/go-playground/validat
 - Content: `application/json`
 - Body: `email, password`
 - Explanation: the request body doesn't pass one or more of the following field validation rules:
-    - email: `required,email,lte=100`
+    - email: `required,email,lte=255`
     - password: `required,gte=5,lte=36`
 
 
@@ -101,7 +101,7 @@ token may need to be regenerated
 - Status: `400`
 - Query: `email`
 - Explanation: an `email` that was assigned as a query `?email=` doesn't pass the following field validation rules:
-    - email: `required,email,lte=100`
+    - email: `required,email,lte=255`
 
 ## E009
 
@@ -112,7 +112,7 @@ token may need to be regenerated
 - Status: `400`
 - Query: `email`
 - Explanation: an `email` that was assigned as a query `?email=` doesn't pass the following field validation rules:
-    - email: `required,email,lte=100`
+    - email: `required,email,lte=255`
 
 ## E010
 

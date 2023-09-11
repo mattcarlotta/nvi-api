@@ -48,14 +48,30 @@ func GetProjectByName(c *fiber.Ctx) error {
 		return c.Status(fiber.StatusBadRequest).JSON(utils.JSONError(utils.GetProjectInvalidName))
 	}
 
+	var project models.Project
+	if err := db.Where(
+		"name=? AND user_id=?", name, userSessionID,
+	).First(&project).Error; err != nil {
+		return c.Status(fiber.StatusNotFound).JSON(utils.JSONError(utils.GetProjectNonExistentName))
+	}
+
+	return c.Status(fiber.StatusOK).JSON(project)
+}
+
+func SearchForProjectsByName(c *fiber.Ctx) error {
+	db := database.GetConnection()
+	userSessionID := utils.GetSessionID(c)
+
+	name := c.Params("name")
+	if err := utils.Validate().Var(name, "required,name,lte=255"); err != nil {
+		return c.Status(fiber.StatusBadRequest).JSON(utils.JSONError(utils.GetProjectInvalidName))
+	}
+
 	var projects []models.Project
 	if err := db.Where(
-		"name LIKE ? AND user_id=?", "%"+name+"%", userSessionID,
-	).Order("created_at desc").Find(&projects).Error; err != nil || len(projects) == 0 {
-		if err != nil {
-			return c.Status(fiber.StatusInternalServerError).JSON(utils.UnknownJSONError(err))
-		}
-		return c.Status(fiber.StatusNotFound).JSON(utils.JSONError(utils.GetProjectNonExistentName))
+		"name ILIKE ? AND user_id=?", "%"+name+"%", userSessionID,
+	).Order("created_at desc").Find(&projects).Error; err != nil {
+		return c.Status(fiber.StatusInternalServerError).JSON(utils.UnknownJSONError(err))
 	}
 
 	return c.Status(fiber.StatusOK).JSON(projects)

@@ -10,6 +10,7 @@ func ProjectRoutes(app *fiber.App) {
 	project := app.Group("/")
 	project.Get("/project/id/:id", middlewares.RequiresCookieSession, controllers.GetProjectByID)
 	project.Get("/project/name/:name", middlewares.RequiresCookieSession, controllers.GetProjectByName)
+	project.Get("/projects/search/:name", middlewares.RequiresCookieSession, controllers.SearchForProjectsByName)
 	project.Get("/projects", middlewares.RequiresCookieSession, controllers.GetAllProjects)
 	project.Post("/create/project/:name", middlewares.RequiresCookieSession, controllers.CreateProject)
 	project.Delete("/delete/project/:id", middlewares.RequiresCookieSession, controllers.DeleteProject)

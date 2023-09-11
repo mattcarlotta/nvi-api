@@ -173,6 +173,52 @@ func TestGetProjectByNameSuccess(t *testing.T) {
 	assert.Equal(t, test.ExpectedCode, res.StatusCode)
 }
 
+func TestSearchForProjectByNameInvalidName(t *testing.T) {
+	u, token := testutils.CreateUser("search_project_invalid_name@example.com", true)
+
+	test := &testutils.TestResponse{
+		Route:        "/projects/search/a@#bc%20",
+		Method:       fiber.MethodGet,
+		ExpectedCode: fiber.StatusBadRequest,
+	}
+
+	req := testutils.CreateAuthHTTPRequest(test, &token)
+
+	res := sendAppRequest(req)
+
+	resBody := testutils.ParseJSONBodyError(&res.Body)
+
+	defer func() {
+		testutils.DeleteUser(&u)
+		res.Body.Close()
+	}()
+
+	assert.Equal(t, test.ExpectedCode, res.StatusCode)
+	assert.Equal(t, resBody.Error, utils.ErrorCode[utils.GetProjectInvalidName])
+}
+
+func TestSearchForProjectsByNameSuccess(t *testing.T) {
+	u, token := testutils.CreateUser("search_projects_success_name@example.com", true)
+	p := testutils.CreateProject("search_project_success_name_project", token)
+
+	test := &testutils.TestResponse{
+		Route:        fmt.Sprintf("/projects/search/%s", p.Name),
+		Method:       fiber.MethodGet,
+		ExpectedCode: fiber.StatusOK,
+	}
+
+	req := testutils.CreateAuthHTTPRequest(test, &token)
+
+	res := sendAppRequest(req)
+
+	defer func() {
+		testutils.DeleteUser(&u)
+		res.Body.Close()
+	}()
+
+	assert.Equal(t, test.ExpectedCode, res.StatusCode)
+}
+
 func TestCreateProjectInvalidName(t *testing.T) {
 	u, token := testutils.CreateUser("create_env_empty@example.com", true)
 

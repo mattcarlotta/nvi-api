@@ -163,14 +163,27 @@ token may need to be regenerated
 
 - Error Name: `GetEnvironmentInvalidName`
 - Controller: `environment`
-- Path: `/environment/name/:name`
+- Path: `/environment/name/?name=<environmentName>&projectID=<projectID>`
+- Path: `/environments/search/?name=<environmentName>&projectID=<projectID>`
 - Method: `GET`
 - Status: `400`
-- Params: `name`
-- Explanation: the request params doesn't pass one or more of the following field validation rules:
+- Query: `name, projectID`
+- Explanation: the `name` query param doesn't pass one or more of the following field validation rules:
     - name: `required,name,lte=255` (`name` is a custom validation)
 
 ## E015
+
+- Error Name: `GetEnvironmentInvalidProjectID`
+- Controller: `environment`
+- Path: `/environment/name/?name=<environmentName>&projectID=<projectID>`
+- Path: `/environments/search/?name=<environmentName>&projectID=<projectID>`
+- Method: `GET`
+- Status: `400`
+- Query: `name, projectID`
+- Explanation: the `projectID` query param doesn't pass one or more of the following field validation rules:
+    - projectID: `required,uuid`
+
+## E016
 
 - Error Name: `GetEnvironmentNonExistentName`
 - Controller: `environment`
@@ -180,7 +193,7 @@ token may need to be regenerated
 - Params: `name`
 - Explanation: the request params contains an `name` that doesn't match a user created environment
 
-## E016
+## E017
 
 - Error Name: `CreateEnvironmentInvalidBody`
 - Controller: `environment`
@@ -192,7 +205,7 @@ token may need to be regenerated
     - name: `required,name,lte=255` (`name` is a custom validation)
     - projectID: `required,uuid`
 
-## E017
+## E018
 
 - Error Name: `CreateEnvironmentInvalidProjectID`
 - Controller: `environment`
@@ -202,7 +215,7 @@ token may need to be regenerated
 - Body: `name, projectID`
 - Explanation: the request body contains a `projectID` that doesn't match a user created project
 
-## E018
+## E019
 
 - Error Name: `CreateEnvironmentNameTaken`
 - Controller: `environment`
@@ -213,7 +226,7 @@ token may need to be regenerated
 - Explanation: the request params contains an environment `name` that is already in use by the user; another 
 name should be used instead
 
-## E019
+## E020
 
 - Error Name: `DeleteEnvironmentInvalidID`
 - Controller: `environment`
@@ -224,7 +237,7 @@ name should be used instead
 - Explanation: the request params doesn't pass one or more of the following field validation rules:
     - id: `required,uuid`
 
-## E020
+## E021
 
 - Error Name: `DeleteEnvironmentNonExistentID`
 - Controller: `environment`
@@ -234,7 +247,7 @@ name should be used instead
 - Params: `id`
 - Explanation: the request params contains an `id` that doesn't match a user created environment
 
-## E021
+## E022
 
 - Error Name: `UpdateEnvironmentInvalidBody`
 - Controller: `environment`
@@ -248,7 +261,7 @@ name should be used instead
     - projectID: `required,uuid`
     - updatedName: `required,name,lte=255` (`name` is a custom validation)
 
-## E022
+## E023
 
 - Error Name: `UpdateEnvironmentInvalidProjectID`
 - Controller: `environment`
@@ -259,7 +272,7 @@ name should be used instead
 - Body: `id, projectID, updatedName`
 - Explanation: the request body contains a `projectID` value that doesn't match any user created projects
 
-## E023
+## E024
 
 - Error Name: `UpdateEnvironmentNonExistentID`
 - Controller: `user`
@@ -270,7 +283,7 @@ name should be used instead
 - Body: `id, projectID, updatedName`
 - Explanation: the request body contains an `id` value that doesn't match any user created environment
 
-## E024
+## E025
 
 - Error Name: `UpdateEnvironmentNameTaken`
 - Controller: `user`
@@ -282,7 +295,7 @@ name should be used instead
 - Explanation: the request body contains a `name` value that in use by the user; another 
 environment name should be used instead
 
-## E025
+## E026
 
 - Error Name: `GetSecretInvalidID`
 - Controller: `secret`
@@ -293,7 +306,7 @@ environment name should be used instead
 - Explanation: the request body doesn't pass one or more of the following field validation rules:
     - id: `required,uuid`
 
-## E026
+## E027
 
 - Error Name: `GetSecretNonExistentID`
 - Controller: `secret`
@@ -303,7 +316,7 @@ environment name should be used instead
 - Params: `id`
 - Explanation: the request params contains an `id` that doesn't match a user created secret
 
-## E027
+## E028
 
 - Error Name: `GetSecretsByEnvInvalidID`
 - Controller: `secret`
@@ -314,7 +327,7 @@ environment name should be used instead
 - Explanation: the request params doesn't pass one or more of the following field validation rules:
     - id: `required,uuid`
 
-## E028
+## E029
 
 - Error Name: `GetSecretsByEnvNonExistentID`
 - Controller: `secret`
@@ -324,7 +337,7 @@ environment name should be used instead
 - Params: `id`
 - Explanation: the request params contains an `id` that doesn't match a user created environment
 
-## E029
+## E030
 
 - Error Name: `CreateSecretInvalidBody`
 - Controller: `secret`
@@ -338,7 +351,7 @@ environment name should be used instead
     - projectID: `required,uuid`
     - value: `required,lte=5000`
 
-## E030
+## E031
 
 - Error Name: `CreateSecretNonExistentProject`
 - Controller: `secret`
@@ -348,7 +361,7 @@ environment name should be used instead
 - Body: `environmentIDs, key, projectID, value`
 - Explanation: the request body `projectID` value doesn't match any user created projects
 
-## E031
+## E032
 
 - Error Name: `CreateSecretNonExistentEnv`
 - Controller: `secret`
@@ -358,7 +371,7 @@ environment name should be used instead
 - Body: `environmentIDs, key, projectID, value`
 - Explanation: the request body `environmentIDs` value doesn't match any user created environments
 
-## E032
+## E033
 
 - Error Name: `CreateSecretKeyAlreadyExists`
 - Controller: `secret`
@@ -368,7 +381,7 @@ environment name should be used instead
 - Body: `environmentIDs, key, projectID, value`
 - Explanation: the request body `key` value matches a pre-existing key value within one or more user created environments
 
-## E033
+## E034
 
 - Error Name: `DeleteSecretInvalidID`
 - Controller: `secret`
@@ -379,7 +392,7 @@ environment name should be used instead
 - Explanation: the request params doesn't pass one or more of the following field validation rules:
     - id: `required,uuid`
 
-## E034
+## E035
 
 - Error Name: `DeleteSecretNonExistentID`
 - Controller: `secret`
@@ -389,7 +402,7 @@ environment name should be used instead
 - Params: `id`
 - Explanation: the request params contains an `id` that doesn't match a user created environment
 
-## E035
+## E036
 
 - Error Name: `UpdateSecretInvalidBody`
 - Controller: `secret`
@@ -403,7 +416,7 @@ environment name should be used instead
     - key: `required,gte=2,lte=255`
     - value: `required,lte=5000`
 
-## E036
+## E037
 
 - Error Name: `UpdateSecretInvalidID`
 - Controller: `secret`
@@ -413,7 +426,7 @@ environment name should be used instead
 - Body: `id, environmentIDs, key, value`
 - Explanation: the request body contains an `id` that doesn't match a user created secret
 
-## E037
+## E038
 
 - Error Name: `UpdateSecretNonExistentEnv`
 - Controller: `secret`
@@ -423,7 +436,7 @@ environment name should be used instead
 - Body: `id, environmentIDs, key, value`
 - Explanation: the request body `environmentIDs` value doesn't match any user created environments
 
-## E038
+## E039
 
 - Error Name: `UpdateSecretKeyAlreadyExists`
 - Controller: `secret`
@@ -433,7 +446,7 @@ environment name should be used instead
 - Body: `id, environmentIDs, key, value`
 - Explanation: the request body `key` value matches a pre-existing key value within one or more user created environments
 
-## E039
+## E040
 
 - Error Name: `GetProjectInvalidID`
 - Controller: `project`
@@ -444,7 +457,7 @@ environment name should be used instead
 - Explanation: the request params doesn't pass one or more of the following field validation rules:
     - id: `required,uuid`
 
-## E040
+## E041
 
 - Error Name: `GetProjectInvalidID`
 - Controller: `project`
@@ -454,7 +467,7 @@ environment name should be used instead
 - Params: `id`
 - Explanation: the request params `id` value doesn't match any user created projects
 
-## E041
+## E042
 
 - Error Name: `GetProjectInvalidName`
 - Controller: `project`
@@ -465,7 +478,7 @@ environment name should be used instead
 - Explanation: the request params doesn't pass one or more of the following field validation rules:
     - name: `required,name,lte=255` (`name` is a custom validation)
 
-## E042
+## E043
 
 - Error Name: `GetProjectNonExistentName`
 - Controller: `project`
@@ -475,18 +488,19 @@ environment name should be used instead
 - Params: `name`
 - Explanation: the request params `name` value doesn't match any user created projects
 
-## E043
+## E044
 
 - Error Name: `CreateProjectInvalidName`
 - Controller: `project`
 - Path: `/create/project/:name`
+- Path: `/projects/search/:name`
 - Method: `POST`
 - Status: `400`
 - Params: `name`
 - Explanation: the request params doesn't pass one or more of the following field validation rules:
     - name: `required,name,lte=255` (`name` is a custom validation)
 
-## E044
+## E045
 
 - Error Name: `CreateProjectNameTaken`
 - Controller: `project`
@@ -496,7 +510,7 @@ environment name should be used instead
 - Params: `name`
 - Explanation: the request params `name` value matches a project name that already exists
 
-## E045
+## E046
 
 - Error Name: `DeleteProjectInvalidID`
 - Controller: `project`
@@ -507,7 +521,7 @@ environment name should be used instead
 - Explanation: the request params doesn't pass one or more of the following field validation rules:
     - id: `required,uuid`
 
-## E046
+## E047
 
 - Error Name: `DeleteProjectNonExistentID`
 - Controller: `project`
@@ -517,7 +531,7 @@ environment name should be used instead
 - Params: `id`
 - Explanation: the request params contains an `id` that doesn't match a user created project
 
-## E047
+## E048
 
 - Error Name: `UpdateProjectInvalidBody`
 - Controller: `project`
@@ -530,7 +544,7 @@ environment name should be used instead
     - id: `required,uuid`
     - updatedName: `required,name,lte=255` (`name` is a custom validation)
 
-## E048
+## E049
 
 - Error Name: `UpdateProjectNonExistentID`
 - Controller: `project`
@@ -541,7 +555,7 @@ environment name should be used instead
 - Body: `id, updatedName`
 - Explanation: the request body contains an `id` value that doesn't match a user created project
 
-## E049
+## E050
 
 - Error Name: `UpdateProjectNameTaken`
 - Controller: `project`

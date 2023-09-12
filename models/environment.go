@@ -18,7 +18,7 @@ type Environment struct {
 }
 
 type ReqCreateEnv struct {
-	Name      string `json:"updatedName" validate:"required,name,lte=255"`
+	Name      string `json:"name" validate:"required,name,lte=255"`
 	ProjectID string `json:"projectID" validate:"uuid"`
 }
 

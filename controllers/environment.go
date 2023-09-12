@@ -10,12 +10,24 @@ import (
 	"gorm.io/gorm"
 )
 
-func GetAllEnvironments(c *fiber.Ctx) error {
+func GetAllEnvironmentsByProjectID(c *fiber.Ctx) error {
 	db := database.GetConnection()
 	userSessionID := utils.GetSessionID(c)
 
+	ID := c.Params("id")
+	if err := utils.Validate().Var(ID, "required,uuid"); err != nil {
+		return c.Status(fiber.StatusBadRequest).JSON(utils.JSONError(utils.GetAllEnvironmentsInvalidProjectID))
+	}
+
+	projectID := utils.MustParseUUID(ID)
+
+	var project models.Project
+	if err := db.Where(&models.Project{ID: projectID}).First(&project).Error; err != nil {
+		return c.Status(fiber.StatusNotFound).JSON(utils.JSONError(utils.GetAllEnvironmentsNonExistentID))
+	}
+
 	var environments []models.Environment
-	db.Where(&models.Environment{UserID: userSessionID}).Find(&environments)
+	db.Where(&models.Environment{UserID: userSessionID, ProjectID: projectID}).Order("created_at desc").Find(&environments)
 
 	return c.Status(fiber.StatusOK).JSON(environments)
 }
@@ -39,23 +51,52 @@ func GetEnvironmentByID(c *fiber.Ctx) error {
 	return c.Status(fiber.StatusOK).JSON(environment)
 }
 
-func GetEnvironmentByName(c *fiber.Ctx) error {
+func GetEnvironmentByNameAndProjectID(c *fiber.Ctx) error {
 	db := database.GetConnection()
 	userSessionID := utils.GetSessionID(c)
 
-	name := c.Params("name")
+	name := c.Query("name")
 	if err := utils.Validate().Var(name, "required,name,lte=255"); err != nil {
 		return c.Status(fiber.StatusBadRequest).JSON(utils.JSONError(utils.GetEnvironmentInvalidName))
 	}
 
+	projectID := c.Query("projectID")
+	if err := utils.Validate().Var(projectID, "required,uuid"); err != nil {
+		return c.Status(fiber.StatusBadRequest).JSON(utils.JSONError(utils.GetEnvironmentInvalidProjectID))
+	}
+
 	var environment models.Environment
 	if err := db.Where(
-		&models.Environment{Name: name, UserID: userSessionID},
+		&models.Environment{Name: name, ProjectID: utils.MustParseUUID(projectID), UserID: userSessionID},
 	).First(&environment).Error; err != nil {
 		return c.Status(fiber.StatusNotFound).JSON(utils.JSONError(utils.GetEnvironmentNonExistentName))
 	}
 
 	return c.Status(fiber.StatusOK).JSON(environment)
+}
+
+func SearchForEnvironmentsByNameAndProjectID(c *fiber.Ctx) error {
+	db := database.GetConnection()
+	userSessionID := utils.GetSessionID(c)
+
+	name := c.Query("name")
+	if err := utils.Validate().Var(name, "required,name,lte=255"); err != nil {
+		return c.Status(fiber.StatusBadRequest).JSON(utils.JSONError(utils.GetEnvironmentInvalidName))
+	}
+
+	projectID := c.Query("projectID")
+	if err := utils.Validate().Var(projectID, "required,uuid"); err != nil {
+		return c.Status(fiber.StatusBadRequest).JSON(utils.JSONError(utils.GetEnvironmentInvalidProjectID))
+	}
+
+	var environments []models.Environment
+	if err := db.Where(
+		"name ILIKE ? AND project_id=? AND user_id=?", "%"+name+"%", utils.MustParseUUID(projectID), userSessionID,
+	).Order("created_at desc").Find(&environments).Error; err != nil {
+		return c.Status(fiber.StatusInternalServerError).JSON(utils.UnknownJSONError(err))
+	}
+
+	return c.Status(fiber.StatusOK).JSON(environments)
 }
 
 func CreateEnvironment(c *fiber.Ctx) error {

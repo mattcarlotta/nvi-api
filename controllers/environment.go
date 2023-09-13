@@ -75,6 +75,7 @@ func GetEnvironmentByNameAndProjectID(c *fiber.Ctx) error {
 	return c.Status(fiber.StatusOK).JSON(environment)
 }
 
+// TODO(carlotta): add test cases for this controller
 func SearchForEnvironmentsByNameAndProjectID(c *fiber.Ctx) error {
 	db := database.GetConnection()
 	userSessionID := utils.GetSessionID(c)

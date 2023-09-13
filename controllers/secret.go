@@ -52,6 +52,7 @@ func GetSecretsByEnvironmentID(c *fiber.Ctx) error {
 	return c.Status(fiber.StatusOK).JSON(secrets)
 }
 
+// TODO(carlotta): add test cases for this controller
 func SearchForSecretsByEnvironmentIDAndSecretKey(c *fiber.Ctx) error {
 	db := database.GetConnection()
 	userSessionID := utils.GetSessionID(c)

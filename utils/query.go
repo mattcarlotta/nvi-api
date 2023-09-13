@@ -18,6 +18,7 @@ FROM (
 	JOIN environments envs on es.environment_id = envs.id
 	WHERE s.user_id = ?
 	GROUP BY s.id
+    ORDER BY s.created_at
 ) r
 WHERE r.environments @> ?;
 `

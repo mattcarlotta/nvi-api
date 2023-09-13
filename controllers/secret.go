@@ -52,6 +52,32 @@ func GetSecretsByEnvironmentID(c *fiber.Ctx) error {
 	return c.Status(fiber.StatusOK).JSON(secrets)
 }
 
+func SearchForSecretsByEnvironmentIDAndSecretKey(c *fiber.Ctx) error {
+	db := database.GetConnection()
+	userSessionID := utils.GetSessionID(c)
+
+	key := c.Query("key")
+	if err := utils.Validate().Var(key, "required,gte=2,lte=255"); err != nil {
+		return c.Status(fiber.StatusBadRequest).Send(nil)
+		// return c.Status(fiber.StatusBadRequest).JSON(utils.JSONError(utils.GetProjectInvalidName))
+	}
+	environmentID := c.Query("environmentID")
+	if err := utils.Validate().Var(environmentID, "required,uuid"); err != nil {
+		return c.Status(fiber.StatusBadRequest).JSON(utils.JSONError(utils.GetEnvironmentInvalidProjectID))
+	}
+
+	parsedEnvID := utils.MustParseUUID(environmentID)
+
+	var secrets []models.Secret
+	if err := db.Raw(
+		utils.FindSecretsByEnvIDAndSecretKeyQuery, userSessionID, "%"+key+"%", utils.GenerateJSONIDString(parsedEnvID),
+	).Scan(&secrets).Error; err != nil {
+		return c.Status(fiber.StatusInternalServerError).JSON(utils.UnknownJSONError(err))
+	}
+
+	return c.Status(fiber.StatusOK).JSON(secrets)
+}
+
 func CreateSecret(c *fiber.Ctx) error {
 	db := database.GetConnection()
 	userSessionID := utils.GetSessionID(c)

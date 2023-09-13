@@ -18,7 +18,28 @@ FROM (
 	JOIN environments envs on es.environment_id = envs.id
 	WHERE s.user_id = ?
 	GROUP BY s.id
-    ORDER BY s.created_at
+    ORDER BY s.created_at DESC
+) r
+WHERE r.environments @> ?;
+`
+
+const FindSecretsByEnvIDAndSecretKeyQuery = `
+SELECT * 
+FROM (
+	SELECT 
+		s.id,
+		s.user_id,
+		s.key,
+		s.value,
+		s.created_at,
+		s.updated_at,
+		jsonb_agg(envs) as environments
+	FROM secrets s
+	JOIN environment_secrets es ON s.id = es.secret_id
+	JOIN environments envs on es.environment_id = envs.id
+	WHERE s.user_id = ? AND s.key ILIKE ?
+	GROUP BY s.id
+    ORDER BY s.created_at DESC
 ) r
 WHERE r.environments @> ?;
 `

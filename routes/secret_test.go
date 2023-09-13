@@ -86,7 +86,7 @@ func TestGetSecretsByEnvironmentInvalidID(t *testing.T) {
 	u, token := testutils.CreateUser("get_secrets_by_invalid_env_id@example.com", true)
 
 	test := &testutils.TestResponse{
-		Route:        "/secrets/not_a_valid_env_uuid",
+		Route:        "/secrets/id/not_a_valid_env_uuid",
 		Method:       fiber.MethodGet,
 		ExpectedCode: fiber.StatusBadRequest,
 	}
@@ -110,7 +110,7 @@ func TestGetSecretsByEnvironmentNonExistentID(t *testing.T) {
 	u, token := testutils.CreateUser("get_secrets_by_invalid_env_id@example.com", true)
 
 	test := &testutils.TestResponse{
-		Route:        fmt.Sprintf("/secrets/%s", uuid.NewString()),
+		Route:        fmt.Sprintf("/secrets/id/%s", uuid.NewString()),
 		Method:       fiber.MethodGet,
 		ExpectedCode: fiber.StatusNotFound,
 	}
@@ -135,7 +135,7 @@ func TestGetSecretsByEnvironmentSuccess(t *testing.T) {
 	_, e, _ := testutils.CreateProjectAndEnvironmentAndSecret("get_secrets_by_env_project", "get_secrets_by_env_success", "GET_SECRET_ENV_KEY", "env_value", token)
 
 	test := &testutils.TestResponse{
-		Route:        fmt.Sprintf("/secrets/%s", e.ID.String()),
+		Route:        fmt.Sprintf("/secrets/id/%s", e.ID.String()),
 		Method:       fiber.MethodGet,
 		ExpectedCode: fiber.StatusOK,
 	}

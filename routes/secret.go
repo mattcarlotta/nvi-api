@@ -9,7 +9,8 @@ import (
 func SecretRoutes(app *fiber.App) {
 	secret := app.Group("/")
 	secret.Get("/secret/:id", middlewares.RequiresCookieSession, controllers.GetSecretBySecretID)
-	secret.Get("/secrets/:id", middlewares.RequiresCookieSession, controllers.GetSecretsByEnvironmentID)
+	secret.Get("/secrets/id/:id", middlewares.RequiresCookieSession, controllers.GetSecretsByEnvironmentID)
+	secret.Get("/secrets/search", middlewares.RequiresCookieSession, controllers.SearchForSecretsByEnvironmentIDAndSecretKey)
 	secret.Post("/create/secret", middlewares.RequiresCookieSession, controllers.CreateSecret)
 	secret.Delete("/delete/secret/:id", middlewares.RequiresCookieSession, controllers.DeleteSecret)
 	secret.Put("/update/secret/", middlewares.RequiresCookieSession, controllers.UpdateSecret)

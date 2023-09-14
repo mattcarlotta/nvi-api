@@ -26,7 +26,12 @@ func GetSecretBySecretID(c *fiber.Ctx) error {
 		return c.Status(fiber.StatusNotFound).JSON(utils.JSONError(utils.GetSecretNonExistentID))
 	}
 
-	return c.Status(fiber.StatusOK).JSON(secret)
+	decryptedValue, err := utils.DecryptSecretValue(secret.Value, secret.Nonce)
+	if err != nil {
+		return c.Status(fiber.StatusInternalServerError).JSON(utils.UnknownJSONError(err))
+	}
+
+	return c.Status(fiber.StatusOK).JSON(fiber.Map{"value": string(decryptedValue)})
 }
 
 func GetSecretsByEnvironmentID(c *fiber.Ctx) error {
@@ -222,7 +227,7 @@ func UpdateSecret(c *fiber.Ctx) error {
 
 		}
 
-		newValue, err := utils.CreateEncryptedText([]byte(data.Key))
+		newValue, newNonce, err := utils.CreateEncryptedSecretValue([]byte(data.Key))
 		if err != nil {
 			return c.Status(fiber.StatusInternalServerError).JSON(utils.UnknownJSONError(err))
 		}
@@ -231,7 +236,7 @@ func UpdateSecret(c *fiber.Ctx) error {
 			return c.Status(fiber.StatusInternalServerError).JSON(utils.UnknownJSONError(err))
 		}
 
-		if err = tx.Model(&secret).Updates(&models.Secret{Key: data.Key, Value: newValue}).Error; err != nil {
+		if err = tx.Model(&secret).Updates(&models.Secret{Key: data.Key, Nonce: newNonce, Value: newValue}).Error; err != nil {
 			return c.Status(fiber.StatusInternalServerError).JSON(utils.UnknownJSONError(err))
 		}
 

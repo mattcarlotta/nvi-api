@@ -17,13 +17,15 @@ type Secret struct {
 	Environments []Environment `gorm:"many2many:environment_secrets;constraint:OnUpdate:CASCADE,OnDelete:CASCADE;" json:"environments"`
 	Key          string        `gorm:"type:varchar(255);not null" json:"key"`
 	Value        []byte        `gorm:"not null" json:"value"`
+	Nonce        []byte        `gorm:"not null" json:"-"`
 	CreatedAt    time.Time     `json:"createdAt"`
 	UpdatedAt    time.Time     `json:"updatedAt"`
 }
 
 func (secret *Secret) BeforeCreate(tx *gorm.DB) (err error) {
-	if encText, err := utils.CreateEncryptedText(secret.Value); err == nil {
+	if encText, nonce, err := utils.CreateEncryptedSecretValue(secret.Value); err == nil {
 		tx.Statement.SetColumn("Value", encText)
+		tx.Statement.SetColumn("Nonce", nonce)
 	}
 	return nil
 }

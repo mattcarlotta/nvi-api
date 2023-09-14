@@ -7,10 +7,10 @@ import (
 	"io"
 )
 
-var PASSPHRASE = []byte(GetEnv("PASSPHRASE"))
+var ENCRYPTION_KEY = []byte(GetEnv("ENCRYPTION_KEY"))
 
 func CreateEncryptedSecretValue(plaintext []byte) ([]byte, []byte, error) {
-	block, err := aes.NewCipher(PASSPHRASE)
+	block, err := aes.NewCipher(ENCRYPTION_KEY)
 	if err != nil {
 		return nil, nil, err
 	}
@@ -31,7 +31,7 @@ func CreateEncryptedSecretValue(plaintext []byte) ([]byte, []byte, error) {
 }
 
 func DecryptSecretValue(data []byte, nonce []byte) ([]byte, error) {
-	block, err := aes.NewCipher(PASSPHRASE)
+	block, err := aes.NewCipher(ENCRYPTION_KEY)
 	if err != nil {
 		return nil, err
 	}

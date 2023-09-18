@@ -44,14 +44,17 @@ func GetSecretsByEnvironmentID(c *fiber.Ctx) error {
 	}
 
 	parsedEnvID := utils.MustParseUUID(id)
+
+	var environment models.Environment
+	if err := db.Where(&models.Environment{ID: parsedEnvID}).First(&environment).Error; err != nil {
+		return c.Status(fiber.StatusNotFound).JSON(utils.JSONError(utils.GetSecretsByEnvNonExistentID))
+	}
+
 	var secrets []models.SecretResult
 	if err := db.Raw(
-		utils.FindSecretsByEnvIDQuery, userSessionID, utils.GenerateJSONIDString(parsedEnvID),
-	).Scan(&secrets).Error; err != nil || len(secrets) == 0 {
-		if err != nil {
-			return c.Status(fiber.StatusInternalServerError).JSON(utils.UnknownJSONError(err))
-		}
-		return c.Status(fiber.StatusNotFound).JSON(utils.JSONError(utils.GetSecretsByEnvNonExistentID))
+		utils.FindSecretsByEnvIDQuery, userSessionID, utils.GenerateJSONIDString(environment.ID),
+	).Scan(&secrets).Error; err != nil {
+		return c.Status(fiber.StatusInternalServerError).JSON(utils.UnknownJSONError(err))
 	}
 
 	return c.Status(fiber.StatusOK).JSON(secrets)
@@ -172,7 +175,7 @@ func DeleteSecret(c *fiber.Ctx) error {
 		return c.Status(fiber.StatusInternalServerError).JSON(utils.UnknownJSONError(err))
 	}
 
-	return c.Status(fiber.StatusCreated).SendString(fmt.Sprintf("Successfully deleted the %s secret!", secret.Key))
+	return c.Status(fiber.StatusCreated).SendString(fmt.Sprintf("Successfully removed the %s secret!", secret.Key))
 }
 
 func UpdateSecret(c *fiber.Ctx) error {

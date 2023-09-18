@@ -405,7 +405,7 @@ func TestDeleteSecretSuccess(t *testing.T) {
 	}()
 
 	assert.Equal(t, test.ExpectedCode, res.StatusCode)
-	assert.Equal(t, resBody, fmt.Sprintf("Successfully deleted the %s secret!", s.Key))
+	assert.Equal(t, resBody, fmt.Sprintf("Successfully removed the %s secret!", s.Key))
 }
 
 func TestUpdateSecretEmptyBody(t *testing.T) {

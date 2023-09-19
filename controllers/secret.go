@@ -238,7 +238,7 @@ func UpdateSecret(c *fiber.Ctx) error {
 
 		}
 
-		newValue, newNonce, err := utils.CreateEncryptedSecretValue([]byte(data.Key))
+		newValue, newNonce, err := utils.CreateEncryptedSecretValue([]byte(data.Value))
 		if err != nil {
 			return c.Status(fiber.StatusInternalServerError).JSON(utils.UnknownJSONError(err))
 		}

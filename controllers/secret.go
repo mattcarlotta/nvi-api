@@ -4,6 +4,7 @@ import (
 	"fmt"
 
 	"github.com/gofiber/fiber/v2"
+	"github.com/google/uuid"
 	"github.com/mattcarlotta/nvi-api/database"
 	"github.com/mattcarlotta/nvi-api/models"
 	"github.com/mattcarlotta/nvi-api/utils"
@@ -20,7 +21,7 @@ func GetSecretBySecretID(c *fiber.Ctx) error {
 	}
 
 	var secret models.Secret
-	if err := db.First(
+	if err := db.Preload("Environments").First(
 		&secret, "id=? AND user_id=?", utils.MustParseUUID(id), userSessionID,
 	).Error; err != nil {
 		return c.Status(fiber.StatusNotFound).JSON(utils.JSONError(utils.GetSecretNonExistentID))
@@ -31,7 +32,14 @@ func GetSecretBySecretID(c *fiber.Ctx) error {
 		return c.Status(fiber.StatusInternalServerError).JSON(utils.UnknownJSONError(err))
 	}
 
-	return c.Status(fiber.StatusOK).JSON(fiber.Map{"value": string(decryptedValue)})
+	var environmentIDs []uuid.UUID
+	for _, s := range secret.Environments {
+		environmentIDs = append(environmentIDs, s.ID)
+	}
+
+	return c.Status(fiber.StatusOK).JSON(
+		fiber.Map{"environmentIDs": environmentIDs, "key": secret.Key, "value": string(decryptedValue)},
+	)
 }
 
 func GetSecretsByEnvironmentID(c *fiber.Ctx) error {

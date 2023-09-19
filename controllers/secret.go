@@ -20,7 +20,7 @@ func GetSecretBySecretID(c *fiber.Ctx) error {
 	}
 
 	var secret models.Secret
-	if err := db.Preload("Environments").First(
+	if err := db.First(
 		&secret, "id=? AND user_id=?", utils.MustParseUUID(id), userSessionID,
 	).Error; err != nil {
 		return c.Status(fiber.StatusNotFound).JSON(utils.JSONError(utils.GetSecretNonExistentID))

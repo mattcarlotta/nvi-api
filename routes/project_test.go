@@ -363,7 +363,7 @@ func TestDeleteProjectSuccess(t *testing.T) {
 	}()
 
 	assert.Equal(t, test.ExpectedCode, res.StatusCode)
-	assert.Equal(t, resBody, fmt.Sprintf("Successfully deleted the %s project!", p.Name))
+	assert.Equal(t, resBody, fmt.Sprintf("Successfully removed the %s project!", p.Name))
 }
 
 func TestUpdateProjectInvalidBody(t *testing.T) {

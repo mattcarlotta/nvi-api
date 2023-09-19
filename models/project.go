@@ -21,5 +21,5 @@ type ReqProject struct {
 
 type ReqUpdateProject struct {
 	ID          string `json:"id" validate:"required,uuid"`
-	UpdatedName string `json:"name" validate:"required,name,lte=255"`
+	UpdatedName string `json:"updatedName" validate:"required,name,lte=255"`
 }

@@ -121,7 +121,7 @@ func DeleteProject(c *fiber.Ctx) error {
 	}
 
 	return c.Status(fiber.StatusOK).SendString(
-		fmt.Sprintf("Successfully deleted the %s project!", project.Name),
+		fmt.Sprintf("Successfully removed the %s project!", project.Name),
 	)
 }
 

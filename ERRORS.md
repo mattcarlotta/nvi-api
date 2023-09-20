@@ -136,11 +136,11 @@ token may need to be regenerated
 - Status: `401`
 - Content: `application/json`
 - Body: `password, token`
-- Explanation: the request body contains a `token` that is invalid or expired, a new update password token will need
+- Explanation: the request body contains a `token` that is invalid or expired, a new update password token will need to be regenerated
 
 ## E012
 
-- Error Name: `GetEnvironmentInvalidToken`
+- Error Name: `GetEnvironmentInvalidID`
 - Controller: `environment`
 - Path: `/environment/id/:id`
 - Method: `GET`

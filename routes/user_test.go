@@ -617,7 +617,25 @@ func TestUpdatePasswordSuccess(t *testing.T) {
 	assert.Equal(t, resBody, "Your account has been updated with a new password!")
 }
 
-func GetAccountInfoSuccess(t *testing.T) {
+func TestUpdateAPIKeySuccess(t *testing.T) {
+	_, token := testutils.CreateUser("update_api_key_success@example.com", true)
+
+	test := &testutils.TestResponse{
+		Route:        "/update/apikey",
+		Method:       fiber.MethodPatch,
+		ExpectedCode: fiber.StatusCreated,
+	}
+
+	req := testutils.CreateAuthHTTPRequest(test, &token)
+
+	res := sendAppRequest(req)
+
+	defer res.Body.Close()
+
+	assert.Equal(t, test.ExpectedCode, res.StatusCode)
+}
+
+func TestGetAccountInfoSuccess(t *testing.T) {
 	_, token := testutils.CreateUser("update_password@example.com", true)
 
 	test := &testutils.TestResponse{
@@ -635,7 +653,7 @@ func GetAccountInfoSuccess(t *testing.T) {
 	assert.Equal(t, test.ExpectedCode, res.StatusCode)
 }
 
-func DeleteAccountSuccess(t *testing.T) {
+func TestDeleteAccountSuccess(t *testing.T) {
 	_, token := testutils.CreateUser("delete_account@example.com", true)
 
 	test := &testutils.TestResponse{

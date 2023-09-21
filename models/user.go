@@ -14,6 +14,7 @@ type User struct {
 	Name      string    `gorm:"type:varchar(255);not null" json:"name"`
 	Email     string    `gorm:"type:varchar(255);uniqueIndex;not null" json:"email"`
 	Password  []byte    `gorm:"not null" json:"-"`
+	APIKey    string    `gorm:"not null" json:"apiKey"`
 	Verified  bool      `gorm:"default:false" json:"-"`
 	Token     *[]byte   `gorm:"default:null" json:"-"`
 	CreatedAt time.Time `json:"createdAt"`
@@ -43,6 +44,10 @@ func (user *User) BeforeCreate(tx *gorm.DB) (err error) {
 	if pw, err := utils.CreateEncryptedText(user.Password); err == nil {
 		tx.Statement.SetColumn("Password", pw)
 	}
+
+	apiKEY := utils.CreateBase64EncodedUUID()
+	tx.Statement.SetColumn("APIKey", apiKEY)
+
 	return nil
 }
 

@@ -232,6 +232,26 @@ func UpdatePassword(c *fiber.Ctx) error {
 	return c.Status(fiber.StatusCreated).SendString("Your account has been updated with a new password!")
 }
 
+func UpdateAPIKey(c *fiber.Ctx) error {
+	db := database.GetConnection()
+	userSessionID := utils.GetSessionID(c)
+
+	var user models.User
+	if err := db.Where(&models.User{ID: userSessionID}).First(&user).Error; err != nil {
+		newError := errors.New(
+			"encountered an unexpected error. Unable to locate the associated account from the current session",
+		)
+		return c.Status(fiber.StatusInternalServerError).JSON(utils.UnknownJSONError(newError))
+	}
+
+	if err := db.Model(&user).Update("APIKey", utils.CreateBase64EncodedUUID()).Error; err != nil {
+		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{"error": err.Error()})
+	}
+
+	return c.Status(fiber.StatusCreated).Send(nil)
+
+}
+
 func GetAccountInfo(c *fiber.Ctx) error {
 	db := database.GetConnection()
 	userSessionID := utils.GetSessionID(c)

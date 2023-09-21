@@ -1,7 +1,10 @@
 package utils
 
 import (
+	"encoding/base64"
+	"encoding/hex"
 	"fmt"
+	"strings"
 
 	"github.com/gofiber/fiber/v2"
 	"github.com/google/uuid"
@@ -34,3 +37,21 @@ func ParseUUIDs(ids []string) ([]uuid.UUID, error) {
 	}
 	return UUIDS, nil
 }
+
+// strip "-" from UUID
+var normalizeUUID = strings.NewReplacer("-", "")
+
+// replaces 9 with 99, "-" with 90, and "_" with 91
+var normalizer = strings.NewReplacer("9", "99", "-", "90", "_", "91")
+
+func CreateBase64EncodedUUID() string {
+	normalizedID := normalizeUUID.Replace(uuid.NewString())
+	hexID, _ := hex.DecodeString(normalizedID)
+	return normalizer.Replace(base64.RawURLEncoding.EncodeToString(hexID))
+}
+
+// var denormalizer = strings.NewReplacer("99", "9", "90", "-", "91", "_")
+// func DecodeUUID(encodedID string) string {
+//  decodedID, _ := base64.RawURLEncoding.DecodeString(denormalizer.Replace(encodedID))
+// 	return string(decodedID)
+// }

@@ -11,6 +11,76 @@ import (
 	"gorm.io/gorm"
 )
 
+func GetSecretByAPIKey(c *fiber.Ctx) error {
+	db := database.GetConnection()
+	apiKey := c.Query("apiKey")
+	if err := utils.Validate().Var(apiKey, "required"); err != nil {
+		return c.Status(fiber.StatusUnauthorized).SendString(
+			"a valid apiKey must be supplied in order to access secrets",
+		)
+	}
+
+	return db.Transaction(func(tx *gorm.DB) error {
+		var user models.User
+		if err := tx.Where(&models.User{APIKey: apiKey}).First(&user).Error; err != nil {
+			return c.Status(fiber.StatusNotFound).SendString(
+				"the provided apiKey is not valid. please try again",
+			)
+		}
+
+		projectName := c.Query("project")
+		if err := utils.Validate().Var(projectName, "required,name,lte=255"); err != nil {
+			return c.Status(fiber.StatusBadRequest).SendString(
+				"a valid project name must be supplied in order to access secrets",
+			)
+		}
+
+		var project models.Project
+		if err := tx.Where(
+			"name=? AND user_id=?", projectName, user.ID,
+		).First(&project).Error; err != nil {
+			return c.Status(fiber.StatusNotFound).SendString(
+				"unable to locate a project with the provided name",
+			)
+		}
+
+		environmentName := c.Query("environment")
+		if err := utils.Validate().Var(environmentName, "required,name,lte=255"); err != nil {
+			return c.Status(fiber.StatusBadRequest).SendString(
+				"a valid environment name must be supplied in order to access secrets",
+			)
+		}
+
+		var environment models.Environment
+		if err := tx.Where(
+			&models.Environment{Name: environmentName, ProjectID: project.ID, UserID: user.ID},
+		).First(&environment).Error; err != nil {
+			return c.Status(fiber.StatusNotFound).SendString(
+				"unable to locate the specified environment within the provided project",
+			)
+		}
+
+		var secrets []models.SecretResult
+		if err := tx.Raw(
+			utils.FindSecretsByEnvIDQuery, user.ID, utils.GenerateJSONIDString(environment.ID),
+		).Scan(&secrets).Error; err != nil {
+			return c.Status(fiber.StatusInternalServerError).SendString(err.Error())
+		}
+
+		var stringifiedSecrets string
+		for _, secret := range secrets {
+			decryptedValue, err := utils.DecryptSecretValue(secret.Value, secret.Nonce)
+			if err != nil {
+				return c.Status(fiber.StatusInternalServerError).SendString(err.Error())
+			}
+			var keyValue = secret.Key + "=" + string(decryptedValue) + "\n"
+			stringifiedSecrets += keyValue
+		}
+
+		return c.Status(fiber.StatusOK).SendString(stringifiedSecrets)
+	})
+}
+
 func GetSecretBySecretID(c *fiber.Ctx) error {
 	db := database.GetConnection()
 	userSessionID := utils.GetSessionID(c)

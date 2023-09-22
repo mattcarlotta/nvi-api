@@ -119,7 +119,7 @@ func TestRegisterUserSuccess(t *testing.T) {
 }
 
 func TestLoggedinSuccess(t *testing.T) {
-	_, token := testutils.CreateUser("loggedin_account@example.com", true)
+	u, token := testutils.CreateUser("loggedin_account@example.com", true)
 
 	test := &testutils.TestResponse{
 		Route:        "/loggedin",
@@ -131,7 +131,10 @@ func TestLoggedinSuccess(t *testing.T) {
 
 	res := sendAppRequest(req)
 
-	defer res.Body.Close()
+	defer func() {
+		testutils.DeleteUser(&u)
+		res.Body.Close()
+	}()
 
 	assert.Equal(t, test.ExpectedCode, res.StatusCode)
 }
@@ -618,7 +621,7 @@ func TestUpdatePasswordSuccess(t *testing.T) {
 }
 
 func TestUpdateAPIKeySuccess(t *testing.T) {
-	_, token := testutils.CreateUser("update_api_key_success@example.com", true)
+	u, token := testutils.CreateUser("update_api_key_success@example.com", true)
 
 	test := &testutils.TestResponse{
 		Route:        "/update/apikey",
@@ -630,13 +633,16 @@ func TestUpdateAPIKeySuccess(t *testing.T) {
 
 	res := sendAppRequest(req)
 
-	defer res.Body.Close()
+	defer func() {
+		testutils.DeleteUser(&u)
+		res.Body.Close()
+	}()
 
 	assert.Equal(t, test.ExpectedCode, res.StatusCode)
 }
 
 func TestGetAccountInfoSuccess(t *testing.T) {
-	_, token := testutils.CreateUser("update_password@example.com", true)
+	u, token := testutils.CreateUser("get_account_info@example.com", true)
 
 	test := &testutils.TestResponse{
 		Route:        "/account",
@@ -648,7 +654,10 @@ func TestGetAccountInfoSuccess(t *testing.T) {
 
 	res := sendAppRequest(req)
 
-	defer res.Body.Close()
+	defer func() {
+		testutils.DeleteUser(&u)
+		res.Body.Close()
+	}()
 
 	assert.Equal(t, test.ExpectedCode, res.StatusCode)
 }

@@ -10,6 +10,7 @@ FROM (
 		s.user_id,
 		s.key,
 		s.value,
+        s.nonce,
 		s.created_at,
 		s.updated_at,
 		jsonb_agg(envs) as environments

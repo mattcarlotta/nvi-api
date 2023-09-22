@@ -17,7 +17,7 @@ type Secret struct {
 	Environments []Environment `gorm:"many2many:environment_secrets;constraint:OnUpdate:CASCADE,OnDelete:CASCADE;" json:"environments"`
 	Key          string        `gorm:"type:varchar(255);not null" json:"key"`
 	Value        []byte        `gorm:"not null" json:"value"`
-	Nonce        []byte        `gorm:"not null" json:"-"`
+	Nonce        []byte        `gorm:"not null" json:"nonce"`
 	CreatedAt    time.Time     `json:"createdAt"`
 	UpdatedAt    time.Time     `json:"updatedAt"`
 }
@@ -70,6 +70,7 @@ type SecretResult struct {
 	Environments datatypes.JSON `json:"environments"`
 	Key          string         `json:"key"`
 	Value        []byte         `json:"value"`
+	Nonce        []byte         `json:"-"`
 	CreatedAt    time.Time      `json:"createdAt"`
 	UpdatedAt    time.Time      `json:"updatedAt"`
 }

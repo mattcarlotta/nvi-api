@@ -148,6 +148,7 @@ func SearchForSecretsByEnvironmentIDAndSecretKey(c *fiber.Ctx) error {
 		return c.Status(fiber.StatusBadRequest).Send(nil)
 		// return c.Status(fiber.StatusBadRequest).JSON(utils.JSONError(utils.GetProjectInvalidName))
 	}
+
 	environmentID := c.Query("environmentID")
 	if err := utils.Validate().Var(environmentID, "required,uuid"); err != nil {
 		return c.Status(fiber.StatusBadRequest).JSON(utils.JSONError(utils.GetEnvironmentInvalidProjectID))
@@ -157,7 +158,10 @@ func SearchForSecretsByEnvironmentIDAndSecretKey(c *fiber.Ctx) error {
 
 	var secrets []models.Secret
 	if err := db.Raw(
-		utils.FindSecretsByEnvIDAndSecretKeyQuery, userSessionID, "%"+key+"%", utils.GenerateJSONIDString(parsedEnvID),
+		utils.FindSecretsByEnvIDAndSecretKeyQuery,
+		userSessionID,
+		"%"+key+"%",
+		utils.GenerateJSONIDString(parsedEnvID),
 	).Scan(&secrets).Error; err != nil {
 		return c.Status(fiber.StatusInternalServerError).JSON(utils.UnknownJSONError(err))
 	}
@@ -225,12 +229,17 @@ func CreateSecret(c *fiber.Ctx) error {
 		}
 	}
 
-	newSecret := models.Secret{Key: data.Key, Value: []byte(data.Value), UserID: userSessionID, Environments: environments}
+	newSecret := models.Secret{
+		Key:          data.Key,
+		Value:        []byte(data.Value),
+		UserID:       userSessionID,
+		Environments: environments,
+	}
 	if err := db.Create(&newSecret).Error; err != nil {
 		return c.Status(fiber.StatusInternalServerError).JSON(utils.UnknownJSONError(err))
 	}
 
-	return c.Status(fiber.StatusCreated).SendString(fmt.Sprintf("Successfully created %s!", data.Key))
+	return c.Status(fiber.StatusCreated).SendString(fmt.Sprintf("Successfully created %s!", newSecret.Key))
 }
 
 func DeleteSecret(c *fiber.Ctx) error {
@@ -317,10 +326,17 @@ func UpdateSecret(c *fiber.Ctx) error {
 			return c.Status(fiber.StatusInternalServerError).JSON(utils.UnknownJSONError(err))
 		}
 
-		if err = tx.Model(&secret).Updates(&models.Secret{Key: data.Key, Nonce: newNonce, Value: newValue}).Error; err != nil {
+		newSecret := models.Secret{
+			Key:   data.Key,
+			Nonce: newNonce,
+			Value: newValue,
+		}
+		if err = tx.Model(&secret).Updates(&newSecret).Error; err != nil {
 			return c.Status(fiber.StatusInternalServerError).JSON(utils.UnknownJSONError(err))
 		}
 
-		return c.Status(fiber.StatusOK).SendString(fmt.Sprintf("Successfully updated the %s secret!", data.Key))
+		return c.Status(fiber.StatusOK).SendString(
+			fmt.Sprintf("Successfully updated the %s secret!", newSecret.Key),
+		)
 	})
 }

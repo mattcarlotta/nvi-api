@@ -244,12 +244,12 @@ func UpdateAPIKey(c *fiber.Ctx) error {
 		return c.Status(fiber.StatusInternalServerError).JSON(utils.UnknownJSONError(newError))
 	}
 
-	if err := db.Model(&user).Update("APIKey", utils.CreateBase64EncodedUUID()).Error; err != nil {
+	newAPIKey := utils.CreateBase64EncodedUUID()
+	if err := db.Model(&user).Update("APIKey", newAPIKey).Error; err != nil {
 		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{"error": err.Error()})
 	}
 
-	return c.Status(fiber.StatusCreated).Send(nil)
-
+	return c.Status(fiber.StatusCreated).JSON(fiber.Map{"apiKey": newAPIKey})
 }
 
 func GetAccountInfo(c *fiber.Ctx) error {

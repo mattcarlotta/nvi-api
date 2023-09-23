@@ -156,7 +156,7 @@ func SearchForSecretsByEnvironmentIDAndSecretKey(c *fiber.Ctx) error {
 
 	parsedEnvID := utils.MustParseUUID(environmentID)
 
-	var secrets []models.Secret
+	var secrets []models.SecretResult
 	if err := db.Raw(
 		utils.FindSecretsByEnvIDAndSecretKeyQuery,
 		userSessionID,

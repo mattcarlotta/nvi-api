@@ -19,7 +19,7 @@ FROM (
 	JOIN environments envs on es.environment_id = envs.id
 	WHERE s.user_id = ?
 	GROUP BY s.id
-    ORDER BY s.created_at DESC
+    ORDER BY s.created_at
 ) r
 WHERE r.environments @> ?;
 `
@@ -32,6 +32,7 @@ FROM (
 		s.user_id,
 		s.key,
 		s.value,
+        s.nonce,
 		s.created_at,
 		s.updated_at,
 		jsonb_agg(envs) as environments
@@ -40,7 +41,7 @@ FROM (
 	JOIN environments envs on es.environment_id = envs.id
 	WHERE s.user_id = ? AND s.key ILIKE ?
 	GROUP BY s.id
-    ORDER BY s.created_at DESC
+    ORDER BY s.created_at
 ) r
 WHERE r.environments @> ?;
 `

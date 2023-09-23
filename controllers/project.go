@@ -15,7 +15,7 @@ func GetAllProjects(c *fiber.Ctx) error {
 	userSessionID := utils.GetSessionID(c)
 
 	var projects []models.Project
-	db.Where(&models.Project{UserID: userSessionID}).Order("created_at desc").Find(&projects)
+	db.Where(&models.Project{UserID: userSessionID}).Find(&projects)
 
 	return c.Status(fiber.StatusOK).JSON(projects)
 }
@@ -70,7 +70,7 @@ func SearchForProjectsByName(c *fiber.Ctx) error {
 	var projects []models.Project
 	if err := db.Where(
 		"name ILIKE ? AND user_id=?", "%"+name+"%", userSessionID,
-	).Order("created_at desc").Find(&projects).Error; err != nil {
+	).Find(&projects).Error; err != nil {
 		return c.Status(fiber.StatusInternalServerError).JSON(utils.UnknownJSONError(err))
 	}
 

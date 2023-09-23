@@ -27,7 +27,7 @@ func GetAllEnvironmentsByProjectID(c *fiber.Ctx) error {
 	}
 
 	var environments []models.Environment
-	db.Where(&models.Environment{UserID: userSessionID, ProjectID: projectID}).Order("created_at desc").Find(&environments)
+	db.Where(&models.Environment{UserID: userSessionID, ProjectID: projectID}).Find(&environments)
 
 	return c.Status(fiber.StatusOK).JSON(environments)
 }
@@ -93,7 +93,7 @@ func SearchForEnvironmentsByNameAndProjectID(c *fiber.Ctx) error {
 	var environments []models.Environment
 	if err := db.Where(
 		"name ILIKE ? AND project_id=? AND user_id=?", "%"+name+"%", utils.MustParseUUID(projectID), userSessionID,
-	).Order("created_at desc").Find(&environments).Error; err != nil {
+	).Find(&environments).Error; err != nil {
 		return c.Status(fiber.StatusInternalServerError).JSON(utils.UnknownJSONError(err))
 	}
 

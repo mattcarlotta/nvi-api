@@ -16,7 +16,9 @@ func GetAllEnvironmentsByProjectID(c *fiber.Ctx) error {
 
 	ID := c.Params("id")
 	if err := utils.Validate().Var(ID, "required,uuid"); err != nil {
-		return c.Status(fiber.StatusBadRequest).JSON(utils.JSONError(utils.GetAllEnvironmentsInvalidProjectID))
+		return c.Status(fiber.StatusBadRequest).JSON(
+			utils.JSONError(utils.GetAllEnvironmentsInvalidProjectID),
+		)
 	}
 
 	projectID := utils.MustParseUUID(ID)
@@ -203,11 +205,7 @@ func UpdateEnvironment(c *fiber.Ctx) error {
 		if err := tx.Not(
 			"id", envID,
 		).Where(
-			&models.Environment{
-				Name:      data.UpdatedName,
-				ProjectID: project.ID,
-				UserID:    userSessionID,
-			},
+			&models.Environment{Name: data.UpdatedName, ProjectID: project.ID, UserID: userSessionID},
 		).First(&models.Environment{}).Error; err == nil {
 			return c.Status(fiber.StatusConflict).JSON(utils.JSONError(utils.UpdateEnvironmentNameTaken))
 		}

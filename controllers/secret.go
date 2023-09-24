@@ -186,7 +186,7 @@ func CreateSecret(c *fiber.Ctx) error {
 
 	var project models.Project
 	if err := db.Where(
-		"id=? AND user_id=?", projectID, userSessionID,
+		&models.Project{ID: projectID, UserID: userSessionID},
 	).First(&project).Error; err != nil {
 		return c.Status(fiber.StatusNotFound).JSON(utils.JSONError(utils.CreateSecretNonExistentProject))
 	}

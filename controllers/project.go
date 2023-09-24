@@ -50,7 +50,7 @@ func GetProjectByName(c *fiber.Ctx) error {
 
 	var project models.Project
 	if err := db.Where(
-		"name=? AND user_id=?", name, userSessionID,
+		&models.Project{Name: name, UserID: userSessionID},
 	).First(&project).Error; err != nil {
 		return c.Status(fiber.StatusNotFound).JSON(utils.JSONError(utils.GetProjectNonExistentName))
 	}
@@ -87,7 +87,9 @@ func CreateProject(c *fiber.Ctx) error {
 	}
 
 	var project models.Project
-	if err := db.Where(&models.Project{Name: name, UserID: userSessionID}).First(&project).Error; err == nil {
+	if err := db.Where(
+		&models.Project{Name: name, UserID: userSessionID},
+	).First(&project).Error; err == nil {
 		return c.Status(fiber.StatusConflict).JSON(utils.JSONError(utils.CreateProjectNameTaken))
 	}
 
@@ -97,7 +99,7 @@ func CreateProject(c *fiber.Ctx) error {
 		return c.Status(fiber.StatusInternalServerError).JSON(utils.UnknownJSONError(err))
 	}
 
-	return c.Status(fiber.StatusCreated).SendString(fmt.Sprintf("Successfully created a(n) %s project!", name))
+	return c.Status(fiber.StatusCreated).SendString(fmt.Sprintf("Successfully created a(n) %s project!", newProject.Name))
 }
 
 func DeleteProject(c *fiber.Ctx) error {
@@ -151,15 +153,12 @@ func UpdateProject(c *fiber.Ctx) error {
 		if err := tx.Not(
 			"id", projectID,
 		).Where(
-			&models.Project{
-				Name:   data.UpdatedName,
-				UserID: userSessionID,
-			},
+			&models.Project{Name: data.UpdatedName, UserID: userSessionID},
 		).First(&models.Project{}).Error; err == nil {
 			return c.Status(fiber.StatusConflict).JSON(utils.JSONError(utils.UpdateProjectNameTaken))
 		}
 
-		if err := db.Model(&existingProject).Update("name", &data.UpdatedName).Error; err != nil {
+		if err := db.Model(&existingProject).Update("name", data.UpdatedName).Error; err != nil {
 			return c.Status(fiber.StatusInternalServerError).JSON(utils.UnknownJSONError(err))
 		}
 

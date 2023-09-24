@@ -156,11 +156,11 @@ func ResendAccountVerification(c *fiber.Ctx) error {
 
 	token, _, err := utils.GenerateUserToken(email)
 	if err != nil {
-		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{"error": err.Error()})
+		return c.Status(fiber.StatusInternalServerError).JSON(utils.UnknownJSONError(err))
 	}
 
 	if err = db.Model(&user).Update("token", &token).Error; err != nil {
-		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{"error": err.Error()})
+		return c.Status(fiber.StatusInternalServerError).JSON(utils.UnknownJSONError(err))
 	}
 
 	// TODO(carlotta): Send account verification email
@@ -184,11 +184,11 @@ func SendResetPasswordEmail(c *fiber.Ctx) error {
 
 	token, _, err := utils.GenerateUserToken(email)
 	if err != nil {
-		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{"error": err.Error()})
+		return c.Status(fiber.StatusInternalServerError).JSON(utils.UnknownJSONError(err))
 	}
 
 	if err = db.Model(&user).Update("token", &token).Error; err != nil {
-		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{"error": err.Error()})
+		return c.Status(fiber.StatusInternalServerError).JSON(utils.UnknownJSONError(err))
 	}
 
 	// TODO(carlotta): Send account verification email
@@ -221,12 +221,12 @@ func UpdatePassword(c *fiber.Ctx) error {
 
 	newPassword, err := utils.CreateEncryptedText([]byte(data.Password))
 	if err != nil {
-		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{"error": err.Error()})
+		return c.Status(fiber.StatusInternalServerError).JSON(utils.UnknownJSONError(err))
 	}
 
 	var newToken []byte
 	if err = db.Model(&user).Updates(models.User{Password: newPassword, Token: &newToken}).Error; err != nil {
-		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{"error": err.Error()})
+		return c.Status(fiber.StatusInternalServerError).JSON(utils.UnknownJSONError(err))
 	}
 
 	return c.Status(fiber.StatusCreated).SendString("Your account has been updated with a new password!")
@@ -246,7 +246,7 @@ func UpdateAPIKey(c *fiber.Ctx) error {
 
 	newAPIKey := utils.CreateBase64EncodedUUID()
 	if err := db.Model(&user).Update("APIKey", newAPIKey).Error; err != nil {
-		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{"error": err.Error()})
+		return c.Status(fiber.StatusInternalServerError).JSON(utils.UnknownJSONError(err))
 	}
 
 	return c.Status(fiber.StatusCreated).JSON(fiber.Map{"apiKey": newAPIKey})

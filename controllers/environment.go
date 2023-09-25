@@ -217,7 +217,7 @@ func UpdateEnvironment(c *fiber.Ctx) error {
 			return c.Status(fiber.StatusNotFound).JSON(utils.JSONError(utils.UpdateEnvironmentNonExistentID))
 		}
 
-		if err := tx.Model(&environment).Update("name", &data.UpdatedName).Error; err != nil {
+		if err := tx.Model(&environment).Update("name", data.UpdatedName).Error; err != nil {
 			return c.Status(fiber.StatusInternalServerError).JSON(utils.UnknownJSONError(err))
 		}
 

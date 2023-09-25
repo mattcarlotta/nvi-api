@@ -132,8 +132,9 @@ func TestGetSecretByAPIKeyInvalidEnvironment(t *testing.T) {
 	p := testutils.CreateProject("cli_get_secrets_invalid_enviroment", token)
 	// e, _ := testutils.CreateEnvironmentAndSecret("env_1", p.ID, "TAKEN_KEY", "abc123", token)
 
+	envName := "not_valid"
 	test := &testutils.TestResponse{
-		Route:        fmt.Sprintf("/cli/secrets/?apiKey=%s&project=%s&environment=not_valid", u.APIKey, p.Name),
+		Route:        fmt.Sprintf("/cli/secrets/?apiKey=%s&project=%s&environment=%s", u.APIKey, p.Name, envName),
 		Method:       fiber.MethodGet,
 		ExpectedCode: fiber.StatusNotFound,
 	}
@@ -150,7 +151,7 @@ func TestGetSecretByAPIKeyInvalidEnvironment(t *testing.T) {
 	}()
 
 	assert.Equal(t, test.ExpectedCode, res.StatusCode)
-	assert.Equal(t, resBody, "unable to locate the specified environment within the provided project")
+	assert.Equal(t, resBody, fmt.Sprintf("unable to locate a '%s' environment within the '%s' project", envName, p.Name))
 }
 
 func TestGetSecretByAPIKeySuccess(t *testing.T) {

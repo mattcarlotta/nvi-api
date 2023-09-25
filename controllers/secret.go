@@ -56,7 +56,7 @@ func GetSecretByAPIKey(c *fiber.Ctx) error {
 			&models.Environment{Name: environmentName, ProjectID: project.ID, UserID: user.ID},
 		).First(&environment).Error; err != nil {
 			return c.Status(fiber.StatusNotFound).SendString(
-				"unable to locate the specified environment within the provided project",
+				fmt.Sprintf("unable to locate a '%s' environment within the '%s' project", environmentName, projectName),
 			)
 		}
 

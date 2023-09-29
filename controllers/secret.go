@@ -14,7 +14,7 @@ import (
 func GetSecretByAPIKey(c *fiber.Ctx) error {
 	db := database.GetConnection()
 	apiKey := c.Query("apiKey")
-	if err := utils.Validate().Var(apiKey, "required"); err != nil {
+	if err := utils.Validate().Var(apiKey, "required,alphanum,lt=50"); err != nil {
 		return c.Status(fiber.StatusUnauthorized).SendString(
 			"a valid apiKey must be supplied in order to access secrets",
 		)

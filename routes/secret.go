@@ -11,6 +11,7 @@ func SecretRoutes(app *fiber.App) {
 	secret.Get("/cli/secrets", controllers.GetSecretByAPIKey)
 	secret.Get("/secret/:id", middlewares.RequiresCookieSession, controllers.GetSecretBySecretID)
 	secret.Get("/secrets/id/:id", middlewares.RequiresCookieSession, controllers.GetSecretsByEnvironmentID)
+	secret.Get("/secrets/projectenvironment", middlewares.RequiresCookieSession, controllers.GetSecretsByProjectAndEnvironmentName)
 	secret.Get("/secrets/search", middlewares.RequiresCookieSession, controllers.SearchForSecretsByEnvironmentIDAndSecretKey)
 	secret.Post("/create/secret", middlewares.RequiresCookieSession, controllers.CreateSecret)
 	secret.Delete("/delete/secret/:id", middlewares.RequiresCookieSession, controllers.DeleteSecret)

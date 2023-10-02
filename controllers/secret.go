@@ -81,6 +81,58 @@ func GetSecretByAPIKey(c *fiber.Ctx) error {
 	})
 }
 
+// TODO(carlotta): add test suites for this controller
+// on a related note, some controllers can be removed in favor of this one
+func GetSecretsByProjectAndEnvironmentName(c *fiber.Ctx) error {
+	db := database.GetConnection()
+	userSessionID := utils.GetSessionID(c)
+
+	projectName := c.Query("project")
+	if err := utils.Validate().Var(projectName, "required,name,lte=255"); err != nil {
+		return c.Status(fiber.StatusBadRequest).JSON(utils.JSONError(utils.GetProjectInvalidName))
+	}
+
+	environmentName := c.Query("environment")
+	if err := utils.Validate().Var(environmentName, "required,name,lte=255"); err != nil {
+		return c.Status(fiber.StatusBadRequest).JSON(utils.JSONError(utils.GetEnvironmentInvalidName))
+	}
+
+	return db.Transaction(func(tx *gorm.DB) error {
+		var project models.Project
+		if err := tx.Where(
+			&models.Project{Name: projectName, UserID: userSessionID},
+		).First(&project).Error; err != nil {
+			return c.Status(fiber.StatusNotFound).JSON(utils.JSONError(utils.GetProjectNonExistentName))
+		}
+
+		var environment models.Environment
+		if err := tx.Where(
+			&models.Environment{Name: environmentName, ProjectID: project.ID, UserID: userSessionID},
+		).First(&environment).Error; err != nil {
+			return c.Status(fiber.StatusNotFound).JSON(utils.JSONError(utils.GetEnvironmentNonExistentName))
+		}
+
+		var secrets []models.SecretResult
+		if err := tx.Raw(
+			utils.FindSecretsByEnvIDQuery, userSessionID, utils.GenerateJSONIDString(environment.ID),
+		).Scan(&secrets).Error; err != nil {
+			return c.Status(fiber.StatusInternalServerError).JSON(utils.UnknownJSONError(err))
+		}
+
+		var environments []models.Environment
+		tx.Where(&models.Environment{UserID: userSessionID, ProjectID: project.ID}).Find(&environments)
+
+		return c.Status(fiber.StatusOK).JSON(
+			fiber.Map{
+				"environment":  environment,
+				"environments": environments,
+				"project":      project,
+				"secrets":      secrets,
+			},
+		)
+	})
+}
+
 func GetSecretBySecretID(c *fiber.Ctx) error {
 	db := database.GetConnection()
 	userSessionID := utils.GetSessionID(c)

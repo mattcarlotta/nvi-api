@@ -10,29 +10,30 @@ import (
 	"gorm.io/gorm"
 )
 
-func GetAllEnvironmentsByProjectID(c *fiber.Ctx) error {
-	db := database.GetConnection()
-	userSessionID := utils.GetSessionID(c)
+// TODO(carlota): remove this controller and its test suites
+// func GetAllEnvironmentsByProjectID(c *fiber.Ctx) error {
+// 	db := database.GetConnection()
+// 	userSessionID := utils.GetSessionID(c)
 
-	ID := c.Params("id")
-	if err := utils.Validate().Var(ID, "required,uuid"); err != nil {
-		return c.Status(fiber.StatusBadRequest).JSON(
-			utils.JSONError(utils.GetAllEnvironmentsInvalidProjectID),
-		)
-	}
+// 	ID := c.Params("id")
+// 	if err := utils.Validate().Var(ID, "required,uuid"); err != nil {
+// 		return c.Status(fiber.StatusBadRequest).JSON(
+// 			utils.JSONError(utils.GetAllEnvironmentsInvalidProjectID),
+// 		)
+// 	}
 
-	projectID := utils.MustParseUUID(ID)
+// 	projectID := utils.MustParseUUID(ID)
 
-	var project models.Project
-	if err := db.Where(&models.Project{ID: projectID}).First(&project).Error; err != nil {
-		return c.Status(fiber.StatusNotFound).JSON(utils.JSONError(utils.GetAllEnvironmentsNonExistentID))
-	}
+// 	var project models.Project
+// 	if err := db.Where(&models.Project{ID: projectID}).First(&project).Error; err != nil {
+// 		return c.Status(fiber.StatusNotFound).JSON(utils.JSONError(utils.GetAllEnvironmentsNonExistentID))
+// 	}
 
-	var environments []models.Environment
-	db.Where(&models.Environment{UserID: userSessionID, ProjectID: projectID}).Find(&environments)
+// 	var environments []models.Environment
+// 	db.Where(&models.Environment{UserID: userSessionID, ProjectID: projectID}).Find(&environments)
 
-	return c.Status(fiber.StatusOK).JSON(environments)
-}
+// 	return c.Status(fiber.StatusOK).JSON(environments)
+// }
 
 func GetEnvironmentByID(c *fiber.Ctx) error {
 	db := database.GetConnection()
@@ -53,6 +54,34 @@ func GetEnvironmentByID(c *fiber.Ctx) error {
 	return c.Status(fiber.StatusOK).JSON(environment)
 }
 
+// TODO(carlotta): add test suites for this controller
+// on a related note, some controllers can be removed in favor of this one
+func GetAllEnvironmentByProjectName(c *fiber.Ctx) error {
+	db := database.GetConnection()
+	userSessionID := utils.GetSessionID(c)
+
+	projectName := c.Params("name")
+	if err := utils.Validate().Var(projectName, "required,name,lte=255"); err != nil {
+		return c.Status(fiber.StatusBadRequest).JSON(utils.JSONError(utils.GetProjectInvalidName))
+	}
+
+	var project models.Project
+	if err := db.Where(
+		&models.Project{Name: projectName, UserID: userSessionID},
+	).First(&project).Error; err != nil {
+		return c.Status(fiber.StatusNotFound).JSON(utils.JSONError(utils.GetProjectNonExistentName))
+	}
+
+	var environments []models.Environment
+	db.Where(&models.Environment{UserID: userSessionID, ProjectID: project.ID}).Find(&environments)
+
+	return c.Status(fiber.StatusOK).JSON(
+		fiber.Map{
+			"environments": environments,
+			"project":      project,
+		},
+	)
+}
 func GetEnvironmentByNameAndProjectID(c *fiber.Ctx) error {
 	db := database.GetConnection()
 	userSessionID := utils.GetSessionID(c)

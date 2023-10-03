@@ -131,6 +131,7 @@ func SearchForEnvironmentsByNameAndProjectID(c *fiber.Ctx) error {
 	return c.Status(fiber.StatusOK).JSON(environments)
 }
 
+// TODO(carlotta): update test suite since returning new project instead of success message
 func CreateEnvironment(c *fiber.Ctx) error {
 	db := database.GetConnection()
 	userSessionID := utils.GetSessionID(c)
@@ -157,7 +158,7 @@ func CreateEnvironment(c *fiber.Ctx) error {
 		return c.Status(fiber.StatusInternalServerError).JSON(utils.UnknownJSONError(err))
 	}
 
-	return c.Status(fiber.StatusCreated).SendString(fmt.Sprintf("Successfully created a(n) %s environment!", data.Name))
+	return c.Status(fiber.StatusCreated).JSON(newEnv)
 }
 
 func DeleteEnvironment(c *fiber.Ctx) error {

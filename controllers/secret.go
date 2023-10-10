@@ -221,6 +221,7 @@ func SearchForSecretsByEnvironmentIDAndSecretKey(c *fiber.Ctx) error {
 	return c.Status(fiber.StatusOK).JSON(secrets)
 }
 
+// TODO(carlotta): update test suites
 func CreateSecret(c *fiber.Ctx) error {
 	db := database.GetConnection()
 	userSessionID := utils.GetSessionID(c)
@@ -291,7 +292,7 @@ func CreateSecret(c *fiber.Ctx) error {
 		return c.Status(fiber.StatusInternalServerError).JSON(utils.UnknownJSONError(err))
 	}
 
-	return c.Status(fiber.StatusCreated).SendString(fmt.Sprintf("Successfully created %s!", newSecret.Key))
+	return c.Status(fiber.StatusCreated).JSON(newSecret)
 }
 
 func DeleteSecret(c *fiber.Ctx) error {
@@ -317,6 +318,7 @@ func DeleteSecret(c *fiber.Ctx) error {
 	return c.Status(fiber.StatusCreated).SendString(fmt.Sprintf("Successfully removed the %s secret!", secret.Key))
 }
 
+// TODO(carlotta): update test suites
 func UpdateSecret(c *fiber.Ctx) error {
 	db := database.GetConnection()
 	userSessionID := utils.GetSessionID(c)
@@ -378,17 +380,15 @@ func UpdateSecret(c *fiber.Ctx) error {
 			return c.Status(fiber.StatusInternalServerError).JSON(utils.UnknownJSONError(err))
 		}
 
-		newSecret := models.Secret{
+		updatedSecret := models.Secret{
 			Key:   data.Key,
 			Nonce: newNonce,
 			Value: newValue,
 		}
-		if err = tx.Model(&secret).Updates(&newSecret).Error; err != nil {
+		if err = tx.Model(&secret).Updates(&updatedSecret).Error; err != nil {
 			return c.Status(fiber.StatusInternalServerError).JSON(utils.UnknownJSONError(err))
 		}
 
-		return c.Status(fiber.StatusOK).SendString(
-			fmt.Sprintf("Successfully updated the %s secret!", newSecret.Key),
-		)
+		return c.Status(fiber.StatusOK).JSON(secret)
 	})
 }

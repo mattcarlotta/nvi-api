@@ -177,6 +177,125 @@ func TestGetSecretByAPIKeySuccess(t *testing.T) {
 	assert.Equal(t, test.ExpectedCode, res.StatusCode)
 }
 
+func TestGetSecretsByProjectAndEnvironmentMissingProjectName(t *testing.T) {
+	u, token := testutils.CreateUser("get_secrets_by_proj_env_missing_project_name@example.com", true)
+
+	test := &testutils.TestResponse{
+		Route:        "/secrets/projectenvironment",
+		Method:       fiber.MethodGet,
+		ExpectedCode: fiber.StatusBadRequest,
+	}
+
+	req := testutils.CreateAuthHTTPRequest(test, &token)
+
+	res := sendAppRequest(req)
+
+	resBody := testutils.ParseJSONBodyError(&res.Body)
+
+	defer func() {
+		testutils.DeleteUser(&u)
+		res.Body.Close()
+	}()
+
+	assert.Equal(t, test.ExpectedCode, res.StatusCode)
+	assert.Equal(t, resBody.Error, utils.ErrorCode[utils.GetProjectInvalidName])
+}
+
+func TestGetSecretsByProjectAndEnvironmentMissingEnvironmentName(t *testing.T) {
+	u, token := testutils.CreateUser("get_secrets_by_proj_env_missing_env_name@example.com", true)
+
+	test := &testutils.TestResponse{
+		Route:        "/secrets/projectenvironment?project=example_project",
+		Method:       fiber.MethodGet,
+		ExpectedCode: fiber.StatusBadRequest,
+	}
+
+	req := testutils.CreateAuthHTTPRequest(test, &token)
+
+	res := sendAppRequest(req)
+
+	resBody := testutils.ParseJSONBodyError(&res.Body)
+
+	defer func() {
+		testutils.DeleteUser(&u)
+		res.Body.Close()
+	}()
+
+	assert.Equal(t, test.ExpectedCode, res.StatusCode)
+	assert.Equal(t, resBody.Error, utils.ErrorCode[utils.GetEnvironmentInvalidName])
+}
+
+func TestGetSecretsByProjectAndEnvironmentInvalidProjectName(t *testing.T) {
+	u, token := testutils.CreateUser("get_secrets_by_proj_env_invalid_project_name@example.com", true)
+
+	test := &testutils.TestResponse{
+		Route:        "/secrets/projectenvironment?project=example_project&environment=example_environment",
+		Method:       fiber.MethodGet,
+		ExpectedCode: fiber.StatusNotFound,
+	}
+
+	req := testutils.CreateAuthHTTPRequest(test, &token)
+
+	res := sendAppRequest(req)
+
+	resBody := testutils.ParseJSONBodyError(&res.Body)
+
+	defer func() {
+		testutils.DeleteUser(&u)
+		res.Body.Close()
+	}()
+
+	assert.Equal(t, test.ExpectedCode, res.StatusCode)
+	assert.Equal(t, resBody.Error, utils.ErrorCode[utils.GetProjectNonExistentName])
+}
+
+func TestGetSecretsByProjectAndEnvironmentInvalidEnvironmentName(t *testing.T) {
+	u, token := testutils.CreateUser("get_secrets_by_proj_env_invalid_env_name@example.com", true)
+	p := testutils.CreateProject("get_secrets_by_proj_env_invalid_env_name", token)
+
+	test := &testutils.TestResponse{
+		Route:        fmt.Sprintf("/secrets/projectenvironment?project=%s&environment=example_environment", p.Name),
+		Method:       fiber.MethodGet,
+		ExpectedCode: fiber.StatusNotFound,
+	}
+
+	req := testutils.CreateAuthHTTPRequest(test, &token)
+
+	res := sendAppRequest(req)
+
+	resBody := testutils.ParseJSONBodyError(&res.Body)
+
+	defer func() {
+		testutils.DeleteUser(&u)
+		res.Body.Close()
+	}()
+
+	assert.Equal(t, test.ExpectedCode, res.StatusCode)
+	assert.Equal(t, resBody.Error, utils.ErrorCode[utils.GetEnvironmentNonExistentName])
+}
+
+func TestGetSecretsByProjectAndEnvironmentSuccess(t *testing.T) {
+	u, token := testutils.CreateUser("get_secrets_by_proj_env_success@example.com", true)
+	p, e, _ := testutils.CreateProjectAndEnvironmentAndSecret("get_secrets_by_proj_env_success", "proj_env_exists", "SECRET_EXISTS", "abc123", token)
+
+	test := &testutils.TestResponse{
+		Route:        fmt.Sprintf("/secrets/projectenvironment?project=%s&environment=%s", p.Name, e.Name),
+		Method:       fiber.MethodGet,
+		ExpectedCode: fiber.StatusOK,
+	}
+
+	req := testutils.CreateAuthHTTPRequest(test, &token)
+
+	res := sendAppRequest(req)
+
+	defer func() {
+		testutils.DeleteUser(&u)
+		res.Body.Close()
+	}()
+
+	assert.Equal(t, test.ExpectedCode, res.StatusCode)
+}
+
 func TestGetSecretInvalidID(t *testing.T) {
 	u, token := testutils.CreateUser("get_secret_invalid_id@example.com", true)
 
@@ -301,6 +420,76 @@ func TestGetSecretsByEnvironmentSuccess(t *testing.T) {
 
 	test := &testutils.TestResponse{
 		Route:        fmt.Sprintf("/secrets/id/%s", e.ID.String()),
+		Method:       fiber.MethodGet,
+		ExpectedCode: fiber.StatusOK,
+	}
+
+	req := testutils.CreateAuthHTTPRequest(test, &token)
+
+	res := sendAppRequest(req)
+
+	defer func() {
+		testutils.DeleteUser(&u)
+		res.Body.Close()
+	}()
+
+	assert.Equal(t, test.ExpectedCode, res.StatusCode)
+}
+
+func TestSearchForSecretsByEnvironmentIDAndSecretKeyInvalidKey(t *testing.T) {
+	u, token := testutils.CreateUser("search_4_secrets_envId_secretKey_invalid_key@example.com", true)
+
+	test := &testutils.TestResponse{
+		Route:        "/secrets/search",
+		Method:       fiber.MethodGet,
+		ExpectedCode: fiber.StatusBadRequest,
+	}
+
+	req := testutils.CreateAuthHTTPRequest(test, &token)
+
+	res := sendAppRequest(req)
+
+	resBody := testutils.ParseJSONBodyError(&res.Body)
+
+	defer func() {
+		testutils.DeleteUser(&u)
+		res.Body.Close()
+	}()
+
+	assert.Equal(t, test.ExpectedCode, res.StatusCode)
+	assert.Equal(t, resBody.Error, utils.ErrorCode[utils.SearchForSecretsByEnvAndSecretInvalidKey])
+}
+
+func TestSearchForSecretsByEnvironmentIDAndSecretKeyInvalidEnv(t *testing.T) {
+	u, token := testutils.CreateUser("search_4_secrets_envId_secretKey_invalid_env@example.com", true)
+
+	test := &testutils.TestResponse{
+		Route:        "/secrets/search?key=ABC_123",
+		Method:       fiber.MethodGet,
+		ExpectedCode: fiber.StatusBadRequest,
+	}
+
+	req := testutils.CreateAuthHTTPRequest(test, &token)
+
+	res := sendAppRequest(req)
+
+	resBody := testutils.ParseJSONBodyError(&res.Body)
+
+	defer func() {
+		testutils.DeleteUser(&u)
+		res.Body.Close()
+	}()
+
+	assert.Equal(t, test.ExpectedCode, res.StatusCode)
+	assert.Equal(t, resBody.Error, utils.ErrorCode[utils.GetEnvironmentInvalidID])
+}
+
+func TestSearchForSecretsByEnvironmentIDAndSecretKeySuccess(t *testing.T) {
+	u, token := testutils.CreateUser("search_4_secrets_envId_secretKey_success@example.com", true)
+	_, e, s := testutils.CreateProjectAndEnvironmentAndSecret("search_4_secrets_envId_secretKey_success", "get_secrets_by_env_success", "GET_SECRET_ENV_KEY", "env_value", token)
+
+	test := &testutils.TestResponse{
+		Route:        fmt.Sprintf("/secrets/search?key=%s&environmentID=%s", s.Key, e.ID.String()),
 		Method:       fiber.MethodGet,
 		ExpectedCode: fiber.StatusOK,
 	}
@@ -489,15 +678,12 @@ func TestCreateSecretSuccess(t *testing.T) {
 
 	res := sendAppRequest(req)
 
-	resBody := testutils.ParseText(&res.Body)
-
 	defer func() {
 		testutils.DeleteUser(&u)
 		res.Body.Close()
 	}()
 
 	assert.Equal(t, test.ExpectedCode, res.StatusCode)
-	assert.Equal(t, resBody, fmt.Sprintf("Successfully created %s!", key))
 }
 
 func TestDeleteSecretInvalidID(t *testing.T) {
@@ -749,13 +935,10 @@ func TestUpdateSecretSuccess(t *testing.T) {
 
 	res := sendAppRequest(req)
 
-	resBody := testutils.ParseText(&res.Body)
-
 	defer func() {
 		testutils.DeleteUser(&u)
 		res.Body.Close()
 	}()
 
 	assert.Equal(t, test.ExpectedCode, res.StatusCode)
-	assert.Equal(t, resBody, fmt.Sprintf("Successfully updated the %s secret!", secret.Key))
 }

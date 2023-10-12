@@ -10,31 +10,6 @@ import (
 	"gorm.io/gorm"
 )
 
-// TODO(carlota): remove this controller and its test suites
-// func GetAllEnvironmentsByProjectID(c *fiber.Ctx) error {
-// 	db := database.GetConnection()
-// 	userSessionID := utils.GetSessionID(c)
-
-// 	ID := c.Params("id")
-// 	if err := utils.Validate().Var(ID, "required,uuid"); err != nil {
-// 		return c.Status(fiber.StatusBadRequest).JSON(
-// 			utils.JSONError(utils.GetAllEnvironmentsInvalidProjectID),
-// 		)
-// 	}
-
-// 	projectID := utils.MustParseUUID(ID)
-
-// 	var project models.Project
-// 	if err := db.Where(&models.Project{ID: projectID}).First(&project).Error; err != nil {
-// 		return c.Status(fiber.StatusNotFound).JSON(utils.JSONError(utils.GetAllEnvironmentsNonExistentID))
-// 	}
-
-// 	var environments []models.Environment
-// 	db.Where(&models.Environment{UserID: userSessionID, ProjectID: projectID}).Find(&environments)
-
-// 	return c.Status(fiber.StatusOK).JSON(environments)
-// }
-
 func GetEnvironmentByID(c *fiber.Ctx) error {
 	db := database.GetConnection()
 	userSessionID := utils.GetSessionID(c)
@@ -54,8 +29,6 @@ func GetEnvironmentByID(c *fiber.Ctx) error {
 	return c.Status(fiber.StatusOK).JSON(environment)
 }
 
-// TODO(carlotta): add test suites for this controller
-// on a related note, some controllers can be removed in favor of this one
 func GetAllEnvironmentByProjectName(c *fiber.Ctx) error {
 	db := database.GetConnection()
 	userSessionID := utils.GetSessionID(c)
@@ -82,6 +55,7 @@ func GetAllEnvironmentByProjectName(c *fiber.Ctx) error {
 		},
 	)
 }
+
 func GetEnvironmentByNameAndProjectID(c *fiber.Ctx) error {
 	db := database.GetConnection()
 	userSessionID := utils.GetSessionID(c)
@@ -106,7 +80,6 @@ func GetEnvironmentByNameAndProjectID(c *fiber.Ctx) error {
 	return c.Status(fiber.StatusOK).JSON(environment)
 }
 
-// TODO(carlotta): add test cases for this controller
 func SearchForEnvironmentsByNameAndProjectID(c *fiber.Ctx) error {
 	db := database.GetConnection()
 	userSessionID := utils.GetSessionID(c)
@@ -131,7 +104,6 @@ func SearchForEnvironmentsByNameAndProjectID(c *fiber.Ctx) error {
 	return c.Status(fiber.StatusOK).JSON(environments)
 }
 
-// TODO(carlotta): update test suite since returning new project instead of success message
 func CreateEnvironment(c *fiber.Ctx) error {
 	db := database.GetConnection()
 	userSessionID := utils.GetSessionID(c)

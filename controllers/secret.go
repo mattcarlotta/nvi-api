@@ -81,8 +81,6 @@ func GetSecretByAPIKey(c *fiber.Ctx) error {
 	})
 }
 
-// TODO(carlotta): add test suites for this controller
-// on a related note, some controllers can be removed in favor of this one
 func GetSecretsByProjectAndEnvironmentName(c *fiber.Ctx) error {
 	db := database.GetConnection()
 	userSessionID := utils.GetSessionID(c)
@@ -190,20 +188,18 @@ func GetSecretsByEnvironmentID(c *fiber.Ctx) error {
 	return c.Status(fiber.StatusOK).JSON(secrets)
 }
 
-// TODO(carlotta): add test cases for this controller
 func SearchForSecretsByEnvironmentIDAndSecretKey(c *fiber.Ctx) error {
 	db := database.GetConnection()
 	userSessionID := utils.GetSessionID(c)
 
 	key := c.Query("key")
 	if err := utils.Validate().Var(key, "required,gte=2,lte=255"); err != nil {
-		return c.Status(fiber.StatusBadRequest).Send(nil)
-		// return c.Status(fiber.StatusBadRequest).JSON(utils.JSONError(utils.GetProjectInvalidName))
+		return c.Status(fiber.StatusBadRequest).JSON(utils.JSONError(utils.SearchForSecretsByEnvAndSecretInvalidKey))
 	}
 
 	environmentID := c.Query("environmentID")
 	if err := utils.Validate().Var(environmentID, "required,uuid"); err != nil {
-		return c.Status(fiber.StatusBadRequest).JSON(utils.JSONError(utils.GetEnvironmentInvalidProjectID))
+		return c.Status(fiber.StatusBadRequest).JSON(utils.JSONError(utils.GetEnvironmentInvalidID))
 	}
 
 	parsedEnvID := utils.MustParseUUID(environmentID)
@@ -221,7 +217,6 @@ func SearchForSecretsByEnvironmentIDAndSecretKey(c *fiber.Ctx) error {
 	return c.Status(fiber.StatusOK).JSON(secrets)
 }
 
-// TODO(carlotta): update test suites
 func CreateSecret(c *fiber.Ctx) error {
 	db := database.GetConnection()
 	userSessionID := utils.GetSessionID(c)
@@ -318,7 +313,6 @@ func DeleteSecret(c *fiber.Ctx) error {
 	return c.Status(fiber.StatusCreated).SendString(fmt.Sprintf("Successfully removed the %s secret!", secret.Key))
 }
 
-// TODO(carlotta): update test suites
 func UpdateSecret(c *fiber.Ctx) error {
 	db := database.GetConnection()
 	userSessionID := utils.GetSessionID(c)

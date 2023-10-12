@@ -12,76 +12,6 @@ import (
 	"github.com/stretchr/testify/assert"
 )
 
-func TestGetAllEnvironmentsByProjectInvalidProjectID(t *testing.T) {
-	u, token := testutils.CreateUser("get_all_envs_by_invalid_id@example.com", true)
-
-	test := &testutils.TestResponse{
-		Route:        "/environments/project/123",
-		Method:       fiber.MethodGet,
-		ExpectedCode: fiber.StatusBadRequest,
-	}
-
-	req := testutils.CreateAuthHTTPRequest(test, &token)
-
-	res := sendAppRequest(req)
-
-	resBody := testutils.ParseJSONBodyError(&res.Body)
-
-	defer func() {
-		testutils.DeleteUser(&u)
-		res.Body.Close()
-	}()
-
-	assert.Equal(t, test.ExpectedCode, res.StatusCode)
-	assert.Equal(t, resBody.Error, utils.ErrorCode[utils.GetAllEnvironmentsInvalidProjectID])
-}
-
-func TestGetAllEnvironmentsByProjectNonExistentID(t *testing.T) {
-	u, token := testutils.CreateUser("get_all_envs_by_non_existent_id@example.com", true)
-
-	test := &testutils.TestResponse{
-		Route:        fmt.Sprintf("/environments/project/%s", uuid.NewString()),
-		Method:       fiber.MethodGet,
-		ExpectedCode: fiber.StatusNotFound,
-	}
-
-	req := testutils.CreateAuthHTTPRequest(test, &token)
-
-	res := sendAppRequest(req)
-
-	resBody := testutils.ParseJSONBodyError(&res.Body)
-
-	defer func() {
-		testutils.DeleteUser(&u)
-		res.Body.Close()
-	}()
-
-	assert.Equal(t, test.ExpectedCode, res.StatusCode)
-	assert.Equal(t, resBody.Error, utils.ErrorCode[utils.GetAllEnvironmentsNonExistentID])
-}
-
-func TestGetAllEnvironmentsByProjectIDSuccess(t *testing.T) {
-	u, token := testutils.CreateUser("success_get_all_env_by_project_id@example.com", true)
-	p := testutils.CreateProject("success_get_all_env_by_project_id", token)
-
-	test := &testutils.TestResponse{
-		Route:        fmt.Sprintf("/environments/project/%s", p.ID.String()),
-		Method:       fiber.MethodGet,
-		ExpectedCode: fiber.StatusOK,
-	}
-
-	req := testutils.CreateAuthHTTPRequest(test, &token)
-
-	res := sendAppRequest(req)
-
-	defer func() {
-		testutils.DeleteUser(&u)
-		res.Body.Close()
-	}()
-
-	assert.Equal(t, test.ExpectedCode, res.StatusCode)
-}
-
 func TestGetEnvironmentByIDInvalidID(t *testing.T) {
 	u, token := testutils.CreateUser("get_env_invalid_id@example.com", true)
 
@@ -137,6 +67,76 @@ func TestGetEnvironmentByIDSuccess(t *testing.T) {
 
 	test := &testutils.TestResponse{
 		Route:        fmt.Sprintf("/environment/id/%s", e.ID.String()),
+		Method:       fiber.MethodGet,
+		ExpectedCode: fiber.StatusOK,
+	}
+
+	req := testutils.CreateAuthHTTPRequest(test, &token)
+
+	res := sendAppRequest(req)
+
+	defer func() {
+		testutils.DeleteUser(&u)
+		res.Body.Close()
+	}()
+
+	assert.Equal(t, test.ExpectedCode, res.StatusCode)
+}
+
+func TestGetAllEnvironmentsByProjectNameInvalidProjectName(t *testing.T) {
+	u, token := testutils.CreateUser("get_all_envs_by_invalid_name@example.com", true)
+
+	test := &testutils.TestResponse{
+		Route:        "/environments/project/@#$",
+		Method:       fiber.MethodGet,
+		ExpectedCode: fiber.StatusBadRequest,
+	}
+
+	req := testutils.CreateAuthHTTPRequest(test, &token)
+
+	res := sendAppRequest(req)
+
+	resBody := testutils.ParseJSONBodyError(&res.Body)
+
+	defer func() {
+		testutils.DeleteUser(&u)
+		res.Body.Close()
+	}()
+
+	assert.Equal(t, test.ExpectedCode, res.StatusCode)
+	assert.Equal(t, resBody.Error, utils.ErrorCode[utils.GetProjectInvalidName])
+}
+
+func TestGetAllEnvironmentsByProjectNonExistentID(t *testing.T) {
+	u, token := testutils.CreateUser("get_all_envs_by_non_existent_name@example.com", true)
+
+	test := &testutils.TestResponse{
+		Route:        "/environments/project/project_does_not_exist",
+		Method:       fiber.MethodGet,
+		ExpectedCode: fiber.StatusNotFound,
+	}
+
+	req := testutils.CreateAuthHTTPRequest(test, &token)
+
+	res := sendAppRequest(req)
+
+	resBody := testutils.ParseJSONBodyError(&res.Body)
+
+	defer func() {
+		testutils.DeleteUser(&u)
+		res.Body.Close()
+	}()
+
+	assert.Equal(t, test.ExpectedCode, res.StatusCode)
+	assert.Equal(t, resBody.Error, utils.ErrorCode[utils.GetProjectNonExistentName])
+}
+
+func TestGetAllEnvironmentsByProjectIDSuccess(t *testing.T) {
+	u, token := testutils.CreateUser("success_get_all_env_by_project_name@example.com", true)
+	p := testutils.CreateProject("success_get_all_env_by_project_name", token)
+
+	test := &testutils.TestResponse{
+		Route:        fmt.Sprintf("/environments/project/%s", p.Name),
 		Method:       fiber.MethodGet,
 		ExpectedCode: fiber.StatusOK,
 	}
@@ -232,6 +232,77 @@ func TestGetEnvironmentByNameSuccess(t *testing.T) {
 
 	test := &testutils.TestResponse{
 		Route:        fmt.Sprintf("/environment/name/?name=%s&projectID=%s", e.Name, p.ID.String()),
+		Method:       fiber.MethodGet,
+		ExpectedCode: fiber.StatusOK,
+	}
+
+	req := testutils.CreateAuthHTTPRequest(test, &token)
+
+	res := sendAppRequest(req)
+
+	defer func() {
+		testutils.DeleteUser(&u)
+		res.Body.Close()
+	}()
+
+	assert.Equal(t, test.ExpectedCode, res.StatusCode)
+}
+
+func TestSearchForEnvironmentsByNameAndProjectIDInvalidName(t *testing.T) {
+	u, token := testutils.CreateUser("search_4_envs_by_name_projectID_invalid_name@example.com", true)
+
+	test := &testutils.TestResponse{
+		Route:        "/environments/search",
+		Method:       fiber.MethodGet,
+		ExpectedCode: fiber.StatusBadRequest,
+	}
+
+	req := testutils.CreateAuthHTTPRequest(test, &token)
+
+	res := sendAppRequest(req)
+
+	resBody := testutils.ParseJSONBodyError(&res.Body)
+
+	defer func() {
+		testutils.DeleteUser(&u)
+		res.Body.Close()
+	}()
+
+	assert.Equal(t, test.ExpectedCode, res.StatusCode)
+	assert.Equal(t, resBody.Error, utils.ErrorCode[utils.GetEnvironmentInvalidName])
+}
+
+func TestSearchForEnvironmentsByNameAndProjectIDInvalidProjectID(t *testing.T) {
+	u, token := testutils.CreateUser("search_4_envs_by_name_projectID_invalid_projectID@example.com", true)
+
+	test := &testutils.TestResponse{
+		Route:        "/environments/search?name=env_name",
+		Method:       fiber.MethodGet,
+		ExpectedCode: fiber.StatusBadRequest,
+	}
+
+	req := testutils.CreateAuthHTTPRequest(test, &token)
+
+	res := sendAppRequest(req)
+
+	resBody := testutils.ParseJSONBodyError(&res.Body)
+
+	defer func() {
+		testutils.DeleteUser(&u)
+		res.Body.Close()
+	}()
+
+	assert.Equal(t, test.ExpectedCode, res.StatusCode)
+	assert.Equal(t, resBody.Error, utils.ErrorCode[utils.GetEnvironmentInvalidProjectID])
+}
+
+func TestSearchForEnvironmentsByNameAndProjectIDSuccess(t *testing.T) {
+	u, token := testutils.CreateUser("search_4_envs_by_name_projectID_success@example.com", true)
+	p := testutils.CreateProject("taken_environment_name_project", token)
+	e := testutils.CreateEnvironment("taken_environment_name", p.ID, token)
+
+	test := &testutils.TestResponse{
+		Route:        fmt.Sprintf("/environments/search?name=%s&projectID=%s", e.Name, p.ID.String()),
 		Method:       fiber.MethodGet,
 		ExpectedCode: fiber.StatusOK,
 	}
@@ -351,15 +422,12 @@ func TestCreateEnvironmentSuccess(t *testing.T) {
 
 	res := sendAppRequest(req)
 
-	resBody := testutils.ParseText(&res.Body)
-
 	defer func() {
 		testutils.DeleteUser(&u)
 		res.Body.Close()
 	}()
 
 	assert.Equal(t, test.ExpectedCode, res.StatusCode)
-	assert.Equal(t, resBody, fmt.Sprintf("Successfully created a(n) %s environment!", env.Name))
 }
 
 func TestDeleteEnvironmentInvalidID(t *testing.T) {
@@ -578,13 +646,10 @@ func TestUpdateEnvironmentSuccess(t *testing.T) {
 
 	res := sendAppRequest(req)
 
-	resBody := testutils.ParseText(&res.Body)
-
 	defer func() {
 		testutils.DeleteUser(&u)
 		res.Body.Close()
 	}()
 
 	assert.Equal(t, test.ExpectedCode, res.StatusCode)
-	assert.Equal(t, resBody, fmt.Sprintf("Successfully updated the environment name to %s!", updatedName))
 }

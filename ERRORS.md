@@ -143,11 +143,15 @@ token may need to be regenerated
 - Error Name: `GetEnvironmentInvalidID`
 - Controller: `environment`
 - Path: `/environment/id/:id`
+- Params: `id`
+- Controller: `secret`
+- Path: `/secrets/search?key=<secret_key>&environmentID=<environmentID>`
+- Query: `key, environmentID`
 - Method: `GET`
 - Status: `400`
-- Params: `id`
-- Explanation: the request params doesn't pass one or more of the following field validation rules:
+- Explanation: the request params or request query doesn't pass one or more of the following field validation rules:
     - id: `required,uuid`
+    - environmentID: `required,uuid`
 
 ## E013
 
@@ -164,12 +168,16 @@ token may need to be regenerated
 - Error Name: `GetEnvironmentInvalidName`
 - Controller: `environment`
 - Path: `/environment/name/?name=<environmentName>&projectID=<projectID>`
+- Query: `name, projectID`
 - Path: `/environments/search/?name=<environmentName>&projectID=<projectID>`
+- Query: `name, projectID`
+- Path: `/secrets/projectenvironment/?environment=<environmentName>&project=<projectName>`
+- Query: `environment, project`
 - Method: `GET`
 - Status: `400`
-- Query: `name, projectID`
-- Explanation: the `name` query param doesn't pass one or more of the following field validation rules:
+- Explanation: the request query param doesn't pass one or more of the following field validation rules:
     - name: `required,name,lte=255` (`name` is a custom validation)
+    - environment: `required,name,lte=255` (`name` is a custom validation)
 
 ## E015
 
@@ -188,10 +196,13 @@ token may need to be regenerated
 - Error Name: `GetEnvironmentNonExistentName`
 - Controller: `environment`
 - Path: `/environment/name/:name`
+- Params: `name`
+- Controller: `secret`
+- Path: `/secrets/projectenvironment/?environment=<environmentName>&project=<projectName>`
+- Query: `environment, project`
 - Method: `GET`
 - Status: `404`
-- Params: `name`
-- Explanation: the request params contains an `name` that doesn't match a user created environment
+- Explanation: the request params `name` or request query `environement` contains a value that doesn't match a user created environment
 
 ## E017
 
@@ -470,23 +481,35 @@ environment name should be used instead
 ## E042
 
 - Error Name: `GetProjectInvalidName`
+- Controller: `environment`
+- Params: `name`
+- Path: `/environments/project/:name`
+- Controller: `project`
+- Params: `name`
+- Path: `/secrets/projectenvironment`
 - Controller: `project`
 - Path: `/project/name/:name`
+- Query: `name`
 - Method: `GET`
 - Status: `400`
-- Params: `id`
-- Explanation: the request params doesn't pass one or more of the following field validation rules:
+- Explanation: the request params or request query doesn't pass one or more of the following field validation rules:
     - name: `required,name,lte=255` (`name` is a custom validation)
 
 ## E043
 
 - Error Name: `GetProjectNonExistentName`
+- Controller: `environment`
+- Path: `/environments/project/:name`
+- Params: `name`
 - Controller: `project`
 - Path: `/project/name/:name`
+- Params: `name`
+- Controller: `secret`
+- Path: `/secrets/projectenvironment/?environment=<environmentName>&project=<projectName>`
+- Query: `environment, project`
 - Method: `GET`
 - Status: `404`
-- Params: `name`
-- Explanation: the request params `name` value doesn't match any user created projects
+- Explanation: the request params `name` or request query `project` value doesn't match any user created projects
 
 ## E044
 
@@ -566,3 +589,15 @@ environment name should be used instead
 - Body: `id, updatedName`
 - Explanation: the request body contains a `name` value that in use by the user; another 
 project name should be used instead
+
+## E051
+
+- Error Name: `SearchForSecretsByEnvAndSecretInvalidKey`
+- Controller: `secret`
+- Path: `/secrets/search?key=<secret_key>&environmentID=<environmentID>`
+- Method: `PUT`
+- Status: `400`
+- Query: `key, environmentID`
+- Explanation: the request query doesn't pass one or more of the following field validation rules:
+    - key: `required,gte=2,lte=255`
+

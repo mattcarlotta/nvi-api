@@ -282,15 +282,12 @@ func TestCreateProjectSuccess(t *testing.T) {
 
 	res := sendAppRequest(req)
 
-	resBody := testutils.ParseText(&res.Body)
-
 	defer func() {
 		testutils.DeleteUser(&u)
 		res.Body.Close()
 	}()
 
 	assert.Equal(t, test.ExpectedCode, res.StatusCode)
-	assert.Equal(t, resBody, fmt.Sprintf("Successfully created a(n) %s project!", projectName))
 }
 
 func TestDeleteProjectInvalidID(t *testing.T) {

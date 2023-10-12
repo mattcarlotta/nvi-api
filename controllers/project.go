@@ -100,7 +100,6 @@ func CreateProject(c *fiber.Ctx) error {
 	}
 
 	return c.Status(fiber.StatusCreated).JSON(newProject)
-	// return c.Status(fiber.StatusCreated).SendString(fmt.Sprintf("Successfully created a(n) %s project!", newProject.Name))
 }
 
 func DeleteProject(c *fiber.Ctx) error {

@@ -268,6 +268,34 @@ func TestCreateProjectNameTaken(t *testing.T) {
 	assert.Equal(t, resBody.Error, utils.ErrorCode[utils.CreateProjectNameTaken])
 }
 
+func TestCreateProjectOverLimit(t *testing.T) {
+	u, token := testutils.CreateUser("create_project_over_limit@example.com", true)
+	projects := [10]int{1, 2, 3, 4, 5, 6, 7, 8, 9, 10}
+	for _, p := range projects {
+		testutils.CreateProject(fmt.Sprintf("project_limit_%d", p), token)
+	}
+
+	test := &testutils.TestResponse{
+		Route:        "/create/project/project_limit_11",
+		Method:       fiber.MethodPost,
+		ExpectedCode: fiber.StatusForbidden,
+	}
+
+	req := testutils.CreateAuthHTTPRequest(test, &token)
+
+	res := sendAppRequest(req)
+
+	resBody := testutils.ParseJSONBodyError(&res.Body)
+
+	defer func() {
+		testutils.DeleteUser(&u)
+		res.Body.Close()
+	}()
+
+	assert.Equal(t, test.ExpectedCode, res.StatusCode)
+	assert.Equal(t, resBody.Error, utils.ErrorCode[utils.CreateProjectOverLimit])
+}
+
 func TestCreateProjectSuccess(t *testing.T) {
 	u, token := testutils.CreateUser("create_new_project@example.com", true)
 

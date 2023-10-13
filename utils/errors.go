@@ -63,6 +63,7 @@ const (
 	UpdateProjectNonExistentID
 	UpdateProjectNameTaken
 	SearchForSecretsByEnvAndSecretInvalidKey
+	CreateProjectOverLimit
 )
 
 var ErrorCode = map[ErrorResponseCode]string{
@@ -120,6 +121,7 @@ var ErrorCode = map[ErrorResponseCode]string{
 	UpdateProjectNonExistentID:               "E049",
 	UpdateProjectNameTaken:                   "E050",
 	SearchForSecretsByEnvAndSecretInvalidKey: "E051",
+	CreateProjectOverLimit:                   "E052",
 }
 
 type ResponseError struct {

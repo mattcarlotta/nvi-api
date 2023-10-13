@@ -86,6 +86,12 @@ func CreateProject(c *fiber.Ctx) error {
 		return c.Status(fiber.StatusBadRequest).JSON(utils.JSONError(utils.CreateProjectInvalidName))
 	}
 
+	var projectCount int64
+	db.Model(&models.Project{}).Where("user_id=?", userSessionID).Count(&projectCount)
+	if projectCount >= 10 {
+		return c.Status(fiber.StatusForbidden).JSON(utils.JSONError(utils.CreateProjectOverLimit))
+	}
+
 	var project models.Project
 	if err := db.Where(
 		&models.Project{Name: name, UserID: userSessionID},
@@ -93,7 +99,6 @@ func CreateProject(c *fiber.Ctx) error {
 		return c.Status(fiber.StatusConflict).JSON(utils.JSONError(utils.CreateProjectNameTaken))
 	}
 
-	// TODO(carlotta): add a limit to how many projects can be created per project and account
 	newProject := models.Project{Name: name, UserID: userSessionID}
 	if err := db.Create(&newProject).Error; err != nil {
 		return c.Status(fiber.StatusInternalServerError).JSON(utils.UnknownJSONError(err))

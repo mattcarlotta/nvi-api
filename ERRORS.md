@@ -601,3 +601,13 @@ project name should be used instead
 - Explanation: the request query doesn't pass one or more of the following field validation rules:
     - key: `required,gte=2,lte=255`
 
+## E052
+
+- Error Name: `CreateProjectOverLimit`
+- Controller: `project`
+- Path: `/create/project/:name`
+- Method: `PUT`
+- Status: `403`
+- Params: `name`
+- Explanation: the request is attempting to create a project that goes over the limit of 10 project per account
+

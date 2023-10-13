@@ -118,13 +118,17 @@ func CreateEnvironment(c *fiber.Ctx) error {
 		return c.Status(fiber.StatusNotFound).JSON(utils.JSONError(utils.CreateEnvironmentInvalidProjectID))
 	}
 
+	var environmentCount int64
+	db.Model(&models.Environment{}).Where("user_id=? AND project_id=?", userSessionID, project.ID).Count(&environmentCount)
+	if environmentCount >= 10 {
+		return c.Status(fiber.StatusForbidden).JSON(utils.JSONError(utils.CreateEnvironmentOverLimit))
+	}
+
 	newEnv := models.Environment{Name: data.Name, ProjectID: project.ID, UserID: userSessionID}
 	var environment models.Environment
 	if err := db.Where(&newEnv).First(&environment).Error; err == nil {
 		return c.Status(fiber.StatusConflict).JSON(utils.JSONError(utils.CreateEnvironmentNameTaken))
 	}
-
-	// TODO(carlotta): add a limit to how many environments can be created per project and account
 
 	if err := db.Create(&newEnv).Error; err != nil {
 		return c.Status(fiber.StatusInternalServerError).JSON(utils.UnknownJSONError(err))

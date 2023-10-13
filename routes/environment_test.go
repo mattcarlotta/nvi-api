@@ -403,6 +403,40 @@ func TestCreateEnvironmentNameTaken(t *testing.T) {
 	assert.Equal(t, resBody.Error, utils.ErrorCode[utils.CreateEnvironmentNameTaken])
 }
 
+func TestCreateEnvironmentOverLimit(t *testing.T) {
+	u, token := testutils.CreateUser("create_env_over_limit@example.com", true)
+	p := testutils.CreateProject("create_env_over_limit", token)
+	envs := [10]int{1, 2, 3, 4, 5, 6, 7, 8, 9, 10}
+	for _, e := range envs {
+		testutils.CreateEnvironment(fmt.Sprintf("env_limit_%d", e), p.ID, token)
+	}
+
+	env := &models.ReqCreateEnv{
+		Name:      "env_limit_11",
+		ProjectID: p.ID.String(),
+	}
+
+	test := &testutils.TestResponse{
+		Route:        "/create/environment",
+		Method:       fiber.MethodPost,
+		ExpectedCode: fiber.StatusForbidden,
+	}
+
+	req := testutils.CreateAuthHTTPRequest(test, &token, env)
+
+	res := sendAppRequest(req)
+
+	resBody := testutils.ParseJSONBodyError(&res.Body)
+
+	defer func() {
+		testutils.DeleteUser(&u)
+		res.Body.Close()
+	}()
+
+	assert.Equal(t, test.ExpectedCode, res.StatusCode)
+	assert.Equal(t, resBody.Error, utils.ErrorCode[utils.CreateEnvironmentOverLimit])
+}
+
 func TestCreateEnvironmentSuccess(t *testing.T) {
 	u, token := testutils.CreateUser("create_new_env@example.com", true)
 	p := testutils.CreateProject("create_new_env_project", token)

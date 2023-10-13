@@ -606,8 +606,17 @@ project name should be used instead
 - Error Name: `CreateProjectOverLimit`
 - Controller: `project`
 - Path: `/create/project/:name`
-- Method: `PUT`
+- Method: `POST`
 - Status: `403`
 - Params: `name`
 - Explanation: the request is attempting to create a project that goes over the limit of 10 project per account
 
+## E053
+
+- Error Name: `CreateEnvironmentOverLimit`
+- Controller: `environment`
+- Path: `/create/environment`
+- Method: `POST`
+- Status: `403`
+- Body: `name, projectID`
+- Explanation: the request is attempting to create an environment that goes over the limit of 10 environments per account

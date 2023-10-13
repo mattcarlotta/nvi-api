@@ -64,6 +64,7 @@ const (
 	UpdateProjectNameTaken
 	SearchForSecretsByEnvAndSecretInvalidKey
 	CreateProjectOverLimit
+	CreateEnvironmentOverLimit
 )
 
 var ErrorCode = map[ErrorResponseCode]string{
@@ -122,6 +123,7 @@ var ErrorCode = map[ErrorResponseCode]string{
 	UpdateProjectNameTaken:                   "E050",
 	SearchForSecretsByEnvAndSecretInvalidKey: "E051",
 	CreateProjectOverLimit:                   "E052",
+	CreateEnvironmentOverLimit:               "E053",
 }
 
 type ResponseError struct {

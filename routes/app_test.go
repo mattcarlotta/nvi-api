@@ -29,10 +29,10 @@ func TestMain(m *testing.M) {
 		log.Fatalf("Unable to drop user table: %s", err.Error())
 	}
 	if err := db.Migrator().DropTable(&models.Environment{}); err != nil {
-		log.Fatalf("Unable to environment table: %s", err.Error())
+		log.Fatalf("Unable to drop environment table: %s", err.Error())
 	}
 	if err := db.Migrator().DropTable(&models.Secret{}); err != nil {
-		log.Fatalf("Unable to secret table: %s", err.Error())
+		log.Fatalf("Unable to drop secret table: %s", err.Error())
 	}
 
 	if err := db.AutoMigrate(&models.User{}, &models.Environment{}, &models.Secret{}); err != nil {
@@ -41,6 +41,7 @@ func TestMain(m *testing.M) {
 
 	app = fiber.New()
 
+	CLIRoutes(app)
 	UserRoutes(app)
 	EnvironmentRoutes(app)
 	SecretRoutes(app)

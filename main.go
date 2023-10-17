@@ -20,6 +20,7 @@ func main() {
 
 	middlewares.Setup(app)
 
+	routes.CLIRoutes(app)
 	routes.UserRoutes(app)
 	routes.EnvironmentRoutes(app)
 	routes.SecretRoutes(app)

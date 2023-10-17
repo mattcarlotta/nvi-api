@@ -8,7 +8,6 @@ import (
 
 func SecretRoutes(app *fiber.App) {
 	secret := app.Group("/")
-	secret.Get("/cli/secrets", controllers.GetSecretByAPIKey)
 	secret.Get("/secrets/projectenvironment", middlewares.RequiresCookieSession, controllers.GetSecretsByProjectAndEnvironmentName)
 	secret.Get("/secret/:id", middlewares.RequiresCookieSession, controllers.GetSecretBySecretID)
 	secret.Get("/secrets/id/:id", middlewares.RequiresCookieSession, controllers.GetSecretsByEnvironmentID)

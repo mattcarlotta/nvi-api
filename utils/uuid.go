@@ -10,6 +10,10 @@ import (
 	"github.com/google/uuid"
 )
 
+func GetAPIKey(c *fiber.Ctx) string {
+	return c.Locals("apiKey").(string)
+}
+
 func GetSessionID(c *fiber.Ctx) uuid.UUID {
 	return c.Locals("userSessionID").(uuid.UUID)
 }

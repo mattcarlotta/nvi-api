@@ -36,6 +36,19 @@ func Setup(app *fiber.App) {
 	)
 }
 
+func RequiresAPIKey(c *fiber.Ctx) error {
+	apiKey := c.Query("apiKey")
+	if err := utils.Validate().Var(apiKey, "required,alphanum,lt=50"); err != nil {
+		return c.Status(fiber.StatusUnauthorized).SendString(
+			"a valid apiKey must be supplied in order to access secrets",
+		)
+	}
+
+	c.Locals("apiKey", apiKey)
+
+	return c.Next()
+}
+
 func RequiresCookieSession(c *fiber.Ctx) error {
 	token, err := utils.ValidateSessionToken(c.Cookies("SESSION_TOKEN"))
 	if err != nil {

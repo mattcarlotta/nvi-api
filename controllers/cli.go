@@ -10,6 +10,7 @@ import (
 	"gorm.io/gorm"
 )
 
+// TODO(carlotta): add rate limits to all these endpoints to prevent brute forcing
 func GetSecretsByAPIKey(c *fiber.Ctx) error {
 	db := database.GetConnection()
 	apiKey := utils.GetAPIKey(c)
@@ -57,8 +58,14 @@ func GetSecretsByAPIKey(c *fiber.Ctx) error {
 		var secrets []models.SecretResult
 		if err := tx.Raw(
 			utils.FindSecretsByEnvIDQuery, user.ID, utils.GenerateJSONIDString(environment.ID),
-		).Scan(&secrets).Error; err != nil {
-			return c.Status(fiber.StatusInternalServerError).SendString(err.Error())
+		).Scan(&secrets).Error; err != nil || len(secrets) == 0 {
+			if err != nil {
+				return c.Status(fiber.StatusInternalServerError).SendString(err.Error())
+			}
+
+			return c.Status(fiber.StatusNotFound).SendString(
+				fmt.Sprintf("unable to locate any secrets within the '%s' project '%s' environment", projectName, environmentName),
+			)
 		}
 
 		var stringifiedSecrets string
@@ -67,8 +74,7 @@ func GetSecretsByAPIKey(c *fiber.Ctx) error {
 			if err != nil {
 				return c.Status(fiber.StatusInternalServerError).SendString(err.Error())
 			}
-			var keyValue = secret.Key + "=" + string(decryptedValue) + "\n"
-			stringifiedSecrets += keyValue
+			stringifiedSecrets += secret.Key + "=" + string(decryptedValue) + "\n"
 		}
 
 		return c.Status(fiber.StatusOK).SendString(stringifiedSecrets)

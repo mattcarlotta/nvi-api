@@ -49,9 +49,13 @@ var normalizeUUID = strings.NewReplacer("-", "")
 var normalizer = strings.NewReplacer("9", "99", "-", "90", "_", "91")
 
 func CreateBase64EncodedUUID() string {
-	normalizedID := normalizeUUID.Replace(uuid.NewString())
-	hexID, _ := hex.DecodeString(normalizedID)
-	return normalizer.Replace(base64.RawURLEncoding.EncodeToString(hexID))
+	var encodedUUIDs string
+	for i := 0; i < 2; i++ {
+		normalizedID := normalizeUUID.Replace(uuid.NewString())
+		hexID, _ := hex.DecodeString(normalizedID)
+		encodedUUIDs += normalizer.Replace(base64.RawURLEncoding.EncodeToString(hexID))
+	}
+	return encodedUUIDs
 }
 
 // var denormalizer = strings.NewReplacer("99", "9", "90", "-", "91", "_")

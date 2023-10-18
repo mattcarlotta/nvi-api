@@ -35,9 +35,7 @@ required = [
     "DB_USER", 
     "ENCRYPTION_KEY", 
     "JWT_SECRET_KEY", 
-    "PORT",
-    "SEND_GRID_API_KEY",
-    "SEND_GRID_VERIFICATION_TEMPLATE_ID"
+    "PORT"
 ]
 
 [migrate_test]

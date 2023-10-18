@@ -9,8 +9,6 @@ import (
 	"github.com/mattcarlotta/nvi-api/database"
 	"github.com/mattcarlotta/nvi-api/models"
 	"github.com/mattcarlotta/nvi-api/utils"
-	"github.com/sendgrid/sendgrid-go"
-	"github.com/sendgrid/sendgrid-go/helpers/mail"
 )
 
 func Register(c *fiber.Ctx) error {
@@ -36,47 +34,18 @@ func Register(c *fiber.Ctx) error {
 	}
 
 	newToken := []byte(token)
-	if err = db.Create(
-		&models.User{
-			Email:    data.Email,
-			Name:     data.Name,
-			Password: []byte(data.Password),
-			Token:    &newToken,
-		},
-	).Error; err != nil {
+	newUser := models.User{
+		Email:    data.Email,
+		Name:     data.Name,
+		Password: []byte(data.Password),
+		Token:    &newToken,
+	}
+	if err = db.Create(&newUser).Error; err != nil {
 		return c.Status(fiber.StatusInternalServerError).JSON(utils.UnknownJSONError(err))
 	}
 
-	if utils.GetEnv("IN_TESTING") == "false" {
-		m := mail.NewV3Mail()
-		fromEmailAddress := mail.NewEmail("nvi", utils.GetEnv("EMAIL_ADDRESS"))
-		m.SetFrom(fromEmailAddress)
-
-		m.SetTemplateID(utils.GetEnv("SEND_GRID_VERIFICATION_TEMPLATE_ID"))
-		p := mail.NewPersonalization()
-		toEmailAddresses := []*mail.Email{
-			mail.NewEmail(data.Name, data.Email),
-		}
-		p.AddTos(toEmailAddresses...)
-
-		p.SetDynamicTemplateData("name", data.Name)
-		hostURL := utils.GetEnv("CLIENT_HOST")
-		verifyLink := hostURL + "/verify?token=" + string(newToken)
-		p.SetDynamicTemplateData("verify_link", verifyLink)
-		unsubLink := hostURL + "/settings/"
-		p.SetDynamicTemplateData("unsubscribe", unsubLink)
-		p.SetDynamicTemplateData("unsubscribe_preferences", unsubLink)
-
-		m.AddPersonalizations(p)
-
-		request := sendgrid.GetRequest(utils.GetEnv("SEND_GRID_API_KEY"), "/v3/mail/send", "https://api.sendgrid.com")
-		request.Method = "POST"
-		var Body = mail.GetRequestBody(m)
-		request.Body = Body
-		_, err := sendgrid.API(request)
-		if err != nil {
-			return c.Status(fiber.StatusInternalServerError).JSON(utils.UnknownJSONError(err))
-		}
+	if err = utils.SendAccountVerificationEmail(newUser.Name, newUser.Email, string(newToken)); err != nil {
+		return c.Status(fiber.StatusInternalServerError).JSON(utils.UnknownJSONError(err))
 	}
 
 	return c.Status(fiber.StatusCreated).SendString(
@@ -195,7 +164,9 @@ func ResendAccountVerification(c *fiber.Ctx) error {
 		return c.Status(fiber.StatusInternalServerError).JSON(utils.UnknownJSONError(err))
 	}
 
-	// TODO(carlotta): Send account verification email
+	if err = utils.SendAccountVerificationEmail(user.Name, user.Email, token); err != nil {
+		return c.Status(fiber.StatusInternalServerError).JSON(utils.UnknownJSONError(err))
+	}
 
 	return c.Status(fiber.StatusAccepted).SendString(fmt.Sprintf("Resent a verification email to %s.", user.Email))
 }

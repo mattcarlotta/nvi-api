@@ -2,28 +2,96 @@
 debug = true
 files = ["development.env"]
 execute = "fresh"
-required = ["API_HOST", "CLIENT_HOST", "COOKIE_KEY", "DB_HOST", "DB_NAME", "DB_PASSWORD", "DB_PORT", "DB_USER", "ENCRYPTION_KEY", "JWT_SECRET_KEY", "PORT"]
+required = [
+    "API_HOST", 
+    "CLIENT_HOST", 
+    "COOKIE_KEY", 
+    "DB_HOST", 
+    "DB_NAME", 
+    "DB_PASSWORD", 
+    "DB_PORT", 
+    "DB_USER", 
+    "EMAIL_ADDRESS",
+    "ENCRYPTION_KEY", 
+    "IN_TESTING",
+    "JWT_SECRET_KEY", 
+    "PORT",
+    "SEND_GRID_API_KEY",
+    "SEND_GRID_VERIFICATION_TEMPLATE_ID"
+]
 
 [migrate]
 debug = true
 files = ["development.env"]
 execute = "go run migrations/migrate.go"
-required = ["API_HOST", "CLIENT_HOST", "COOKIE_KEY", "DB_HOST", "DB_NAME", "DB_PASSWORD", "DB_PORT", "DB_USER", "ENCRYPTION_KEY", "JWT_SECRET_KEY", "PORT"]
+required = [
+    "API_HOST", 
+    "CLIENT_HOST", 
+    "COOKIE_KEY", 
+    "DB_HOST", 
+    "DB_NAME", 
+    "DB_PASSWORD", 
+    "DB_PORT", 
+    "DB_USER", 
+    "ENCRYPTION_KEY", 
+    "JWT_SECRET_KEY", 
+    "PORT",
+    "SEND_GRID_API_KEY",
+    "SEND_GRID_VERIFICATION_TEMPLATE_ID"
+]
 
 [migrate_test]
 debug = true
 files = ["test.env"]
 execute = "go run migrations/migrate.go"
-required = ["API_HOST", "CLIENT_HOST", "COOKIE_KEY", "DB_HOST", "DB_NAME", "DB_PASSWORD", "DB_PORT", "DB_USER", "ENCRYPTION_KEY", "JWT_SECRET_KEY", "PORT"]
+required = [
+    "API_HOST", 
+    "CLIENT_HOST", 
+    "COOKIE_KEY", 
+    "DB_HOST", 
+    "DB_NAME", 
+    "DB_PASSWORD", 
+    "DB_PORT", 
+    "DB_USER", 
+    "ENCRYPTION_KEY", 
+    "JWT_SECRET_KEY", 
+    "PORT"
+]
 
 [test]
 debug = false
 files = ["test.env"]
 execute = "go test ./..."
-required = ["API_HOST", "CLIENT_HOST", "COOKIE_KEY", "DB_HOST", "DB_NAME", "DB_PASSWORD", "DB_PORT", "DB_USER", "ENCRYPTION_KEY", "IN_TESTING", "JWT_SECRET_KEY", "PORT"]
+required = [
+    "API_HOST", 
+    "CLIENT_HOST", 
+    "COOKIE_KEY", 
+    "DB_HOST", 
+    "DB_NAME", 
+    "DB_PASSWORD", 
+    "DB_PORT", 
+    "DB_USER", 
+    "ENCRYPTION_KEY", 
+    "IN_TESTING", 
+    "JWT_SECRET_KEY", 
+    "PORT"
+]
 
 [test_no_cache]
 debug = false
 files = ["test.env"]
 execute = "go test ./... -count=1"
-required = ["API_HOST", "CLIENT_HOST", "COOKIE_KEY", "DB_HOST", "DB_NAME", "DB_PASSWORD", "DB_PORT", "DB_USER", "ENCRYPTION_KEY", "IN_TESTING", "JWT_SECRET_KEY", "PORT"]
+required = [
+    "API_HOST", 
+    "CLIENT_HOST", 
+    "COOKIE_KEY", 
+    "DB_HOST", 
+    "DB_NAME", 
+    "DB_PASSWORD", 
+    "DB_PORT", 
+    "DB_USER", 
+    "ENCRYPTION_KEY", 
+    "IN_TESTING", 
+    "JWT_SECRET_KEY", 
+    "PORT"
+]

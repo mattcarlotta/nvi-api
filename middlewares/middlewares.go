@@ -38,9 +38,9 @@ func Setup(app *fiber.App) {
 
 func RequiresAPIKey(c *fiber.Ctx) error {
 	apiKey := c.Query("apiKey")
-	if err := utils.Validate().Var(apiKey, "required,alphanum,lt=50"); err != nil {
+	if err := utils.Validate().Var(apiKey, "required,alphanum"); err != nil {
 		return c.Status(fiber.StatusUnauthorized).SendString(
-			"a valid apiKey must be supplied in order to access secrets",
+			"a valid apiKey must be supplied in order to use the cli endpoint",
 		)
 	}
 

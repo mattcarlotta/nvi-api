@@ -341,7 +341,7 @@ func TestVerifyAccountEmailAlreadyVerified(t *testing.T) {
 	test := &testutils.TestResponse{
 		Route:        fmt.Sprintf("/verify/account?token=%s", token),
 		Method:       fiber.MethodPatch,
-		ExpectedCode: fiber.StatusNotModified,
+		ExpectedCode: fiber.StatusOK,
 	}
 
 	req := testutils.CreateHTTPRequest(test)
@@ -363,7 +363,7 @@ func TestVerifyAccountSuccess(t *testing.T) {
 	test := &testutils.TestResponse{
 		Route:        fmt.Sprintf("/verify/account?token=%s", token),
 		Method:       fiber.MethodPatch,
-		ExpectedCode: fiber.StatusAccepted,
+		ExpectedCode: fiber.StatusCreated,
 	}
 
 	req := testutils.CreateHTTPRequest(test)

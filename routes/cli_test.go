@@ -27,7 +27,7 @@ func TestGetSecretByAPIKeyMissingAPIKey(t *testing.T) {
 	}()
 
 	assert.Equal(t, test.ExpectedCode, res.StatusCode)
-	assert.Equal(t, resBody, "a valid apiKey must be supplied in order to access secrets")
+	assert.Equal(t, resBody, "a valid apiKey must be supplied in order to use the cli endpoint")
 }
 
 func TestGetSecretByAPIKeyInvalidAPIKey(t *testing.T) {

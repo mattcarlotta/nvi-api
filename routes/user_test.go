@@ -404,7 +404,7 @@ func TestResendAccountVerifyInvalidEmail(t *testing.T) {
 	test := &testutils.TestResponse{
 		Route:        "/reverify/account?email=not_a_register_user@example.com",
 		Method:       fiber.MethodPatch,
-		ExpectedCode: fiber.StatusNotModified,
+		ExpectedCode: fiber.StatusOK,
 	}
 
 	req := testutils.CreateHTTPRequest(test)
@@ -423,7 +423,7 @@ func TestResendAccountVerifyEmailAlreadyVerified(t *testing.T) {
 	test := &testutils.TestResponse{
 		Route:        fmt.Sprintf("/reverify/account?email=%s", email),
 		Method:       fiber.MethodPatch,
-		ExpectedCode: fiber.StatusNotModified,
+		ExpectedCode: fiber.StatusOK,
 	}
 
 	req := testutils.CreateHTTPRequest(test)
@@ -445,14 +445,12 @@ func TestResendAccountVerifySuccess(t *testing.T) {
 	test := &testutils.TestResponse{
 		Route:        fmt.Sprintf("/reverify/account?email=%s", email),
 		Method:       fiber.MethodPatch,
-		ExpectedCode: fiber.StatusAccepted,
+		ExpectedCode: fiber.StatusCreated,
 	}
 
 	req := testutils.CreateHTTPRequest(test)
 
 	res := sendAppRequest(req)
-
-	resBody := testutils.ParseText(&res.Body)
 
 	defer func() {
 		testutils.DeleteUser(&u)
@@ -460,7 +458,6 @@ func TestResendAccountVerifySuccess(t *testing.T) {
 	}()
 
 	assert.Equal(t, test.ExpectedCode, res.StatusCode)
-	assert.Equal(t, resBody, fmt.Sprintf("Resent a verification email to %s.", email))
 }
 
 func TestSendResetPasswordInvalidEmail(t *testing.T) {
@@ -486,7 +483,7 @@ func TestSendResetPasswordUnregisteredEmail(t *testing.T) {
 	test := &testutils.TestResponse{
 		Route:        "/reset/password?email=not_a_register_user@example.com",
 		Method:       fiber.MethodPatch,
-		ExpectedCode: fiber.StatusNotModified,
+		ExpectedCode: fiber.StatusOK,
 	}
 
 	req := testutils.CreateHTTPRequest(test)
@@ -512,15 +509,12 @@ func TestSendResetPasswordSuccess(t *testing.T) {
 
 	res := sendAppRequest(req)
 
-	resBody := testutils.ParseText(&res.Body)
-
 	defer func() {
 		testutils.DeleteUser(&u)
 		res.Body.Close()
 	}()
 
 	assert.Equal(t, test.ExpectedCode, res.StatusCode)
-	assert.Equal(t, resBody, fmt.Sprintf("Sent a password reset email to %s.", email))
 }
 
 func TestUpdatePasswordEmptyBody(t *testing.T) {
@@ -609,15 +603,12 @@ func TestUpdatePasswordSuccess(t *testing.T) {
 
 	res := sendAppRequest(req)
 
-	resBody := testutils.ParseText(&res.Body)
-
 	defer func() {
 		testutils.DeleteUser(&u)
 		res.Body.Close()
 	}()
 
 	assert.Equal(t, test.ExpectedCode, res.StatusCode)
-	assert.Equal(t, resBody, "Your account has been updated with a new password!")
 }
 
 func TestUpdateAPIKeySuccess(t *testing.T) {

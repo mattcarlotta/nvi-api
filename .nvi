@@ -6,6 +6,7 @@ required = [
     "API_HOST", 
     "CLIENT_HOST", 
     "COOKIE_KEY", 
+    "CONTACT_US_LINK",
     "DB_HOST", 
     "DB_NAME", 
     "DB_PASSWORD", 
@@ -17,6 +18,8 @@ required = [
     "JWT_SECRET_KEY", 
     "PORT",
     "SEND_GRID_API_KEY",
+    "SEND_GRID_PASSWORD_RESET_CONFIRMATION_TEMPLATE_ID",
+    "SEND_GRID_PASSWORD_RESET_TEMPLATE_ID",
     "SEND_GRID_VERIFICATION_TEMPLATE_ID"
 ]
 

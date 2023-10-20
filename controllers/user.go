@@ -146,12 +146,12 @@ func ResendAccountVerification(c *fiber.Ctx) error {
 
 	var user models.User
 	if err := db.Where(&models.User{Email: email}).First(&user).Error; err != nil {
-		c.Status(fiber.StatusNotModified)
+		c.Status(fiber.StatusOK)
 		return nil
 	}
 
 	if user.Verified {
-		c.Status(fiber.StatusNotModified)
+		c.Status(fiber.StatusOK)
 		return nil
 	}
 
@@ -168,7 +168,8 @@ func ResendAccountVerification(c *fiber.Ctx) error {
 		return c.Status(fiber.StatusInternalServerError).JSON(utils.UnknownJSONError(err))
 	}
 
-	return c.Status(fiber.StatusAccepted).SendString(fmt.Sprintf("Resent a verification email to %s.", user.Email))
+	c.Status(fiber.StatusCreated)
+	return nil
 }
 
 func SendResetPasswordEmail(c *fiber.Ctx) error {
@@ -181,7 +182,7 @@ func SendResetPasswordEmail(c *fiber.Ctx) error {
 
 	var user models.User
 	if err := db.Where(&models.User{Email: email}).First(&user).Error; err != nil {
-		c.Status(fiber.StatusNotModified)
+		c.Status(fiber.StatusOK)
 		return nil
 	}
 
@@ -194,9 +195,12 @@ func SendResetPasswordEmail(c *fiber.Ctx) error {
 		return c.Status(fiber.StatusInternalServerError).JSON(utils.UnknownJSONError(err))
 	}
 
-	// TODO(carlotta): Send account verification email
+	if err = utils.SendPasswordResetEmail(user.Name, user.Email, token); err != nil {
+		return c.Status(fiber.StatusInternalServerError).JSON(utils.UnknownJSONError(err))
+	}
 
-	return c.Status(fiber.StatusAccepted).SendString(fmt.Sprintf("Sent a password reset email to %s.", user.Email))
+	c.Status(fiber.StatusAccepted)
+	return nil
 }
 
 func UpdatePassword(c *fiber.Ctx) error {
@@ -218,7 +222,7 @@ func UpdatePassword(c *fiber.Ctx) error {
 
 	var user models.User
 	if err := db.Where("email=? AND token IS NOT NULL", &parsedToken.Email).First(&user).Error; err != nil {
-		c.Status(fiber.StatusNotModified)
+		c.Status(fiber.StatusOK)
 		return nil
 	}
 
@@ -232,7 +236,12 @@ func UpdatePassword(c *fiber.Ctx) error {
 		return c.Status(fiber.StatusInternalServerError).JSON(utils.UnknownJSONError(err))
 	}
 
-	return c.Status(fiber.StatusCreated).SendString("Your account has been updated with a new password!")
+	if err = utils.SendPasswordResetConfirmationEmail(user.Name, user.Email); err != nil {
+		return c.Status(fiber.StatusInternalServerError).JSON(utils.UnknownJSONError(err))
+	}
+
+	c.Status(fiber.StatusCreated)
+	return nil
 }
 
 func UpdateAPIKey(c *fiber.Ctx) error {

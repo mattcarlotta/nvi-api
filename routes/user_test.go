@@ -502,7 +502,7 @@ func TestSendResetPasswordSuccess(t *testing.T) {
 	test := &testutils.TestResponse{
 		Route:        fmt.Sprintf("/reset/password?email=%s", email),
 		Method:       fiber.MethodPatch,
-		ExpectedCode: fiber.StatusAccepted,
+		ExpectedCode: fiber.StatusCreated,
 	}
 
 	req := testutils.CreateHTTPRequest(test)

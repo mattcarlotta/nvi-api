@@ -188,7 +188,7 @@ func SendResetPasswordEmail(c *fiber.Ctx) error {
 		return c.Status(fiber.StatusInternalServerError).JSON(utils.UnknownJSONError(err))
 	}
 
-	c.Status(fiber.StatusAccepted)
+	c.Status(fiber.StatusCreated)
 	return nil
 }
 

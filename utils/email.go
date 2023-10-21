@@ -13,26 +13,22 @@ type CustomEmail struct {
 	TemplateID string
 }
 
-func (email *CustomEmail) setDefaults() {
-	email.M.SetTemplateID(email.TemplateID)
-	email.M.SetFrom(mail.NewEmail("nvi", GetEnv("EMAIL_ADDRESS")))
-
-	toEmailAddresses := []*mail.Email{mail.NewEmail(email.Name, email.Address)}
-	email.P.AddTos(toEmailAddresses...)
-	email.P.SetDynamicTemplateData("name", email.Name)
-	email.P.SetDynamicTemplateData("unsubscribe", GetEnv("CLIENT_HOST")+"/settings/")
-	email.P.SetDynamicTemplateData("unsubscribe_preferences", GetEnv("CLIENT_HOST")+"/settings/")
-}
-
 func (email *CustomEmail) setTemplateData(property string, value string) {
 	email.P.SetDynamicTemplateData(property, value)
 }
 
-func (email *CustomEmail) save() {
-	email.M.AddPersonalizations(email.P)
-}
-
 func (email *CustomEmail) send() error {
+	email.M.SetTemplateID(email.TemplateID)
+	email.M.SetFrom(mail.NewEmail("nvi", GetEnv("EMAIL_ADDRESS")))
+
+	sendToEmailAddresses := []*mail.Email{mail.NewEmail(email.Name, email.Address)}
+	email.P.AddTos(sendToEmailAddresses...)
+	email.P.SetDynamicTemplateData("name", email.Name)
+	email.P.SetDynamicTemplateData("unsubscribe", GetEnv("CLIENT_HOST")+"/settings/")
+	email.P.SetDynamicTemplateData("unsubscribe_preferences", GetEnv("CLIENT_HOST")+"/settings/")
+
+	email.M.AddPersonalizations(email.P)
+
 	request := sendgrid.GetRequest(GetEnv("SEND_GRID_API_KEY"), "/v3/mail/send", "https://api.sendgrid.com")
 	request.Method = "POST"
 	request.Body = mail.GetRequestBody(email.M)
@@ -53,9 +49,7 @@ func SendAccountVerificationEmail(name string, address string, token string) err
 		TemplateID: GetEnv("SEND_GRID_VERIFICATION_TEMPLATE_ID"),
 	}
 
-	email.setDefaults()
 	email.setTemplateData("verify_link", GetEnv("CLIENT_HOST")+"/verify?token="+token)
-	email.save()
 
 	return email.send()
 }
@@ -73,9 +67,7 @@ func SendPasswordResetEmail(name string, address string, token string) error {
 		TemplateID: GetEnv("SEND_GRID_PASSWORD_RESET_TEMPLATE_ID"),
 	}
 
-	email.setDefaults()
 	email.setTemplateData("reset_password_link", GetEnv("CLIENT_HOST")+"/reset-password?token="+token)
-	email.save()
 
 	return email.send()
 }
@@ -93,9 +85,7 @@ func SendPasswordResetConfirmationEmail(name string, address string) error {
 		TemplateID: GetEnv("SEND_GRID_PASSWORD_RESET_CONFIRMATION_TEMPLATE_ID"),
 	}
 
-	email.setDefaults()
 	email.setTemplateData("contact_us_link", GetEnv("CONTACT_US_LINK"))
-	email.save()
 
 	return email.send()
 }

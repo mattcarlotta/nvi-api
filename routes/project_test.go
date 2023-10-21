@@ -13,7 +13,7 @@ import (
 )
 
 func TestGetAllProjectsSuccess(t *testing.T) {
-	u, token := testutils.CreateUser("get_all_projects@example.com", true)
+	u, token, _ := testutils.CreateUser("get_all_projects@example.com", true)
 
 	test := &testutils.TestResponse{
 		Route:        "/projects",
@@ -34,7 +34,7 @@ func TestGetAllProjectsSuccess(t *testing.T) {
 }
 
 func TestGetProjectByIDInvalidID(t *testing.T) {
-	u, token := testutils.CreateUser("get_project_invalid_id@example.com", true)
+	u, token, _ := testutils.CreateUser("get_project_invalid_id@example.com", true)
 
 	test := &testutils.TestResponse{
 		Route:        "/project/id/not_a_uuid",
@@ -58,7 +58,7 @@ func TestGetProjectByIDInvalidID(t *testing.T) {
 }
 
 func TestGetProjectByIDNonExistentID(t *testing.T) {
-	u, token := testutils.CreateUser("get_project_non_existent_id@example.com", true)
+	u, token, _ := testutils.CreateUser("get_project_non_existent_id@example.com", true)
 
 	test := &testutils.TestResponse{
 		Route:        fmt.Sprintf("/project/id/%s", uuid.NewString()),
@@ -82,7 +82,7 @@ func TestGetProjectByIDNonExistentID(t *testing.T) {
 }
 
 func TestGetProjectByIDSuccess(t *testing.T) {
-	u, token := testutils.CreateUser("get_project_success_id@example.com", true)
+	u, token, _ := testutils.CreateUser("get_project_success_id@example.com", true)
 	p := testutils.CreateProject("get_project_success_id_project", token)
 
 	test := &testutils.TestResponse{
@@ -104,7 +104,7 @@ func TestGetProjectByIDSuccess(t *testing.T) {
 }
 
 func TestGetProjectByNameInvalidName(t *testing.T) {
-	u, token := testutils.CreateUser("get_project_invalid_name@example.com", true)
+	u, token, _ := testutils.CreateUser("get_project_invalid_name@example.com", true)
 
 	test := &testutils.TestResponse{
 		Route:        "/project/name/a@#bc%20",
@@ -128,7 +128,7 @@ func TestGetProjectByNameInvalidName(t *testing.T) {
 }
 
 func TestGetProjectByNameNonExistentName(t *testing.T) {
-	u, token := testutils.CreateUser("get_project_non_existent_name@example.com", true)
+	u, token, _ := testutils.CreateUser("get_project_non_existent_name@example.com", true)
 
 	test := &testutils.TestResponse{
 		Route:        "/project/name/non_existent_name",
@@ -152,7 +152,7 @@ func TestGetProjectByNameNonExistentName(t *testing.T) {
 }
 
 func TestGetProjectByNameSuccess(t *testing.T) {
-	u, token := testutils.CreateUser("get_project_success_name@example.com", true)
+	u, token, _ := testutils.CreateUser("get_project_success_name@example.com", true)
 	p := testutils.CreateProject("get_project_success_name_project", token)
 
 	test := &testutils.TestResponse{
@@ -174,7 +174,7 @@ func TestGetProjectByNameSuccess(t *testing.T) {
 }
 
 func TestSearchForProjectByNameInvalidName(t *testing.T) {
-	u, token := testutils.CreateUser("search_project_invalid_name@example.com", true)
+	u, token, _ := testutils.CreateUser("search_project_invalid_name@example.com", true)
 
 	test := &testutils.TestResponse{
 		Route:        "/projects/search/a@#bc%20",
@@ -198,7 +198,7 @@ func TestSearchForProjectByNameInvalidName(t *testing.T) {
 }
 
 func TestSearchForProjectsByNameSuccess(t *testing.T) {
-	u, token := testutils.CreateUser("search_projects_success_name@example.com", true)
+	u, token, _ := testutils.CreateUser("search_projects_success_name@example.com", true)
 	p := testutils.CreateProject("search_project_success_name_project", token)
 
 	test := &testutils.TestResponse{
@@ -220,7 +220,7 @@ func TestSearchForProjectsByNameSuccess(t *testing.T) {
 }
 
 func TestCreateProjectInvalidName(t *testing.T) {
-	u, token := testutils.CreateUser("create_env_empty@example.com", true)
+	u, token, _ := testutils.CreateUser("create_env_empty@example.com", true)
 
 	test := &testutils.TestResponse{
 		Route:        "/create/project/a@#b%20c",
@@ -244,7 +244,7 @@ func TestCreateProjectInvalidName(t *testing.T) {
 }
 
 func TestCreateProjectNameTaken(t *testing.T) {
-	u, token := testutils.CreateUser("create_project_taken_name@example.com", true)
+	u, token, _ := testutils.CreateUser("create_project_taken_name@example.com", true)
 	p := testutils.CreateProject("create_project_taken_name", token)
 
 	test := &testutils.TestResponse{
@@ -269,7 +269,7 @@ func TestCreateProjectNameTaken(t *testing.T) {
 }
 
 func TestCreateProjectOverLimit(t *testing.T) {
-	u, token := testutils.CreateUser("create_project_over_limit@example.com", true)
+	u, token, _ := testutils.CreateUser("create_project_over_limit@example.com", true)
 	projects := [10]int{1, 2, 3, 4, 5, 6, 7, 8, 9, 10}
 	for _, p := range projects {
 		testutils.CreateProject(fmt.Sprintf("project_limit_%d", p), token)
@@ -297,7 +297,7 @@ func TestCreateProjectOverLimit(t *testing.T) {
 }
 
 func TestCreateProjectSuccess(t *testing.T) {
-	u, token := testutils.CreateUser("create_new_project@example.com", true)
+	u, token, _ := testutils.CreateUser("create_new_project@example.com", true)
 
 	projectName := "create_new_project"
 	test := &testutils.TestResponse{
@@ -319,7 +319,7 @@ func TestCreateProjectSuccess(t *testing.T) {
 }
 
 func TestDeleteProjectInvalidID(t *testing.T) {
-	u, token := testutils.CreateUser("delete_project_invalid_id@example.com", true)
+	u, token, _ := testutils.CreateUser("delete_project_invalid_id@example.com", true)
 
 	test := &testutils.TestResponse{
 		Route:        "/delete/project/not_a_uuid",
@@ -343,7 +343,7 @@ func TestDeleteProjectInvalidID(t *testing.T) {
 }
 
 func TestDeleteProjectNonExistentID(t *testing.T) {
-	u, token := testutils.CreateUser("delete_project_non_existent_id@example.com", true)
+	u, token, _ := testutils.CreateUser("delete_project_non_existent_id@example.com", true)
 
 	test := &testutils.TestResponse{
 		Route:        fmt.Sprintf("/delete/project/%s", uuid.NewString()),
@@ -367,7 +367,7 @@ func TestDeleteProjectNonExistentID(t *testing.T) {
 }
 
 func TestDeleteProjectSuccess(t *testing.T) {
-	u, token := testutils.CreateUser("delete_project_id@example.com", true)
+	u, token, _ := testutils.CreateUser("delete_project_id@example.com", true)
 	p := testutils.CreateProject("delete_project_id", token)
 
 	test := &testutils.TestResponse{
@@ -392,7 +392,7 @@ func TestDeleteProjectSuccess(t *testing.T) {
 }
 
 func TestUpdateProjectInvalidBody(t *testing.T) {
-	u, token := testutils.CreateUser("update_project_invalid_body@example.com", true)
+	u, token, _ := testutils.CreateUser("update_project_invalid_body@example.com", true)
 
 	test := &testutils.TestResponse{
 		Route:        "/update/project",
@@ -416,7 +416,7 @@ func TestUpdateProjectInvalidBody(t *testing.T) {
 }
 
 func TestUpdateProjectInvalidProjectID(t *testing.T) {
-	u, token := testutils.CreateUser("update_project_invalid_project_id@example.com", true)
+	u, token, _ := testutils.CreateUser("update_project_invalid_project_id@example.com", true)
 
 	project := &models.ReqUpdateProject{
 		ID:          "not_a_uuid",
@@ -445,7 +445,7 @@ func TestUpdateProjectInvalidProjectID(t *testing.T) {
 }
 
 func TestUpdateProjectNonExistentID(t *testing.T) {
-	u, token := testutils.CreateUser("update_project_non_existent_id@example.com", true)
+	u, token, _ := testutils.CreateUser("update_project_non_existent_id@example.com", true)
 
 	project := &models.ReqUpdateProject{
 		ID:          uuid.NewString(),
@@ -474,7 +474,7 @@ func TestUpdateProjectNonExistentID(t *testing.T) {
 }
 
 func TestUpdateProjectNameTaken(t *testing.T) {
-	u, token := testutils.CreateUser("update_project_name_taken@example.com", true)
+	u, token, _ := testutils.CreateUser("update_project_name_taken@example.com", true)
 	p1 := testutils.CreateProject("update_project_name_taken", token)
 	p2 := testutils.CreateProject("update_project_name_unused", token)
 
@@ -505,7 +505,7 @@ func TestUpdateProjectNameTaken(t *testing.T) {
 }
 
 func TestUpdateProjectSuccess(t *testing.T) {
-	u, token := testutils.CreateUser("update_project_success@example.com", true)
+	u, token, _ := testutils.CreateUser("update_project_success@example.com", true)
 	p := testutils.CreateProject("update_project_success", token)
 
 	updatedName := "updated_project_name_success"

@@ -52,7 +52,7 @@ func TestGetSecretByAPIKeyInvalidAPIKey(t *testing.T) {
 }
 
 func TestGetSecretByAPIKeyMissingProject(t *testing.T) {
-	u, _ := testutils.CreateUser("cli_get_secrets_missing_project@example.com", true)
+	u, _, _ := testutils.CreateUser("cli_get_secrets_missing_project@example.com", true)
 
 	test := &testutils.TestResponse{
 		Route:        fmt.Sprintf("/cli/secrets/?apiKey=%s", u.APIKey),
@@ -76,7 +76,7 @@ func TestGetSecretByAPIKeyMissingProject(t *testing.T) {
 }
 
 func TestGetSecretByAPIKeyInvalidProject(t *testing.T) {
-	u, _ := testutils.CreateUser("cli_get_secrets_invalid_project@example.com", true)
+	u, _, _ := testutils.CreateUser("cli_get_secrets_invalid_project@example.com", true)
 
 	test := &testutils.TestResponse{
 		Route:        fmt.Sprintf("/cli/secrets/?apiKey=%s&project=not_valid", u.APIKey),
@@ -100,7 +100,7 @@ func TestGetSecretByAPIKeyInvalidProject(t *testing.T) {
 }
 
 func TestGetSecretByAPIKeyMissingEnvironment(t *testing.T) {
-	u, token := testutils.CreateUser("cli_get_secrets_missing_enviroment@example.com", true)
+	u, token, _ := testutils.CreateUser("cli_get_secrets_missing_enviroment@example.com", true)
 	p := testutils.CreateProject("cli_get_secrets_missing_enviroment", token)
 
 	test := &testutils.TestResponse{
@@ -125,7 +125,7 @@ func TestGetSecretByAPIKeyMissingEnvironment(t *testing.T) {
 }
 
 func TestGetSecretByAPIKeyInvalidEnvironment(t *testing.T) {
-	u, token := testutils.CreateUser("cli_get_secrets_invalid_enviroment@example.com", true)
+	u, token, _ := testutils.CreateUser("cli_get_secrets_invalid_enviroment@example.com", true)
 	p := testutils.CreateProject("cli_get_secrets_invalid_enviroment", token)
 
 	envName := "not_valid"
@@ -151,7 +151,7 @@ func TestGetSecretByAPIKeyInvalidEnvironment(t *testing.T) {
 }
 
 func TestGetSecretByAPINoSecrets(t *testing.T) {
-	u, token := testutils.CreateUser("cli_get_secrets_no_secrets@example.com", true)
+	u, token, _ := testutils.CreateUser("cli_get_secrets_no_secrets@example.com", true)
 	p := testutils.CreateProject("cli_get_secrets_no_secrets", token)
 	e := testutils.CreateEnvironment("env_1", p.ID, token)
 
@@ -177,7 +177,7 @@ func TestGetSecretByAPINoSecrets(t *testing.T) {
 }
 
 func TestGetSecretByAPIKeySuccess(t *testing.T) {
-	u, token := testutils.CreateUser("cli_get_secrets_success@example.com", true)
+	u, token, _ := testutils.CreateUser("cli_get_secrets_success@example.com", true)
 	p := testutils.CreateProject("cli_get_secrets_success", token)
 	e, _ := testutils.CreateEnvironmentAndSecret("env_1", p.ID, "KEY", "abc123", token)
 
@@ -221,7 +221,7 @@ func TestGetProjectsByAPIKeyInvalidAPIKey(t *testing.T) {
 }
 
 func TestGetProjectsByAPIKeyNoProjects(t *testing.T) {
-	u, _ := testutils.CreateUser("cli_get_projects_no_projects@example.com", true)
+	u, _, _ := testutils.CreateUser("cli_get_projects_no_projects@example.com", true)
 
 	test := &testutils.TestResponse{
 		Route:        fmt.Sprintf("/cli/projects/?apiKey=%s", u.APIKey),
@@ -245,7 +245,7 @@ func TestGetProjectsByAPIKeyNoProjects(t *testing.T) {
 }
 
 func TestGetProjectsByAPIKeySuccess(t *testing.T) {
-	u, token := testutils.CreateUser("cli_get_projects_success@example.com", true)
+	u, token, _ := testutils.CreateUser("cli_get_projects_success@example.com", true)
 	testutils.CreateProject("cli_get_projects_success", token)
 
 	test := &testutils.TestResponse{
@@ -288,7 +288,7 @@ func TestGetEnvironmentsByAPIKeyInvalidAPIKey(t *testing.T) {
 }
 
 func TestGetEnvironmentsByAPIKeyMissingProject(t *testing.T) {
-	u, _ := testutils.CreateUser("cli_get_environments_missing_project@example.com", true)
+	u, _, _ := testutils.CreateUser("cli_get_environments_missing_project@example.com", true)
 
 	test := &testutils.TestResponse{
 		Route:        fmt.Sprintf("/cli/environments/?apiKey=%s", u.APIKey),
@@ -312,7 +312,7 @@ func TestGetEnvironmentsByAPIKeyMissingProject(t *testing.T) {
 }
 
 func TestGetEnvironmentsByAPIKeyInvalidProject(t *testing.T) {
-	u, _ := testutils.CreateUser("cli_get_environments_invalid_project@example.com", true)
+	u, _, _ := testutils.CreateUser("cli_get_environments_invalid_project@example.com", true)
 
 	test := &testutils.TestResponse{
 		Route:        fmt.Sprintf("/cli/environments/?apiKey=%s&project=not_valid", u.APIKey),
@@ -336,7 +336,7 @@ func TestGetEnvironmentsByAPIKeyInvalidProject(t *testing.T) {
 }
 
 func TestGetEnvironmentsByAPINoEnvironments(t *testing.T) {
-	u, token := testutils.CreateUser("cli_get_environments_no_envs@example.com", true)
+	u, token, _ := testutils.CreateUser("cli_get_environments_no_envs@example.com", true)
 	p := testutils.CreateProject("cli_get_environments_no_envs", token)
 
 	test := &testutils.TestResponse{
@@ -361,7 +361,7 @@ func TestGetEnvironmentsByAPINoEnvironments(t *testing.T) {
 }
 
 func TestGetEnvironmentsByAPIKeySuccess(t *testing.T) {
-	u, token := testutils.CreateUser("cli_get_environments_success@example.com", true)
+	u, token, _ := testutils.CreateUser("cli_get_environments_success@example.com", true)
 	p := testutils.CreateProject("cli_get_environments_success", token)
 	testutils.CreateEnvironmentAndSecret("env_1", p.ID, "KEY", "abc123", token)
 

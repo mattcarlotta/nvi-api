@@ -196,39 +196,37 @@ func UpdateEnvironment(c *fiber.Ctx) error {
 		return c.Status(fiber.StatusBadRequest).JSON(utils.JSONError(utils.UpdateEnvironmentInvalidBody))
 	}
 
-	return db.Transaction(func(tx *gorm.DB) error {
-		projectID := utils.MustParseUUID(data.ProjectID)
+	projectID := utils.MustParseUUID(data.ProjectID)
 
-		var project models.Project
-		if err := tx.Where(
-			&models.Project{ID: projectID, UserID: userSessionID},
-		).First(&project).Error; err != nil {
-			return c.Status(fiber.StatusNotFound).JSON(utils.JSONError(utils.UpdateEnvironmentInvalidProjectID))
-		}
+	var project models.Project
+	if err := db.Where(
+		&models.Project{ID: projectID, UserID: userSessionID},
+	).First(&project).Error; err != nil {
+		return c.Status(fiber.StatusNotFound).JSON(utils.JSONError(utils.UpdateEnvironmentInvalidProjectID))
+	}
 
-		envID := utils.MustParseUUID(data.ID)
+	envID := utils.MustParseUUID(data.ID)
 
-		if err := tx.Not(
-			"id", envID,
-		).Where(
-			&models.Environment{Name: data.UpdatedName, ProjectID: project.ID, UserID: userSessionID},
-		).First(&models.Environment{}).Error; err == nil {
-			return c.Status(fiber.StatusConflict).JSON(utils.JSONError(utils.UpdateEnvironmentNameTaken))
-		}
+	if err := db.Not(
+		"id", envID,
+	).Where(
+		&models.Environment{Name: data.UpdatedName, ProjectID: project.ID, UserID: userSessionID},
+	).First(&models.Environment{}).Error; err == nil {
+		return c.Status(fiber.StatusConflict).JSON(utils.JSONError(utils.UpdateEnvironmentNameTaken))
+	}
 
-		var environment models.Environment
-		if err := tx.Where(
-			&models.Environment{ID: envID, ProjectID: projectID, UserID: userSessionID},
-		).First(&environment).Error; err != nil {
-			return c.Status(fiber.StatusNotFound).JSON(utils.JSONError(utils.UpdateEnvironmentNonExistentID))
-		}
+	var environment models.Environment
+	if err := db.Where(
+		&models.Environment{ID: envID, ProjectID: projectID, UserID: userSessionID},
+	).First(&environment).Error; err != nil {
+		return c.Status(fiber.StatusNotFound).JSON(utils.JSONError(utils.UpdateEnvironmentNonExistentID))
+	}
 
-		if err := tx.Model(&environment).Update("name", data.UpdatedName).Error; err != nil {
-			return c.Status(fiber.StatusInternalServerError).JSON(utils.UnknownJSONError(err))
-		}
+	if err := db.Model(&environment).Update("name", data.UpdatedName).Error; err != nil {
+		return c.Status(fiber.StatusInternalServerError).JSON(utils.UnknownJSONError(err))
+	}
 
-		return c.Status(fiber.StatusOK).SendString(
-			fmt.Sprintf("Successfully updated the environment name to %s!", data.UpdatedName),
-		)
-	})
+	return c.Status(fiber.StatusOK).SendString(
+		fmt.Sprintf("Successfully updated the environment name to %s!", data.UpdatedName),
+	)
 }

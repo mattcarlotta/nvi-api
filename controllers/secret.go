@@ -25,40 +25,38 @@ func GetSecretsByProjectAndEnvironmentName(c *fiber.Ctx) error {
 		return c.Status(fiber.StatusBadRequest).JSON(utils.JSONError(utils.GetEnvironmentInvalidName))
 	}
 
-	return db.Transaction(func(tx *gorm.DB) error {
-		var project models.Project
-		if err := tx.Where(
-			&models.Project{Name: projectName, UserID: userSessionID},
-		).First(&project).Error; err != nil {
-			return c.Status(fiber.StatusNotFound).JSON(utils.JSONError(utils.GetProjectNonExistentName))
-		}
+	var project models.Project
+	if err := db.Where(
+		&models.Project{Name: projectName, UserID: userSessionID},
+	).First(&project).Error; err != nil {
+		return c.Status(fiber.StatusNotFound).JSON(utils.JSONError(utils.GetProjectNonExistentName))
+	}
 
-		var environment models.Environment
-		if err := tx.Where(
-			&models.Environment{Name: environmentName, ProjectID: project.ID, UserID: userSessionID},
-		).First(&environment).Error; err != nil {
-			return c.Status(fiber.StatusNotFound).JSON(utils.JSONError(utils.GetEnvironmentNonExistentName))
-		}
+	var environment models.Environment
+	if err := db.Where(
+		&models.Environment{Name: environmentName, ProjectID: project.ID, UserID: userSessionID},
+	).First(&environment).Error; err != nil {
+		return c.Status(fiber.StatusNotFound).JSON(utils.JSONError(utils.GetEnvironmentNonExistentName))
+	}
 
-		var secrets []models.SecretResult
-		if err := tx.Raw(
-			utils.FindSecretsByEnvIDQuery, userSessionID, utils.GenerateJSONIDString(environment.ID),
-		).Scan(&secrets).Error; err != nil {
-			return c.Status(fiber.StatusInternalServerError).JSON(utils.UnknownJSONError(err))
-		}
+	var secrets []models.SecretResult
+	if err := db.Raw(
+		utils.FindSecretsByEnvIDQuery, userSessionID, utils.GenerateJSONIDString(environment.ID),
+	).Scan(&secrets).Error; err != nil {
+		return c.Status(fiber.StatusInternalServerError).JSON(utils.UnknownJSONError(err))
+	}
 
-		var environments []models.Environment
-		tx.Where(&models.Environment{UserID: userSessionID, ProjectID: project.ID}).Find(&environments)
+	var environments []models.Environment
+	db.Where(&models.Environment{UserID: userSessionID, ProjectID: project.ID}).Find(&environments)
 
-		return c.Status(fiber.StatusOK).JSON(
-			fiber.Map{
-				"environment":  environment,
-				"environments": environments,
-				"project":      project,
-				"secrets":      secrets,
-			},
-		)
-	})
+	return c.Status(fiber.StatusOK).JSON(
+		fiber.Map{
+			"environment":  environment,
+			"environments": environments,
+			"project":      project,
+			"secrets":      secrets,
+		},
+	)
 }
 
 func GetSecretBySecretID(c *fiber.Ctx) error {

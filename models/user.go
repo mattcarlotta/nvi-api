@@ -16,7 +16,6 @@ type User struct {
 	Password  []byte    `gorm:"not null" json:"-"`
 	APIKey    string    `gorm:"not null" json:"apiKey"`
 	Verified  bool      `gorm:"default:false" json:"-"`
-	Token     *[]byte   `gorm:"default:null" json:"-"`
 	CreatedAt time.Time `json:"createdAt"`
 	UpdatedAt time.Time `json:"updatedAt"`
 }

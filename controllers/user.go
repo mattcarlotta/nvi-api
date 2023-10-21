@@ -33,18 +33,16 @@ func Register(c *fiber.Ctx) error {
 		return c.Status(fiber.StatusInternalServerError).JSON(utils.UnknownJSONError(err))
 	}
 
-	newToken := []byte(token)
 	newUser := models.User{
 		Email:    data.Email,
 		Name:     data.Name,
 		Password: []byte(data.Password),
-		Token:    &newToken,
 	}
 	if err = db.Create(&newUser).Error; err != nil {
 		return c.Status(fiber.StatusInternalServerError).JSON(utils.UnknownJSONError(err))
 	}
 
-	if err = utils.SendAccountVerificationEmail(newUser.Name, newUser.Email, string(newToken)); err != nil {
+	if err = utils.SendAccountVerificationEmail(newUser.Name, newUser.Email, token); err != nil {
 		return c.Status(fiber.StatusInternalServerError).JSON(utils.UnknownJSONError(err))
 	}
 
@@ -128,8 +126,7 @@ func VerifyAccount(c *fiber.Ctx) error {
 		return nil
 	}
 
-	var newToken []byte
-	if err = db.Model(&user).Updates(&models.User{Verified: true, Token: &newToken}).Error; err != nil {
+	if err = db.Model(&user).Updates(&models.User{Verified: true}).Error; err != nil {
 		return c.Status(fiber.StatusInternalServerError).JSON(utils.UnknownJSONError(err))
 	}
 
@@ -160,10 +157,6 @@ func ResendAccountVerification(c *fiber.Ctx) error {
 		return c.Status(fiber.StatusInternalServerError).JSON(utils.UnknownJSONError(err))
 	}
 
-	if err = db.Model(&user).Update("token", &token).Error; err != nil {
-		return c.Status(fiber.StatusInternalServerError).JSON(utils.UnknownJSONError(err))
-	}
-
 	if err = utils.SendAccountVerificationEmail(user.Name, user.Email, token); err != nil {
 		return c.Status(fiber.StatusInternalServerError).JSON(utils.UnknownJSONError(err))
 	}
@@ -188,10 +181,6 @@ func SendResetPasswordEmail(c *fiber.Ctx) error {
 
 	token, _, err := utils.GenerateUserToken(email)
 	if err != nil {
-		return c.Status(fiber.StatusInternalServerError).JSON(utils.UnknownJSONError(err))
-	}
-
-	if err = db.Model(&user).Update("token", &token).Error; err != nil {
 		return c.Status(fiber.StatusInternalServerError).JSON(utils.UnknownJSONError(err))
 	}
 
@@ -221,7 +210,7 @@ func UpdatePassword(c *fiber.Ctx) error {
 	}
 
 	var user models.User
-	if err := db.Where("email=? AND token IS NOT NULL", &parsedToken.Email).First(&user).Error; err != nil {
+	if err := db.Where(&models.User{Email: parsedToken.Subject}).First(&user).Error; err != nil {
 		c.Status(fiber.StatusOK)
 		return nil
 	}
@@ -231,8 +220,7 @@ func UpdatePassword(c *fiber.Ctx) error {
 		return c.Status(fiber.StatusInternalServerError).JSON(utils.UnknownJSONError(err))
 	}
 
-	var newToken []byte
-	if err = db.Model(&user).Updates(models.User{Password: newPassword, Token: &newToken}).Error; err != nil {
+	if err = db.Model(&user).Update("password", newPassword).Error; err != nil {
 		return c.Status(fiber.StatusInternalServerError).JSON(utils.UnknownJSONError(err))
 	}
 

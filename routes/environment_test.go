@@ -13,7 +13,7 @@ import (
 )
 
 func TestGetEnvironmentByIDInvalidID(t *testing.T) {
-	u, token := testutils.CreateUser("get_env_invalid_id@example.com", true)
+	u, token, _ := testutils.CreateUser("get_env_invalid_id@example.com", true)
 
 	test := &testutils.TestResponse{
 		Route:        "/environment/id/not_a_uuid",
@@ -37,7 +37,7 @@ func TestGetEnvironmentByIDInvalidID(t *testing.T) {
 }
 
 func TestGetEnvironmentByIDNonExistentID(t *testing.T) {
-	u, token := testutils.CreateUser("get_env_non_existent_id@example.com", true)
+	u, token, _ := testutils.CreateUser("get_env_non_existent_id@example.com", true)
 
 	test := &testutils.TestResponse{
 		Route:        fmt.Sprintf("/environment/id/%s", uuid.NewString()),
@@ -61,7 +61,7 @@ func TestGetEnvironmentByIDNonExistentID(t *testing.T) {
 }
 
 func TestGetEnvironmentByIDSuccess(t *testing.T) {
-	u, token := testutils.CreateUser("get_env_success_id@example.com", true)
+	u, token, _ := testutils.CreateUser("get_env_success_id@example.com", true)
 	p := testutils.CreateProject("get_env_success_id_project", token)
 	e := testutils.CreateEnvironment("get_env_success_id", p.ID, token)
 
@@ -84,7 +84,7 @@ func TestGetEnvironmentByIDSuccess(t *testing.T) {
 }
 
 func TestGetAllEnvironmentsByProjectNameInvalidProjectName(t *testing.T) {
-	u, token := testutils.CreateUser("get_all_envs_by_invalid_name@example.com", true)
+	u, token, _ := testutils.CreateUser("get_all_envs_by_invalid_name@example.com", true)
 
 	test := &testutils.TestResponse{
 		Route:        "/environments/project/@#$",
@@ -108,7 +108,7 @@ func TestGetAllEnvironmentsByProjectNameInvalidProjectName(t *testing.T) {
 }
 
 func TestGetAllEnvironmentsByProjectNonExistentID(t *testing.T) {
-	u, token := testutils.CreateUser("get_all_envs_by_non_existent_name@example.com", true)
+	u, token, _ := testutils.CreateUser("get_all_envs_by_non_existent_name@example.com", true)
 
 	test := &testutils.TestResponse{
 		Route:        "/environments/project/project_does_not_exist",
@@ -132,7 +132,7 @@ func TestGetAllEnvironmentsByProjectNonExistentID(t *testing.T) {
 }
 
 func TestGetAllEnvironmentsByProjectIDSuccess(t *testing.T) {
-	u, token := testutils.CreateUser("success_get_all_env_by_project_name@example.com", true)
+	u, token, _ := testutils.CreateUser("success_get_all_env_by_project_name@example.com", true)
 	p := testutils.CreateProject("success_get_all_env_by_project_name", token)
 
 	test := &testutils.TestResponse{
@@ -154,7 +154,7 @@ func TestGetAllEnvironmentsByProjectIDSuccess(t *testing.T) {
 }
 
 func TestGetEnvironmentByNameInvalidName(t *testing.T) {
-	u, token := testutils.CreateUser("get_env_invalid_name@example.com", true)
+	u, token, _ := testutils.CreateUser("get_env_invalid_name@example.com", true)
 
 	test := &testutils.TestResponse{
 		Route:        "/environment/name/?name=a@#bc%20&projectID=123",
@@ -178,7 +178,7 @@ func TestGetEnvironmentByNameInvalidName(t *testing.T) {
 }
 
 func TestGetEnvironmentByNameInvalidProjectID(t *testing.T) {
-	u, token := testutils.CreateUser("get_env_invalid_name@example.com", true)
+	u, token, _ := testutils.CreateUser("get_env_invalid_name@example.com", true)
 
 	test := &testutils.TestResponse{
 		Route:        "/environment/name/?name=abc&projectID=123",
@@ -202,7 +202,7 @@ func TestGetEnvironmentByNameInvalidProjectID(t *testing.T) {
 }
 
 func TestGetEnvironmentByNameNonExistentName(t *testing.T) {
-	u, token := testutils.CreateUser("get_env_non_existent_name@example.com", true)
+	u, token, _ := testutils.CreateUser("get_env_non_existent_name@example.com", true)
 
 	test := &testutils.TestResponse{
 		Route:        fmt.Sprintf("/environment/name/?name=non_existent_name&projectID=%s", uuid.NewString()),
@@ -226,7 +226,7 @@ func TestGetEnvironmentByNameNonExistentName(t *testing.T) {
 }
 
 func TestGetEnvironmentByNameSuccess(t *testing.T) {
-	u, token := testutils.CreateUser("get_env_success_name@example.com", true)
+	u, token, _ := testutils.CreateUser("get_env_success_name@example.com", true)
 	p := testutils.CreateProject("get_env_success_name_project", token)
 	e := testutils.CreateEnvironment("get_env_success_name", p.ID, token)
 
@@ -249,7 +249,7 @@ func TestGetEnvironmentByNameSuccess(t *testing.T) {
 }
 
 func TestSearchForEnvironmentsByNameAndProjectIDInvalidName(t *testing.T) {
-	u, token := testutils.CreateUser("search_4_envs_by_name_projectID_invalid_name@example.com", true)
+	u, token, _ := testutils.CreateUser("search_4_envs_by_name_projectID_invalid_name@example.com", true)
 
 	test := &testutils.TestResponse{
 		Route:        "/environments/search",
@@ -273,7 +273,7 @@ func TestSearchForEnvironmentsByNameAndProjectIDInvalidName(t *testing.T) {
 }
 
 func TestSearchForEnvironmentsByNameAndProjectIDInvalidProjectID(t *testing.T) {
-	u, token := testutils.CreateUser("search_4_envs_by_name_projectID_invalid_projectID@example.com", true)
+	u, token, _ := testutils.CreateUser("search_4_envs_by_name_projectID_invalid_projectID@example.com", true)
 
 	test := &testutils.TestResponse{
 		Route:        "/environments/search?name=env_name",
@@ -297,7 +297,7 @@ func TestSearchForEnvironmentsByNameAndProjectIDInvalidProjectID(t *testing.T) {
 }
 
 func TestSearchForEnvironmentsByNameAndProjectIDSuccess(t *testing.T) {
-	u, token := testutils.CreateUser("search_4_envs_by_name_projectID_success@example.com", true)
+	u, token, _ := testutils.CreateUser("search_4_envs_by_name_projectID_success@example.com", true)
 	p := testutils.CreateProject("taken_environment_name_project", token)
 	e := testutils.CreateEnvironment("taken_environment_name", p.ID, token)
 
@@ -320,7 +320,7 @@ func TestSearchForEnvironmentsByNameAndProjectIDSuccess(t *testing.T) {
 }
 
 func TestCreateEnvironmentInvalidBody(t *testing.T) {
-	u, token := testutils.CreateUser("create_env_empty@example.com", true)
+	u, token, _ := testutils.CreateUser("create_env_empty@example.com", true)
 
 	test := &testutils.TestResponse{
 		Route:        "/create/environment",
@@ -344,7 +344,7 @@ func TestCreateEnvironmentInvalidBody(t *testing.T) {
 }
 
 func TestCreateEnvironmentInvalidProjectID(t *testing.T) {
-	u, token := testutils.CreateUser("create_env_taken@example.com", true)
+	u, token, _ := testutils.CreateUser("create_env_taken@example.com", true)
 
 	env := &models.ReqCreateEnv{
 		Name:      "taken_environment_name",
@@ -373,7 +373,7 @@ func TestCreateEnvironmentInvalidProjectID(t *testing.T) {
 }
 
 func TestCreateEnvironmentNameTaken(t *testing.T) {
-	u, token := testutils.CreateUser("create_env_taken@example.com", true)
+	u, token, _ := testutils.CreateUser("create_env_taken@example.com", true)
 	p := testutils.CreateProject("taken_environment_name_project", token)
 	testutils.CreateEnvironment("taken_environment_name", p.ID, token)
 
@@ -404,7 +404,7 @@ func TestCreateEnvironmentNameTaken(t *testing.T) {
 }
 
 func TestCreateEnvironmentOverLimit(t *testing.T) {
-	u, token := testutils.CreateUser("create_env_over_limit@example.com", true)
+	u, token, _ := testutils.CreateUser("create_env_over_limit@example.com", true)
 	p := testutils.CreateProject("create_env_over_limit", token)
 	envs := [10]int{1, 2, 3, 4, 5, 6, 7, 8, 9, 10}
 	for _, e := range envs {
@@ -438,7 +438,7 @@ func TestCreateEnvironmentOverLimit(t *testing.T) {
 }
 
 func TestCreateEnvironmentSuccess(t *testing.T) {
-	u, token := testutils.CreateUser("create_new_env@example.com", true)
+	u, token, _ := testutils.CreateUser("create_new_env@example.com", true)
 	p := testutils.CreateProject("create_new_env_project", token)
 
 	env := &models.ReqCreateEnv{
@@ -465,7 +465,7 @@ func TestCreateEnvironmentSuccess(t *testing.T) {
 }
 
 func TestDeleteEnvironmentInvalidID(t *testing.T) {
-	u, token := testutils.CreateUser("delete_env_invalid_id@example.com", true)
+	u, token, _ := testutils.CreateUser("delete_env_invalid_id@example.com", true)
 
 	test := &testutils.TestResponse{
 		Route:        "/delete/environment/not_a_uuid",
@@ -489,7 +489,7 @@ func TestDeleteEnvironmentInvalidID(t *testing.T) {
 }
 
 func TestDeleteEnvironmentNonExistentID(t *testing.T) {
-	u, token := testutils.CreateUser("delete_env_non_existent_id@example.com", true)
+	u, token, _ := testutils.CreateUser("delete_env_non_existent_id@example.com", true)
 
 	test := &testutils.TestResponse{
 		Route:        fmt.Sprintf("/delete/environment/%s", uuid.NewString()),
@@ -513,7 +513,7 @@ func TestDeleteEnvironmentNonExistentID(t *testing.T) {
 }
 
 func TestDeleteEnvironmentSuccess(t *testing.T) {
-	u, token := testutils.CreateUser("delete_new_env@example.com", true)
+	u, token, _ := testutils.CreateUser("delete_new_env@example.com", true)
 	p := testutils.CreateProject("delete_environment_name_project", token)
 	e := testutils.CreateEnvironment("delete_environment_name", p.ID, token)
 
@@ -539,7 +539,7 @@ func TestDeleteEnvironmentSuccess(t *testing.T) {
 }
 
 func TestUpdateEnvironmentInvalidBody(t *testing.T) {
-	u, token := testutils.CreateUser("update_env_invalid_body@example.com", true)
+	u, token, _ := testutils.CreateUser("update_env_invalid_body@example.com", true)
 
 	test := &testutils.TestResponse{
 		Route:        "/update/environment",
@@ -563,7 +563,7 @@ func TestUpdateEnvironmentInvalidBody(t *testing.T) {
 }
 
 func TestUpdateEnvironmentInvalidProjectID(t *testing.T) {
-	u, token := testutils.CreateUser("update_env_invalid_project_id@example.com", true)
+	u, token, _ := testutils.CreateUser("update_env_invalid_project_id@example.com", true)
 	p := testutils.CreateProject("update_env_invalid_project_id", token)
 	e := testutils.CreateEnvironment("update_env_invalid_project_id", p.ID, token)
 
@@ -595,7 +595,7 @@ func TestUpdateEnvironmentInvalidProjectID(t *testing.T) {
 }
 
 func TestUpdateEnvironmentNonExistentID(t *testing.T) {
-	u, token := testutils.CreateUser("update_env_non_existent_id@example.com", true)
+	u, token, _ := testutils.CreateUser("update_env_non_existent_id@example.com", true)
 	p := testutils.CreateProject("update_env_non_existent_id", token)
 
 	env := &models.ReqUpdateEnv{
@@ -626,7 +626,7 @@ func TestUpdateEnvironmentNonExistentID(t *testing.T) {
 }
 
 func TestUpdateEnvironmentNameTaken(t *testing.T) {
-	u, token := testutils.CreateUser("update_env_name_taken@example.com", true)
+	u, token, _ := testutils.CreateUser("update_env_name_taken@example.com", true)
 	p := testutils.CreateProject("update_env_name_taken", token)
 	e1 := testutils.CreateEnvironment("update_env_name_taken", p.ID, token)
 	e2 := testutils.CreateEnvironment("update_env_name_unused", p.ID, token)
@@ -659,7 +659,7 @@ func TestUpdateEnvironmentNameTaken(t *testing.T) {
 }
 
 func TestUpdateEnvironmentSuccess(t *testing.T) {
-	u, token := testutils.CreateUser("update_env_success@example.com", true)
+	u, token, _ := testutils.CreateUser("update_env_success@example.com", true)
 	p := testutils.CreateProject("update_env_success", token)
 	e := testutils.CreateEnvironment("update_env_success", p.ID, token)
 

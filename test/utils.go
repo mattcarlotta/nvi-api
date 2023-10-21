@@ -43,20 +43,18 @@ func RemoveUserByEmail(email string) {
 	}
 }
 
-func CreateUser(email string, verified bool) (models.User, string) {
+func CreateUser(email string, verified bool) (models.User, string, string) {
 	db := database.GetConnection()
 
-	token, _, err := utils.GenerateUserToken(email)
+	authToken, _, err := utils.GenerateUserToken(email)
 	if err != nil {
 		log.Fatal("unable to generate a new user token")
 	}
 
-	tokenByte := []byte(token)
 	newUser := models.User{
 		Name:     "Name",
 		Email:    email,
 		Password: Password,
-		Token:    &tokenByte,
 		Verified: verified,
 	}
 
@@ -64,12 +62,12 @@ func CreateUser(email string, verified bool) (models.User, string) {
 		log.Fatalf("unable to create a user: %v", err)
 	}
 
-	token, _, err = newUser.GenerateSessionToken()
+	token, _, err := newUser.GenerateSessionToken()
 	if err != nil {
 		log.Fatalf("unable to generate a user session token: %v", err)
 	}
 
-	return newUser, token
+	return newUser, token, authToken
 }
 
 // func DeleteEnvironment(existingEnvironment *models.Environment) {

@@ -57,10 +57,9 @@ func Loggedin(c *fiber.Ctx) error {
 
 	var loggedInUser models.User
 	if err := db.Where(&models.User{ID: userSessionID}).Omit("password").First(&loggedInUser).Error; err != nil {
-		newError := errors.New(
-			"encountered an unexpected error. Unable to locate the associated account from the current session",
+		return c.Status(fiber.StatusInternalServerError).JSON(utils.UnknownJSONError(
+			errors.New("unable to locate the associated account from the current session")),
 		)
-		return c.Status(fiber.StatusInternalServerError).JSON(utils.UnknownJSONError(newError))
 	}
 
 	return c.Status(fiber.StatusOK).JSON(loggedInUser)
@@ -238,10 +237,9 @@ func UpdateAPIKey(c *fiber.Ctx) error {
 
 	var user models.User
 	if err := db.Where(&models.User{ID: userSessionID}).First(&user).Error; err != nil {
-		newError := errors.New(
-			"encountered an unexpected error. Unable to locate the associated account from the current session",
+		return c.Status(fiber.StatusInternalServerError).JSON(utils.UnknownJSONError(
+			errors.New("unable to locate the associated account from the current session")),
 		)
-		return c.Status(fiber.StatusInternalServerError).JSON(utils.UnknownJSONError(newError))
 	}
 
 	newAPIKey := utils.CreateBase64EncodedUUID()
@@ -258,10 +256,9 @@ func GetAccountInfo(c *fiber.Ctx) error {
 
 	var user models.User
 	if err := db.Where(&models.User{ID: userSessionID}).First(&user).Error; err != nil {
-		newError := errors.New(
-			"encountered an unexpected error. Unable to locate the associated account from the current session",
+		return c.Status(fiber.StatusInternalServerError).JSON(utils.UnknownJSONError(
+			errors.New("unable to locate the associated account from the current session")),
 		)
-		return c.Status(fiber.StatusInternalServerError).JSON(utils.UnknownJSONError(newError))
 	}
 
 	return c.Status(fiber.StatusOK).JSON(user)
@@ -273,18 +270,18 @@ func DeleteAccount(c *fiber.Ctx) error {
 
 	var user models.User
 	if err := db.Where(&models.User{ID: userSessionID}).First(&user).Error; err != nil {
-		newError := errors.New(
-			"encountered an unexpected error. Unable to locate the associated account from the current session",
+		return c.Status(fiber.StatusInternalServerError).JSON(utils.UnknownJSONError(
+			errors.New("unable to locate the associated account from the current session")),
 		)
-		return c.Status(fiber.StatusInternalServerError).JSON(utils.UnknownJSONError(newError))
 	}
 
 	if err := db.Delete(&user).Error; err != nil {
-		newError := errors.New(
-			"encountered an unexpected error. Unable to delete user account",
+		return c.Status(fiber.StatusInternalServerError).JSON(utils.UnknownJSONError(
+			errors.New("unable to delete user account")),
 		)
-		return c.Status(fiber.StatusInternalServerError).JSON(utils.UnknownJSONError(newError))
 	}
+
+	// TODO(carlotta): send out account deletion confirmation email
 
 	return Logout(c)
 }

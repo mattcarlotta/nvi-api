@@ -11,7 +11,7 @@ import (
 
 type User struct {
 	ID        uuid.UUID `gorm:"type:uuid;default:uuid_generate_v4();primary_key" json:"id"`
-	Name      string    `gorm:"type:varchar(255);not null" json:"name"`
+	Name      string    `gorm:"type:varchar(64);not null" json:"name"`
 	Email     string    `gorm:"type:varchar(255);uniqueIndex;not null" json:"email"`
 	Password  []byte    `gorm:"not null" json:"-"`
 	APIKey    string    `gorm:"not null" json:"apiKey"`
@@ -51,7 +51,7 @@ func (user *User) BeforeCreate(tx *gorm.DB) (err error) {
 }
 
 type ReqRegisterUser struct {
-	Name     string `json:"name" validate:"required,gte=2,lte=255"`
+	Name     string `json:"name" validate:"required,gte=2,lte=64"`
 	Email    string `json:"email" validate:"required,email,lte=255"`
 	Password string `json:"password" validate:"required,gte=5,lte=36"`
 }

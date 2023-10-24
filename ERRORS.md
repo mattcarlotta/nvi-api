@@ -18,7 +18,7 @@ Click here for [field validation rules](https://github.com/go-playground/validat
 - Content: `application/json`
 - Body: `name, email, password`
 - Explanation: the request body doesn't pass one or more of the following field validation rules:
-    - name: `required,gte=2,lte=255`
+    - name: `required,gte=2,lte=64`
     - email: `required,email,lte=255`
     - password: `required,gte=5,lte=36`
 
@@ -620,3 +620,14 @@ project name should be used instead
 - Status: `403`
 - Body: `name, projectID`
 - Explanation: the request is attempting to create an environment that goes over the limit of 10 environments per account
+
+## E054
+
+- Error Name: `UpdateDisplayNameMissingName`
+- Controller: `user`
+- Path: `/update/name`
+- Method: `PATCH`
+- Status: `400`
+- Query: `name`
+- Explanation: the request query doesn't pass one or more of the following field validation rules:
+    - name: `required,gte=2,lte=64`

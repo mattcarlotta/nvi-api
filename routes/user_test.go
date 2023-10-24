@@ -611,6 +611,51 @@ func TestUpdatePasswordSuccess(t *testing.T) {
 	assert.Equal(t, test.ExpectedCode, res.StatusCode)
 }
 
+func TestUpdateDisplayNameMissingName(t *testing.T) {
+	u, token, _ := testutils.CreateUser("update_display_name_missing_name@example.com", true)
+
+	test := &testutils.TestResponse{
+		Route:        "/update/name",
+		Method:       fiber.MethodPatch,
+		ExpectedCode: fiber.StatusBadRequest,
+	}
+
+	req := testutils.CreateAuthHTTPRequest(test, &token)
+
+	res := sendAppRequest(req)
+
+	resBody := testutils.ParseJSONBodyError(&res.Body)
+
+	defer func() {
+		testutils.DeleteUser(&u)
+		res.Body.Close()
+	}()
+
+	assert.Equal(t, test.ExpectedCode, res.StatusCode)
+	assert.Equal(t, resBody.Error, utils.ErrorCode[utils.UpdateDisplayNameMissingName])
+}
+
+func TestUpdateDisplayNameSuccess(t *testing.T) {
+	u, token, _ := testutils.CreateUser("update_display_name_success@example.com", true)
+
+	test := &testutils.TestResponse{
+		Route:        "/update/name/?name=updated_name",
+		Method:       fiber.MethodPatch,
+		ExpectedCode: fiber.StatusCreated,
+	}
+
+	req := testutils.CreateAuthHTTPRequest(test, &token)
+
+	res := sendAppRequest(req)
+
+	defer func() {
+		testutils.DeleteUser(&u)
+		res.Body.Close()
+	}()
+
+	assert.Equal(t, test.ExpectedCode, res.StatusCode)
+}
+
 func TestUpdateAPIKeySuccess(t *testing.T) {
 	u, token, _ := testutils.CreateUser("update_api_key_success@example.com", true)
 

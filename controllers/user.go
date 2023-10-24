@@ -231,6 +231,34 @@ func UpdatePassword(c *fiber.Ctx) error {
 	return nil
 }
 
+func UpdateDisplayName(c *fiber.Ctx) error {
+	db := database.GetConnection()
+	userSessionID := utils.GetSessionID(c)
+
+	name := c.Query("name")
+	if err := utils.Validate().Var(name, "required,gte=2,lte=64"); err != nil {
+		return c.Status(fiber.StatusBadRequest).JSON(utils.JSONError(utils.UpdateDisplayNameMissingName))
+	}
+
+	var existingUser models.User
+	if err := db.Where(&models.User{ID: userSessionID}).First(&existingUser).Error; err != nil {
+		return c.Status(fiber.StatusInternalServerError).JSON(utils.UnknownJSONError(err))
+	}
+
+	if err := db.Model(&existingUser).Update("name", name).Error; err != nil {
+		return c.Status(fiber.StatusInternalServerError).JSON(utils.UnknownJSONError(err))
+	}
+
+	token, exp, err := existingUser.GenerateSessionToken()
+	if err != nil {
+		return c.Status(fiber.StatusInternalServerError).JSON(utils.UnknownJSONError(err))
+	}
+
+	utils.SetSessionCookie(c, token, exp)
+	c.Status(fiber.StatusCreated)
+	return nil
+}
+
 func UpdateAPIKey(c *fiber.Ctx) error {
 	db := database.GetConnection()
 	userSessionID := utils.GetSessionID(c)

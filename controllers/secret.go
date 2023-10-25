@@ -196,7 +196,9 @@ func CreateSecret(c *fiber.Ctx) error {
 	// }
 
 	var secrets []models.Secret
-	if err := db.Preload("Environments", "id in ? AND project_id=?", environmentIDs, projectID).Find(
+	if err := db.Preload(
+		"Environments", "id in ? AND project_id=?", environmentIDs, projectID,
+	).Find(
 		&secrets, "key=? AND user_id=?", data.Key, userSessionID,
 	).Error; err == nil {
 		duplicates := models.GetDupKeyinEnvs(&secrets)
@@ -204,6 +206,9 @@ func CreateSecret(c *fiber.Ctx) error {
 			return c.Status(fiber.StatusConflict).JSON(utils.JSONError(utils.CreateSecretKeyAlreadyExists))
 		}
 	}
+
+	// TODO(carlotta): add secret limitations per environment?
+	// This may be costly to perform if multiple environments are selected.
 
 	newSecret := models.Secret{
 		Key:          data.Key,

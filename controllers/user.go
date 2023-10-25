@@ -309,7 +309,5 @@ func DeleteAccount(c *fiber.Ctx) error {
 		)
 	}
 
-	// TODO(carlotta): send out account deletion confirmation email
-
 	return Logout(c)
 }

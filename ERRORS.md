@@ -314,7 +314,7 @@ environment name should be used instead
 - Method: `GET`
 - Status: `400`
 - Params: `id`
-- Explanation: the request body doesn't pass one or more of the following field validation rules:
+- Explanation: the request params doesn't pass one or more of the following field validation rules:
     - id: `required,uuid`
 
 ## E027
@@ -470,7 +470,7 @@ environment name should be used instead
 
 ## E041
 
-- Error Name: `GetProjectInvalidID`
+- Error Name: `GetProjectNonExistentID`
 - Controller: `project`
 - Path: `/project/id/:id`
 - Method: `GET`

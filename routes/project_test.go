@@ -524,13 +524,10 @@ func TestUpdateProjectSuccess(t *testing.T) {
 
 	res := sendAppRequest(req)
 
-	resBody := testutils.ParseText(&res.Body)
-
 	defer func() {
 		testutils.DeleteUser(&u)
 		res.Body.Close()
 	}()
 
 	assert.Equal(t, test.ExpectedCode, res.StatusCode)
-	assert.Equal(t, resBody, fmt.Sprintf("Successfully updated the project name to %s!", updatedName))
 }

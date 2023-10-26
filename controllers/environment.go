@@ -226,7 +226,5 @@ func UpdateEnvironment(c *fiber.Ctx) error {
 		return c.Status(fiber.StatusInternalServerError).JSON(utils.UnknownJSONError(err))
 	}
 
-	return c.Status(fiber.StatusOK).SendString(
-		fmt.Sprintf("Successfully updated the environment name to %s!", data.UpdatedName),
-	)
+	return c.Status(fiber.StatusOK).JSON(environment)
 }
